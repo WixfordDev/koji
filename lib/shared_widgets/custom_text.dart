@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/constants/app_color.dart';
 
 class CustomText extends StatelessWidget {
   CustomText({
@@ -50,7 +52,7 @@ class CustomText extends StatelessWidget {
           fontSize: fontSize ?? 14.h,
           fontFamily: fontName ?? "Poppins",
           fontWeight: fontWeight == null ? FontWeight.w400 : fontWeight,
-          color: color ?? AppColors.textColor767676,
+          color: color ?? AppColor.primaryColor,
         ),
       ),
     );
