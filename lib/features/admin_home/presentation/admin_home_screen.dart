@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'admin_task_list_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -13,88 +14,110 @@ class AdminHomeScreen extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text("Md. Omar Faruk"),
-            Text("admin")
-          ],
+          children: [Text("Md. Omar Faruk"), Text("admin")],
         ),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 10),
-              child: Icon(Icons.notification_add))
+            child: Icon(Icons.notification_add),
+          ),
         ],
-
       ),
 
       body: SingleChildScrollView(
-        child: Padding(padding: EdgeInsets.all(10.sp),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-           Row(
-             crossAxisAlignment: CrossAxisAlignment.start,
-             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-             children: [
-             headerCardWidget(text1: 'Total Employee', text2: '4005'),
-             headerCardWidget(text1: 'Total Employee', text2: '4005'),
-           ],),
-            SizedBox(
-              height: 10.h,
-            ),
-           headerTitle(text1: "Quick Action"),
-            gridCard(),
-            SizedBox(
-              height: 10.h,
-            ),
-            headerTitle(text1: "Today's Attendance summary"),
-            Container(
-              padding: EdgeInsets.all(5.sp),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2), // shadow color
-                      spreadRadius: 2, // how much it spreads
-                      blurRadius: 6,   // how soft the shadow looks
-                      offset: Offset(2, 3), // horizontal, vertical shift
-                    ),
-                  ]
+        child: Padding(
+          padding: EdgeInsets.all(10.sp),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  headerCardWidget(text1: 'Total Employee', text2: '4005'),
+                  headerCardWidget(text1: 'Total Employee', text2: '4005'),
+                ],
               ),
-              child: Column(children: [
-                cardWidgerRow(),
-                cardWidgerRow(),
-                cardWidgerRow(),
-              ],),
-            ),
-            headerTitle(text1: "Today's Task summary"),
-            Container(
-              padding: EdgeInsets.all(5.sp),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2), // shadow color
-                      spreadRadius: 2, // how much it spreads
-                      blurRadius: 6,   // how soft the shadow looks
-                      offset: Offset(2, 3), // horizontal, vertical shift
-                    ),
-                  ]
+              SizedBox(height: 10.h),
+              headerTitle(text1: "Quick Action"),
+              // gridCard(),
+              SizedBox(
+                height: 340.h,
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 4 items in one row
+                    crossAxisSpacing: 8.0, // horizontal space
+                    mainAxisSpacing: 8.0, // vertical space
+                    childAspectRatio: 1, // width : height ratio
+                  ),
+                  itemCount: 4,
+                  // total number of items
+                  shrinkWrap: true,
+                  // use this if inside another scroll view
+                  physics: const NeverScrollableScrollPhysics(),
+                  // disable scroll if needed
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: (){
+                        //
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminTaskListScreen()));
+                      },
+                        child: gridCard()); // your custom widget
+                  },
+                ),
               ),
-              child: Column(children: [
-                cardWidgerRow(),
-                cardWidgerRow(),
-                cardWidgerRow(),
-              ],),
-            ),
 
-          ],
-        ),
+              SizedBox(height: 10.h),
+              headerTitle(text1: "Today's Attendance summary"),
+              Container(
+                padding: EdgeInsets.all(5.sp),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      // shadow color
+                      spreadRadius: 2,
+                      // how much it spreads
+                      blurRadius: 6,
+                      // how soft the shadow looks
+                      offset: Offset(2, 3), // horizontal, vertical shift
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [cardWidgerRow(), cardWidgerRow(), cardWidgerRow()],
+                ),
+              ),
+              headerTitle(text1: "Today's Task summary"),
+              Container(
+                padding: EdgeInsets.all(5.sp),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      // shadow color
+                      spreadRadius: 2,
+                      // how much it spreads
+                      blurRadius: 6,
+                      // how soft the shadow looks
+                      offset: Offset(2, 3), // horizontal, vertical shift
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [cardWidgerRow(), cardWidgerRow(), cardWidgerRow()],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget cardWidgerRow(){
+  Widget cardWidgerRow() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -102,94 +125,89 @@ class AdminHomeScreen extends StatelessWidget {
         Row(
           children: [
             Container(
-              height:10,
+              height: 10,
               width: 10,
               decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(50)
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(50),
               ),
             ),
-            SizedBox(width: 10,),
-            Text("Employee",style: TextStyle(fontSize: 20.sp),),
+            SizedBox(width: 10),
+            Text("Employee", style: TextStyle(fontSize: 20.sp)),
           ],
         ),
         Row(
           children: [
-            Text("103",style: TextStyle(fontSize: 20.sp),),
-            SizedBox(width: 10,),
-            Icon(Icons.arrow_forward_ios)
-
+            Text("103", style: TextStyle(fontSize: 20.sp)),
+            SizedBox(width: 10),
+            Icon(Icons.arrow_forward_ios),
           ],
         ),
-
       ],
     );
   }
 
-  Widget headerCardWidget(
-  {
-  required String text1,
-  required String text2
-  }
-      ){
+  Widget headerCardWidget({required String text1, required String text2}) {
     return Container(
       padding: EdgeInsets.all(5.sp),
       decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2), // shadow color
-              spreadRadius: 2, // how much it spreads
-              blurRadius: 6,   // how soft the shadow looks
-              offset: Offset(2, 3), // horizontal, vertical shift
-            ),
-          ]
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2), // shadow color
+            spreadRadius: 2, // how much it spreads
+            blurRadius: 6, // how soft the shadow looks
+            offset: Offset(2, 3), // horizontal, vertical shift
+          ),
+        ],
       ),
       child: Row(
-          children: [
-            Icon(Icons.person,size: 60,),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(text1),
-                Text(text2,style: TextStyle(fontSize: 40),),
-
-              ],
-            )
-          ]
-      ),
-    );
-  }
-  Widget gridCard(){
-    return    Container(
-      padding: EdgeInsets.all(10.sp),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2), // shadow color
-              spreadRadius: 2, // how much it spreads
-              blurRadius: 6,   // how soft the shadow looks
-              offset: Offset(2, 3), // horizontal, vertical shift
-            ),
-          ]
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.outbond_rounded,size: 50,),
-          SizedBox(
-            height: 10.h,
+          Icon(Icons.person, size: 60),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(text1),
+              Text(text2, style: TextStyle(fontSize: 40)),
+            ],
           ),
-          Text("View",style: TextStyle(fontSize: 20.sp),),
-          Text("Attendance",style: TextStyle(fontSize: 30.sp),)
         ],
       ),
     );
   }
 
-  Widget headerTitle({required String text1}){
-    return  Text(text1,style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold,),);
+  Widget gridCard() {
+    return Container(
+      padding: EdgeInsets.all(10.sp),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2), // shadow color
+            spreadRadius: 2, // how much it spreads
+            blurRadius: 6, // how soft the shadow looks
+            offset: Offset(2, 3), // horizontal, vertical shift
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(child: Icon(Icons.outbond_rounded, size: 50)),
+          SizedBox(height: 10.h),
+          Expanded(child: Text("View", style: TextStyle(fontSize: 19.sp))),
+          Expanded(child: Text("Attendance", style: TextStyle(fontSize: 27.sp))),
+        ],
+      ),
+    );
+  }
+
+  Widget headerTitle({required String text1}) {
+    return Text(
+      text1,
+      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+    );
   }
 }
