@@ -1,7 +1,7 @@
 
 
 
-class AppColor {
+class AppColors {
 
   static const int primaryColor = 0xFFFFC0CB; 
   static const int secondaryColor = 0xFF000000;

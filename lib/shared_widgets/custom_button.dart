@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../constants/app_color.dart';
 import 'custom_text.dart';
 
 class CustomButton extends StatelessWidget {
@@ -44,8 +45,8 @@ class CustomButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(borderRadius ?? 16.r),
-          border: Border.all(color: boderColor ?? AppColors.primaryColor),
-          color: color ?? AppColors.primaryColor,
+          // border: Border.all(color: boderColor ?? AppColors.primaryColor),
+          // color: color ?? AppColors.primaryColor,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -73,7 +74,7 @@ class CustomButton extends StatelessWidget {
                 ? SizedBox(
                     height: 40.h,
                     width: 25.w,
-                    child: Assets.lottie.loading.lottie(fit: BoxFit.cover),
+                  //  child: Assets.lottie.loading.lottie(fit: BoxFit.cover),
                   )
                 : SizedBox(width: 20.w),
           ],
