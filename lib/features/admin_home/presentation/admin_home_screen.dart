@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/features/admin_home/presentation/admin_attendance_screen.dart';
 
 import 'admin_employee_request_screen.dart';
 import 'admin_task_list_screen.dart';
@@ -64,6 +65,8 @@ class AdminHomeScreen extends StatelessWidget {
                           Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminTaskListScreen()));
                         }else if(index ==1){
                           Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminEmployeeRequestScreen()));
+                        }else if(index == 2){
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminAttendanceScreen()));
                         }
 
                       },

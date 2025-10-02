@@ -88,20 +88,7 @@ class _AdminEmployeeRequestScreenState extends State<AdminEmployeeRequestScreen>
                   // Return the map data on button click
                   print('Clicked user data: $user');
                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminEmployeeView()));
-                  // Example: show dialog
-                  // showDialog(
-                  //   context: context,
-                  //   builder: (context) => AlertDialog(
-                  //     title: Text(user['name']),
-                  //     content: Text(user['subtitle']),
-                  //     actions: [
-                  //       TextButton(
-                  //         onPressed: () => Navigator.pop(context),
-                  //         child: const Text('Close'),
-                  //       )
-                  //     ],
-                  //   ),
-                  // );
+
                 },
                 child: const Text('View'),
               ),
