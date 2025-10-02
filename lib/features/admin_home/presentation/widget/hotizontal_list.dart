@@ -38,7 +38,8 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               widget.onItemSelected(item); // return object
             },
             child: Container(
-              width: 80.w,
+              // width: 80.w,
+              padding: EdgeInsets.all(10.sp),
               decoration: BoxDecoration(
                 color: isSelected ? Colors.red : Colors.blue,
                 borderRadius: BorderRadius.circular(12),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'admin_employee_request_screen.dart';
 import 'admin_task_list_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
@@ -59,8 +60,12 @@ class AdminHomeScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return InkWell(
                       onTap: (){
-                        //
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminTaskListScreen()));
+                        if(index ==0){
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminTaskListScreen()));
+                        }else if(index ==1){
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminEmployeeRequestScreen()));
+                        }
+
                       },
                         child: gridCard()); // your custom widget
                   },
