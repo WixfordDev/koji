@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+
 class TextFieldCustom extends StatelessWidget {
   final String? labelText;
   final TextEditingController controller;
@@ -150,7 +151,9 @@ class TextFieldCustom extends StatelessWidget {
           fontWeight: FontWeight.w500,
           fontSize: 16.sp,
           color: hintTextColor,
+
           // fontFamily: FontConstants.poppinsRegular,
+
         ),
 
         // Padding

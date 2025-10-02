@@ -109,7 +109,9 @@ class _CustomDynamicDropdownButtonState
                 maxLines: 1,
                 style: const TextStyle(
                   color: Colors.black,
+
                   // fontFamily: FontConstants.poppinsMedium,
+
                 ),
               ),
             );
