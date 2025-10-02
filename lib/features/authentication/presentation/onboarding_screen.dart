@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-
-import '../../../core/app_constants/app_colors.dart';
-import '../../../core/config/app_route.dart';
-import '../../../global/custom_assets/assets.gen.dart';
-import '../../widgets/custom_text.dart';
+import 'package:koji/constants/app_color.dart';
+import 'package:koji/shared_widgets/custom_text.dart';
 
 class OnboardingScreen extends StatelessWidget {
   OnboardingScreen({super.key});
@@ -15,7 +12,7 @@ class OnboardingScreen extends StatelessWidget {
     var pageDecoration = PageDecoration(
       bodyAlignment: Alignment.centerLeft,
       titleTextStyle: TextStyle(
-        color: AppColors.textColorSecondary5EAAA8,
+        color: AppColor.primaryColor,
         fontSize: 36.sp,
         fontWeight: FontWeight.bold,
       ),
@@ -55,12 +52,12 @@ class OnboardingScreen extends StatelessWidget {
             Expanded(
               child: IntroductionScreen(
                 pages: pages,
-                onDone: () => Get.offAllNamed(AppRoutes.logInScreen),
-                onSkip: () => Get.offAllNamed(AppRoutes.logInScreen),
+                // onDone: () => Get.offAllNamed(AppRoutes.logInScreen),
+                // onSkip: () => Get.offAllNamed(AppRoutes.logInScreen),
                 next: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primaryColor,
+                    color: AppColor.primaryColor,
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(8.r),
@@ -73,12 +70,12 @@ class OnboardingScreen extends StatelessWidget {
                 done: CustomText(
                   text: "Done",
                   fontSize: 16.sp,
-                  color: AppColors.primaryColor,
+                  color: AppColor.primaryColor,
                 ),
                 dotsDecorator: DotsDecorator(
                   size: Size.square(10.0),
                   activeSize: Size(20.0, 10.0),
-                  activeColor: AppColors.primaryColor,
+                  activeColor: AppColor.primaryColor,
                   color: Color(0xffFFD6B0),
                   spacing: EdgeInsets.symmetric(horizontal: 4.0),
                   activeShape: RoundedRectangleBorder(
