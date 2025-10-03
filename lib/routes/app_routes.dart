@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/features/authentication/presentation/login_screen.dart';
+import 'package:koji/features/authentication/presentation/onboarding_screen.dart';
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
 
@@ -60,6 +61,7 @@ class AppRouter {
         GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
         GoRoute(path: '/sign-in', builder: (_, _) => const LoginScreen()),
         GoRoute(path: '/sign-up', builder: (_, _) => const SignupScreen()),
+        GoRoute(path: '/onboarding', builder: (_, _) => OnboardingScreen()),
       ],
     );
   }

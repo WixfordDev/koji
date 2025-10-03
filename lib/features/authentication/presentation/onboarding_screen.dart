@@ -23,21 +23,21 @@ class OnboardingScreen extends StatelessWidget {
 
     final List<PageViewModel> pages = [
       PageViewModel(
-        title: "Find the Best for Your Pets",
-        body: "Browse unique pet accessories from trusted sellers.",
-        image: Image.asset('assets/images/onboarding1.png', height: 320.h),
+        body:
+            "You’re not just working hours; you’re building progress and shaping success.",
+        image: Image.asset('assets/images/splash.png', height: 320.h),
         decoration: pageDecoration,
       ),
       PageViewModel(
-        title: "Chat & Negotiate Easily",
-        body: "Talk to sellers and get the best deal before you buy.",
-        image: Image.asset('assets/images/onboarding2.png', height: 320.h),
+        body:
+            "track your time, manage your leave, complete your tasks, and stay connected with your employer ",
+        image: Image.asset('assets/images/splash.png', height: 320.h),
         decoration: pageDecoration,
       ),
       PageViewModel(
-        title: "Safe Delivery, Secure Payments",
-        body: "Pay securely and get items shipped to your doorstep.",
-        image: Image.asset('assets/images/onboarding3.png', height: 320.h),
+        body:
+            "Your Journey to Productivity, Simplicity, and Success Starts Here.",
+        image: Image.asset('assets/images/splash.png', height: 320.h),
         decoration: pageDecoration,
       ),
     ];
