@@ -15,12 +15,31 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   flutter_screenutil: ^5.9.3
+  introduction_screen: ^3.1.17
+  go_router: ^16.2.4
+  bloc: ^9.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.10
+  flutter_gen_runner: ^5.1.0
+
+flutter_gen:
+  output: lib/global/custom_assets/ # Optional (default: lib/gen/)
+  line_length: 80 # Optional (default: 80)
+  # Optional
+  integrations:
+    flutter_svg: true
+    # flare_flutter: true
+    # rive: true
+    lottie: true
+    #===========>>>>>>>>>> Flutter Gen Code ==============>>>>>>>>>>>
+    # dart pub global activate flutter_gen
+    # flutter pub run build_runner build --delete-conflicting-outputs
+#    dart run build_runner build
 
 
 flutter:
@@ -31,8 +50,11 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/images/
+    - assets/icons/
+
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
