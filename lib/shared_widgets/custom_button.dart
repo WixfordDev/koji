@@ -47,8 +47,7 @@ class CustomButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius ?? 16.r),
 
           border: Border.all(color: boderColor ?? AppColor.primaryColor),
-          color: color ?? AppColor.primaryColor,
-
+          color: color ?? AppColor.buttonColor,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -70,7 +69,6 @@ class CustomButton extends StatelessWidget {
 
             loaderIgnore ? const SizedBox() : SizedBox(width: 20.w),
 
-
             // loaderIgnore
             //     ? const SizedBox()
             //     : loading
@@ -80,7 +78,6 @@ class CustomButton extends StatelessWidget {
             //         child: Assets.lottie.loading.lottie(fit: BoxFit.cover),
             //       )
             //     : SizedBox(width: 20.w),
-
           ],
         ),
       ),

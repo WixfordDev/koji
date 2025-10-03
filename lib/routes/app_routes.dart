@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/features/authentication/presentation/forgot_password_screen.dart';
 import 'package:koji/features/authentication/presentation/login_screen.dart';
 import 'package:koji/features/authentication/presentation/onboarding_screen.dart';
+import 'package:koji/features/authentication/presentation/reset_password_screen.dart';
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
 
@@ -59,9 +61,21 @@ class AppRouter {
       // },
       routes: [
         GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
-        GoRoute(path: '/sign-in', builder: (_, _) => const LoginScreen()),
-        GoRoute(path: '/sign-up', builder: (_, _) => const SignupScreen()),
+        GoRoute(path: '/sign-in', builder: (_, _) => LoginScreen()),
+        GoRoute(
+          path: '/sign-up',
+          builder: (_, _) => const RegistrationScreen(),
+        ),
         GoRoute(path: '/onboarding', builder: (_, _) => OnboardingScreen()),
+        GoRoute(
+          path: '/forgotPassword',
+          builder: (_, _) => ForgotPasswordScreen(),
+        ),
+
+        GoRoute(
+          path: '/resetPassword',
+          builder: (_, _) => ResetPasswordScreen(),
+        ),
       ],
     );
   }

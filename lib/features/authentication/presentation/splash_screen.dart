@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/routes/app_routes.dart';
+import 'package:koji/shared_widgets/custom_text.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     Future.delayed(Duration(seconds: 3), () async {
-      context.push('/sign-in');
+      context.push('/onboarding');
     });
 
     _controller = AnimationController(
@@ -37,7 +38,12 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               SizedBox(height: 250.h),
 
-              // Assets.images.logo.image(height: 200.h, width: 200.w),
+              //  Assets.images.logo.image(height: 200.h, width: 200.w),
+              Image.asset(
+                'assets/images/splash.png',
+                height: 200.h,
+                width: 200.w,
+              ),
             ],
           ),
         ),

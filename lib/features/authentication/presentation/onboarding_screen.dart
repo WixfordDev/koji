@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:koji/constants/app_color.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
@@ -23,21 +24,24 @@ class OnboardingScreen extends StatelessWidget {
 
     final List<PageViewModel> pages = [
       PageViewModel(
+        title: "",
         body:
             "You’re not just working hours; you’re building progress and shaping success.",
-        image: Image.asset('assets/images/splash.png', height: 320.h),
+        image: Image.asset('assets/images/onboarding1.png', height: 320.h),
         decoration: pageDecoration,
       ),
       PageViewModel(
+        title: "",
         body:
             "track your time, manage your leave, complete your tasks, and stay connected with your employer ",
-        image: Image.asset('assets/images/splash.png', height: 320.h),
+        image: Image.asset('assets/images/onboarding2.png', height: 320.h),
         decoration: pageDecoration,
       ),
       PageViewModel(
+        title: "",
         body:
             "Your Journey to Productivity, Simplicity, and Success Starts Here.",
-        image: Image.asset('assets/images/splash.png', height: 320.h),
+        image: Image.asset('assets/images/onboarding3.png', height: 320.h),
         decoration: pageDecoration,
       ),
     ];
@@ -52,8 +56,12 @@ class OnboardingScreen extends StatelessWidget {
             Expanded(
               child: IntroductionScreen(
                 pages: pages,
-                // onDone: () => Get.offAllNamed(AppRoutes.logInScreen),
-                // onSkip: () => Get.offAllNamed(AppRoutes.logInScreen),
+                onDone: () {
+                  context.push('/sign-in');
+                },
+                onSkip: () {},
+                skip: Text("Skip"),
+
                 next: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
