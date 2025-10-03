@@ -1,28 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:koji/features/authentication/presentation/splash_screen.dart';
+import 'package:koji/routes/app_routes.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'features/admin_home/presentation/admin_home_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // This widget is the root of your application.
+
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    // final authBloc = context.read<AuthBloc>();
+    _router = AppRouter.build();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(360, 690),
-      child: MaterialApp(
+      designSize: _getPhoneDesignSize(),
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
-        home: AdminHomeScreen(),
+        title: 'Koji',
+        // theme: AppThemes.defaultTheme,
+        routerConfig: _router,
       ),
     );
   }
+
+  Size _getPhoneDesignSize() {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return const Size(390, 844);
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      return const Size(412, 915);
+    }
+    return const Size(360, 800);
+  }
 }
-
-
