@@ -18,6 +18,9 @@ dependencies:
   introduction_screen: ^3.1.17
   go_router: ^16.2.4
   bloc: ^9.0.1
+  cached_network_image:
+  shimmer:
+  flutter_svg:
 
 dev_dependencies:
   flutter_test:

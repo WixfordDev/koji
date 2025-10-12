@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
 
-
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
 
@@ -12,9 +11,7 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  final List<Widget> screens = [
-
-  ];
+  final List<Widget> screens = [];
 
   int currentIndex = 0;
 
@@ -62,7 +59,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               width: 22.w,
               height: 22.h,
             ),
-            activeIcon: Assets.icons.overview.svg(
+            activeIcon: Assets.icons.schedule.svg(
               color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
