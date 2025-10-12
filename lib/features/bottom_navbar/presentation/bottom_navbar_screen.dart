@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../global/custom_assets/assets.gen.dart';
+import '../../../constants/app_color.dart';
+
+
+class BottomNavBar extends StatefulWidget {
+  const BottomNavBar({super.key});
+
+  @override
+  State<BottomNavBar> createState() => _BottomNavBarState();
+}
+
+class _BottomNavBarState extends State<BottomNavBar> {
+  final List<Widget> screens = [
+
+  ];
+
+  int currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: screens[currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        backgroundColor: AppColor.backgroundColor,
+        type: BottomNavigationBarType.fixed,
+        elevation: 1,
+        selectedItemColor: AppColor.selectedColor,
+        unselectedItemColor: AppColor.unSelectedColor,
+        selectedLabelStyle: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w400,
+        ),
+        items: [
+          BottomNavigationBarItem(
+            icon: Assets.icons.home.svg(
+              color: AppColor.selectedColor,
+              width: 24.w,
+              height: 24.h,
+            ),
+            activeIcon: Assets.icons.home.svg(
+              color: AppColor.unSelectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Assets.icons.schedule.svg(
+              color: AppColor.selectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            activeIcon: Assets.icons.overview.svg(
+              color: AppColor.unSelectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            label: "Schedule",
+          ),
+          BottomNavigationBarItem(
+            icon: Assets.icons.message.svg(
+              color: AppColor.selectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            activeIcon: Assets.icons.message.svg(
+              color: AppColor.unSelectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            label: "Messages",
+          ),
+          BottomNavigationBarItem(
+            icon: Assets.icons.history.svg(
+              color: AppColor.selectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            activeIcon: Assets.icons.history.svg(
+              color: AppColor.unSelectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            label: "Messages",
+          ),
+          BottomNavigationBarItem(
+            icon: Assets.icons.profile.svg(
+              color: AppColor.selectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            activeIcon: Assets.icons.profile.svg(
+              color: AppColor.unSelectedColor,
+              width: 22.w,
+              height: 22.h,
+            ),
+            label: "Profile",
+          ),
+        ],
+      ),
+    );
+  }
+}
