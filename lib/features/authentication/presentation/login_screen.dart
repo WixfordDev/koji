@@ -74,7 +74,13 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 60.h),
 
               // Log In Button
-              CustomButton(title: "Login", onpress: () {}),
+              CustomButton(
+                title: "Login",
+                onpress: () {
+                  print("tapped login");
+                  context.push('/employeeHomeScreen');
+                },
+              ),
 
               SizedBox(height: 20.h),
 

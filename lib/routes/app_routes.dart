@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:koji/features/authentication/presentation/forgot_password_screen.dart';
 import 'package:koji/features/authentication/presentation/login_screen.dart';
 import 'package:koji/features/authentication/presentation/onboarding_screen.dart';
 import 'package:koji/features/authentication/presentation/reset_password_screen.dart';
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
+import 'package:koji/features/employee_home/presentation/employee_home_screen.dart';
+import 'package:koji/features/message/presentation/message_screen.dart';
+import 'package:koji/features/notification/presentation/notification_screen.dart';
 
 /* Helper to let GoRouter refresh when Bloc state changes */
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -26,7 +30,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 class AppRouter {
   static GoRouter build() {
     return GoRouter(
-      initialLocation: '/splash',
+      initialLocation: '/sign-in',
       debugLogDiagnostics: true,
 
       // refreshListenable: GoRouterRefreshStream(authBloc.stream),
@@ -75,6 +79,21 @@ class AppRouter {
         GoRoute(
           path: '/resetPassword',
           builder: (_, _) => ResetPasswordScreen(),
+        ),
+
+        GoRoute(
+          path: '/employeeHomeScreen',
+          builder: (_, _) => EmployeeHomeScreen(),
+        ),
+
+        GoRoute(
+          path: '/messageListScreen',
+          builder: (_, _) => MessageListScreen(),
+        ),
+
+        GoRoute(
+          path: '/notificationScreen',
+          builder: (_, _) => NotificationScreen(),
         ),
       ],
     );
