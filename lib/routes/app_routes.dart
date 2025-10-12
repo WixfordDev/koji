@@ -64,21 +64,21 @@ class AppRouter {
       //   return '/splash';
       // },
       routes: [
-        GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
-        GoRoute(path: '/sign-in', builder: (_, _) => LoginScreen()),
+        GoRoute(path: '/splash', builder: (_, x) => const SplashScreen()),
+        GoRoute(path: '/sign-in', builder: (_, x) => LoginScreen()),
         GoRoute(
           path: '/sign-up',
-          builder: (_, _) => const RegistrationScreen(),
+          builder: (_, x) => const RegistrationScreen(),
         ),
-        GoRoute(path: '/onboarding', builder: (_, _) => OnboardingScreen()),
+        GoRoute(path: '/onboarding', builder: (_, x) => OnboardingScreen()),
         GoRoute(
           path: '/forgotPassword',
-          builder: (_, _) => ForgotPasswordScreen(),
+          builder: (_, x) => ForgotPasswordScreen(),
         ),
 
         GoRoute(
           path: '/resetPassword',
-          builder: (_, _) => ResetPasswordScreen(),
+          builder: (_, x) => ResetPasswordScreen(),
         ),
 
         GoRoute(
