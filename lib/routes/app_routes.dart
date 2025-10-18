@@ -13,6 +13,12 @@ import 'package:koji/features/employee_home/presentation/employee_home_screen.da
 import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/notification/presentation/notification_screen.dart';
 
+import '../features/admin_home/presentation/admin_attendance_screen.dart';
+import '../features/admin_home/presentation/admin_employee_request_screen.dart';
+import '../features/admin_home/presentation/admin_employee_view.dart';
+import '../features/admin_home/presentation/admin_home_screen.dart';
+import '../features/admin_home/presentation/admin_task_list_screen.dart';
+
 /* Helper to let GoRouter refresh when Bloc state changes */
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription _sub;
@@ -30,7 +36,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 class AppRouter {
   static GoRouter build() {
     return GoRouter(
-      initialLocation: '/sign-in',
+      initialLocation: '/AdminHomeScreen',
       debugLogDiagnostics: true,
 
       // refreshListenable: GoRouterRefreshStream(authBloc.stream),
@@ -94,6 +100,27 @@ class AppRouter {
         GoRoute(
           path: '/notificationScreen',
           builder: (_, _) => NotificationScreen(),
+        ),
+
+        GoRoute(
+          path: '/AdminTaskListScreen',
+          builder: (_, _) => AdminTaskListScreen(),
+        ),
+        GoRoute(
+          path: '/AdminHomeScreen',
+          builder: (_, _) => AdminHomeScreen(),
+        ),
+        GoRoute(
+          path: '/AdminEmployeeView',
+          builder: (_, _) => AdminEmployeeView(),
+        ),
+        GoRoute(
+          path: '/AdminEmployeeRequestScreen',
+          builder: (_, _) => AdminEmployeeRequestScreen(),
+        ),
+        GoRoute(
+          path: '/AdminAttendanceScreen',
+          builder: (_, _) => AdminAttendanceScreen(),
         ),
       ],
     );

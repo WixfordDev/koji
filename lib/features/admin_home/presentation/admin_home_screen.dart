@@ -2,26 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/features/admin_home/presentation/admin_attendance_screen.dart';
 
+import '../../../shared_widgets/custom_text.dart';
 import 'admin_employee_request_screen.dart';
 import 'admin_task_list_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
-  const AdminHomeScreen({super.key});
+  AdminHomeScreen({super.key});
+
+  List<Map<String, dynamic>> gridList = [
+    {
+      "image": "assets/images/bg1.png",
+      "text1": "Task",
+      "text2": "Manage",
+      "icon": "assets/images/task.png",
+    },
+    {
+      "image": "assets/images/bg2.png",
+      "text1": "Employee",
+      "text2": "Request",
+      "icon": "assets/images/request.png",
+    },
+    {
+      "image": "assets/images/bg3.png",
+      "text1": "View",
+      "text2": "Attendence",
+      "icon": "assets/images/attendance.png",
+    },
+    {
+      "image": "assets/images/b.png",
+      "text1": "View",
+      "text2": "Attendence",
+      "icon": "assets/images/report.png",
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: Icon(Icons.person),
+        backgroundColor: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset("assets/images/profile.png"),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
-          children: [Text("Md. Omar Faruk"), Text("admin")],
+          children: [
+            CustomText(
+              text: "Parvej Hossain",
+              fontSize: 25.h,
+              fontWeight: FontWeight.w700,
+              top: 12.h,
+              bottom: 0.h,
+            ),
+            CustomText(
+              text: "Admin",
+              fontSize: 18.h,
+              fontWeight: FontWeight.w500,
+              top: 0.h,
+              bottom: 0.h,
+            ),
+          ],
         ),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 10),
-            child: Icon(Icons.notification_add),
+            child: Image.asset(
+              "assets/images/notification.png",
+              height: 30.h,
+              width: 30.w,
+            ),
           ),
         ],
       ),
@@ -36,15 +88,23 @@ class AdminHomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  headerCardWidget(text1: 'Total Employee', text2: '4005'),
-                  headerCardWidget(text1: 'Total Employee', text2: '4005'),
+                  headerCardWidget(
+                    text1: 'Total Employee',
+                    text2: '4005',
+                    img: 'assets/images/color_person.png',
+                  ),
+                  headerCardWidget(
+                    text1: 'Attendance',
+                    text2: '96%',
+                    img: 'assets/images/icon_attendance.png',
+                  ),
                 ],
               ),
               SizedBox(height: 10.h),
               headerTitle(text1: "Quick Action"),
               // gridCard(),
               SizedBox(
-                height: 340.h,
+                // height: 340.h,
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2, // 4 items in one row
@@ -52,7 +112,7 @@ class AdminHomeScreen extends StatelessWidget {
                     mainAxisSpacing: 8.0, // vertical space
                     childAspectRatio: 1, // width : height ratio
                   ),
-                  itemCount: 4,
+                  itemCount: gridList.length,
                   // total number of items
                   shrinkWrap: true,
                   // use this if inside another scroll view
@@ -60,17 +120,30 @@ class AdminHomeScreen extends StatelessWidget {
                   // disable scroll if needed
                   itemBuilder: (context, index) {
                     return InkWell(
-                      onTap: (){
-                        if(index ==0){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminTaskListScreen()));
-                        }else if(index ==1){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminEmployeeRequestScreen()));
-                        }else if(index == 2){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdminAttendanceScreen()));
+                      onTap: () {
+                        if (index == 0) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => AdminTaskListScreen(),
+                            ),
+                          );
+                        } else if (index == 1) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AdminEmployeeRequestScreen(),
+                            ),
+                          );
+                        } else if (index == 2) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => AdminAttendanceScreen(),
+                            ),
+                          );
                         }
-
                       },
-                        child: gridCard()); // your custom widget
+                      child: gridCard(index),
+                    ); // your custom widget
                   },
                 ),
               ),
@@ -78,23 +151,48 @@ class AdminHomeScreen extends StatelessWidget {
               SizedBox(height: 10.h),
               headerTitle(text1: "Today's Attendance summary"),
               Container(
-                padding: EdgeInsets.all(5.sp),
+                padding: EdgeInsets.all(10.sp),
                 decoration: BoxDecoration(
                   color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: Colors.black.withValues(alpha: 0.1),
                       // shadow color
-                      spreadRadius: 2,
+                      spreadRadius: 1,
                       // how much it spreads
-                      blurRadius: 6,
+                      blurRadius: 0,
                       // how soft the shadow looks
-                      offset: Offset(2, 3), // horizontal, vertical shift
+                      offset: Offset(0, 2), // horizontal, vertical shift
                     ),
                   ],
                 ),
                 child: Column(
-                  children: [cardWidgerRow(), cardWidgerRow(), cardWidgerRow()],
+                  children: [
+                    cardWidgerRow(
+                      text1: 'Employees Arrived On Time',
+                      text2: '1050',
+                      color: Colors.blue,
+                    ),
+                    SizedBox(height: 10.h),
+                    cardWidgerRow(
+                      text1: 'Late Comers Today',
+                      text2: '120',
+                      color: Color(0xffF3934F),
+                    ),
+                    SizedBox(height: 10.h),
+                    cardWidgerRow(
+                      text1: 'Absent Employees Today',
+                      text2: '50',
+                      color: Color(0xffF34F4F),
+                    ),
+                    SizedBox(height: 10.h),
+                    cardWidgerRow(
+                      text1: 'Working Employees Today',
+                      text2: '1200',
+                      color: Colors.blue,
+                    ),
+                  ],
                 ),
               ),
               headerTitle(text1: "Today's Task summary"),
@@ -102,20 +200,44 @@ class AdminHomeScreen extends StatelessWidget {
                 padding: EdgeInsets.all(5.sp),
                 decoration: BoxDecoration(
                   color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: Colors.black.withValues(alpha: 0.1),
                       // shadow color
-                      spreadRadius: 2,
+                      spreadRadius: 1,
                       // how much it spreads
-                      blurRadius: 6,
+                      blurRadius: 0,
                       // how soft the shadow looks
-                      offset: Offset(2, 3), // horizontal, vertical shift
+                      offset: Offset(0, 2), // horizontal, vertical shift
                     ),
                   ],
                 ),
                 child: Column(
-                  children: [cardWidgerRow(), cardWidgerRow(), cardWidgerRow()],
+                  children: [
+                    cardWidgerRow(
+                      text1: 'Total Task',
+                      text2: '20',
+                      color: Color(0xff3EBF5A),
+                    ),
+                    SizedBox(height: 10.h,),
+                    cardWidgerRow(
+                      text1: 'Complete Task ',
+                      text2: '05',
+                      color: Color(0xffF3934F),
+                    ),
+                    SizedBox(height: 10.h,),
+                    cardWidgerRow(
+                      text1: 'Pending Task',
+                      text2: '15',
+                      color: Color(0xffF34F4F),
+                    ),SizedBox(height: 10.h,),
+                    cardWidgerRow(
+                      text1: 'In - Progress Task',
+                      text2: '15',
+                      color: Colors.blue,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -125,7 +247,11 @@ class AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget cardWidgerRow() {
+  Widget cardWidgerRow({
+    required String text1,
+    required String text2,
+    required Color color,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,51 +259,82 @@ class AdminHomeScreen extends StatelessWidget {
         Row(
           children: [
             Container(
-              height: 10,
-              width: 10,
+              height: 20.h,
+              width: 20.w,
               decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(50),
+                color: color,
+                borderRadius: BorderRadius.circular(50.r),
               ),
             ),
             SizedBox(width: 10),
-            Text("Employee", style: TextStyle(fontSize: 20.sp)),
+            CustomText(
+              text: text1,
+              fontSize: 20.h,
+              fontWeight: FontWeight.w500,
+              top: 0.h,
+              bottom: 0.h,
+            ),
           ],
         ),
         Row(
           children: [
-            Text("103", style: TextStyle(fontSize: 20.sp)),
-            SizedBox(width: 10),
-            Icon(Icons.arrow_forward_ios),
+            CustomText(
+              text: text2,
+              fontSize: 23.h,
+              fontWeight: FontWeight.w700,
+              color: color,
+              top: 0.h,
+              bottom: 0.h,
+            ),
+            SizedBox(width: 10.r),
+            Icon(Icons.arrow_forward_ios, size: 17.sp),
           ],
         ),
       ],
     );
   }
 
-  Widget headerCardWidget({required String text1, required String text2}) {
+  Widget headerCardWidget({
+    required String text1,
+    required String text2,
+    required String img,
+  }) {
     return Container(
       padding: EdgeInsets.all(5.sp),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2), // shadow color
-            spreadRadius: 2, // how much it spreads
-            blurRadius: 6, // how soft the shadow looks
-            offset: Offset(2, 3), // horizontal, vertical shift
+            color: Colors.black.withValues(alpha: 0.1), // shadow color
+            spreadRadius: 1, // how much it spreads
+            blurRadius: 2.r, // how soft the shadow looks
+            offset: Offset(0, 2), // horizontal, vertical shift
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(Icons.person, size: 60),
+          Image.asset(img, height: 60.h, width: 60.w),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(text1),
-              Text(text2, style: TextStyle(fontSize: 40)),
+              CustomText(
+                text: text1,
+                fontSize: 18.h,
+                fontWeight: FontWeight.w500,
+                top: 0.h,
+                bottom: 0.h,
+              ),
+              CustomText(
+                text: text2,
+                fontSize: 40.sp,
+                color: text1 == "Attendance" ? Colors.blue : Colors.red,
+                fontWeight: FontWeight.w500,
+                top: 0.h,
+                bottom: 0.h,
+              ),
             ],
           ),
         ],
@@ -185,37 +342,68 @@ class AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget gridCard() {
+  Widget gridCard(int index) {
     return Container(
       padding: EdgeInsets.all(10.sp),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2), // shadow color
-            spreadRadius: 2, // how much it spreads
-            blurRadius: 6, // how soft the shadow looks
-            offset: Offset(2, 3), // horizontal, vertical shift
-          ),
-        ],
+        image: DecorationImage(
+          image: AssetImage(gridList[index]['image']), // your image path
+          fit: BoxFit.cover, // cover, contain, fill, fitWidth, fitHeight
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: Icon(Icons.outbond_rounded, size: 50)),
-          SizedBox(height: 10.h),
-          Expanded(child: Text("View", style: TextStyle(fontSize: 19.sp))),
-          Expanded(child: Text("Attendance", style: TextStyle(fontSize: 27.sp))),
+          Expanded(
+            child: Image.asset(
+              gridList[index]['icon'],
+              height: 50.h,
+              width: 50.w,
+            ),
+          ),
+
+          // SizedBox(height: 1.h),
+          // Expanded(
+          //   child: ,
+          // ),
+          // Spacer(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  text: gridList[index]['text1'],
+                  fontSize: 20.h,
+                  fontWeight: FontWeight.w800,
+                  top: 5.h,
+                  color: Colors.white,
+                  bottom: 0.h,
+                ),
+                CustomText(
+                  text: gridList[index]['text2'],
+                  fontSize: 30.h,
+                  fontWeight: FontWeight.w800,
+                  top: 0.h,
+                  color: Colors.white,
+                  bottom: 0.h,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget headerTitle({required String text1}) {
-    return Text(
-      text1,
-      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+    return CustomText(
+      text: text1,
+      fontSize: 28.h,
+      fontWeight: FontWeight.w500,
+      top: 2.h,
+      bottom: 5.h,
     );
   }
 }
