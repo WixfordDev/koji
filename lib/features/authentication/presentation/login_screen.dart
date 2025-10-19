@@ -78,7 +78,7 @@ class LoginScreen extends StatelessWidget {
                 title: "Login",
                 onpress: () {
                   print("tapped login");
-                  context.push('/calendarScreen');
+                  context.push('/bottomNavBar');
                 },
               ),
 

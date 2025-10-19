@@ -13,6 +13,7 @@ import 'package:koji/features/employee_home/presentation/employee_home_screen.da
 import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/notification/presentation/notification_screen.dart';
 
+import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
 import '../features/employee_history/presentation/employee_history_screen.dart';
 import '../features/employee_history/presentation/taskreport_screen.dart';
 import '../features/employee_schedule/presentation/calendar_screen.dart';
@@ -153,6 +154,10 @@ class AppRouter {
         GoRoute(
           path: '/calendarScreen',
           builder: (_, _) => CalendarScreen(),
+        ),
+        GoRoute(
+          path: '/bottomNavBar',
+          builder: (_, _) => BottomNavBar(),
         ),
 
 
