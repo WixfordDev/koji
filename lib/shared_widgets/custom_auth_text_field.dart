@@ -7,6 +7,8 @@ class CustomAuthTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final Widget? suffixIcon;
+  final VoidCallback? onSuffixTap;
+  final int maxLines;
 
   const CustomAuthTextField({
     Key? key,
@@ -15,6 +17,8 @@ class CustomAuthTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.suffixIcon,
+    this.onSuffixTap,
+    this.maxLines = 1,
   }) : super(key: key);
 
   @override
@@ -28,22 +32,36 @@ class CustomAuthTextField extends StatelessWidget {
             color: Colors.white10,
             spreadRadius: 1,
             blurRadius: 2,
-            offset: Offset(1, 1),
+            offset: const Offset(1, 1),
           ),
         ],
       ),
       child: TextField(
+        maxLines: maxLines,
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        readOnly: onSuffixTap != null,
         decoration: InputDecoration(
           hintText: hintText,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: BorderSide.none,
+          ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16.w,
             vertical: 14.h,
           ),
-          suffixIcon: suffixIcon,
+          suffixIcon: suffixIcon != null
+              ? GestureDetector(
+            onTap: onSuffixTap,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.only(right: 8.w),
+              child: suffixIcon,
+            ),
+          )
+              : null,
         ),
       ),
     );

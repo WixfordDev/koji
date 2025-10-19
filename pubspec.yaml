@@ -21,6 +21,9 @@ dependencies:
   cached_network_image:
   shimmer:
   flutter_svg:
+  dotted_border: ^2.1.0
+  image_picker: ^1.1.2
+  table_calendar:
 
 dev_dependencies:
   flutter_test:

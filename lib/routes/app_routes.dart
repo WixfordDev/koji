@@ -13,6 +13,18 @@ import 'package:koji/features/employee_home/presentation/employee_home_screen.da
 import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/notification/presentation/notification_screen.dart';
 
+import '../features/employee_history/presentation/employee_history_screen.dart';
+import '../features/employee_history/presentation/taskreport_screen.dart';
+import '../features/employee_schedule/presentation/calendar_screen.dart';
+import '../features/employee_schedule/presentation/my_task_screen.dart';
+import '../features/employee_schedule/presentation/submit_task_screen.dart';
+import '../features/profile/presentation/change_password_screen.dart';
+import '../features/profile/presentation/help_support_screen.dart';
+import '../features/profile/presentation/my_profile_screen.dart';
+import '../features/profile/presentation/privacy_policy_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/terms_condition_screen.dart';
+
 /* Helper to let GoRouter refresh when Bloc state changes */
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription _sub;
@@ -95,6 +107,56 @@ class AppRouter {
           path: '/notificationScreen',
           builder: (_, _) => NotificationScreen(),
         ),
+
+
+        GoRoute(
+          path: '/submitTaskScreen',
+          builder: (_, _) => SubmitTaskScreen(),
+        ),
+
+        GoRoute(
+          path: '/myTaskScreen',
+          builder: (_, _) => MyTaskScreen(),
+        ),
+        GoRoute(
+          path: '/historyScreen',
+          builder: (_, _) => HistoryScreen(),
+        ),
+        GoRoute(
+          path: '/taskReportScreen',
+          builder: (_, _) => TaskReportScreen(),
+        ),
+        GoRoute(
+          path: '/profileScreen',
+          builder: (_, _) => ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/myProfileScreen',
+          builder: (_, _) => MyProfileScreen(),
+        ),
+        GoRoute(
+          path: '/changePasswordScreen',
+          builder: (_, _) => ChangePasswordScreen(),
+        ),
+        GoRoute(
+          path: '/privacyPolicyScreen',
+          builder: (_, _) => PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: '/termsConditionScreen',
+          builder: (_, _) => TermsConditionScreen(),
+        ),
+        GoRoute(
+          path: '/helpSupportScreen',
+          builder: (_, _) => HelpSupportScreen(),
+        ),
+        GoRoute(
+          path: '/calendarScreen',
+          builder: (_, _) => CalendarScreen(),
+        ),
+
+
+
       ],
     );
   }
