@@ -24,145 +24,147 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Profile Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      CustomNetworkImage(
-                        imageUrl: "https://example.com/image.jpg",
-                        height: 40.h,
-                        width: 40.w,
-                        boxShape: BoxShape.circle,
-                      ),
-                      SizedBox(width: 10.w),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            text: "Good Morning,",
-                            color: const Color(0xff8F8F8F),
-                            fontSize: 12.sp,
-                          ),
-                          CustomText(
-                            text: "Najibur Rahman",
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      context.push('/notificationScreen');
-                    },
-                    child: Icon(
-                      Icons.notifications_none_outlined,
-                      color: const Color(0xff8F8F8F),
-                      size: 22.sp,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 96.h),
-
-              // Center Clock and Date
-              Center(
-                child: Column(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Profile Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(
-                      text: "09:12",
-                      fontWeight: FontWeight.bold,
-                      fontSize: 60.sp,
+                    Row(
+                      children: [
+                        CustomNetworkImage(
+                          imageUrl: "https://example.com/image.jpg",
+                          height: 40.h,
+                          width: 40.w,
+                          boxShape: BoxShape.circle,
+                        ),
+                        SizedBox(width: 10.w),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: "Good Morning,",
+                              color: const Color(0xff8F8F8F),
+                              fontSize: 12.sp,
+                            ),
+                            CustomText(
+                              text: "Najibur Rahman",
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14.sp,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    CustomText(
-                      text: "Sunday, Sept 16",
-                      color: const Color(0xff8F8F8F),
-                      fontSize: 26.sp,
+                    GestureDetector(
+                      onTap: () {
+                        context.push('/notificationScreen');
+                      },
+                      child: Icon(
+                        Icons.notifications_none_outlined,
+                        color: const Color(0xff8F8F8F),
+                        size: 22.sp,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 60.h),
-
-              // Check In / Check Out Button
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    if (isCheckedIn) {
-                      _showConfirmCheckOutDialog();
-                    } else {
-                      setState(() => isCheckedIn = true);
-                    }
-                  },
-                  child: Container(
-                    height: 229.h,
-                    width: 229.h,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: isCheckedIn
-                            ? [Colors.redAccent, Colors.red]
-                            : [Colors.blueAccent, Colors.blue],
+                SizedBox(height: 96.h),
+            
+                // Center Clock and Date
+                Center(
+                  child: Column(
+                    children: [
+                      CustomText(
+                        text: "09:12",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 60.sp,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+                      CustomText(
+                        text: "Sunday, Sept 16",
+                        color: const Color(0xff8F8F8F),
+                        fontSize: 26.sp,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 60.h),
+            
+                // Check In / Check Out Button
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (isCheckedIn) {
+                        _showConfirmCheckOutDialog();
+                      } else {
+                        setState(() => isCheckedIn = true);
+                      }
+                    },
+                    child: Container(
+                      height: 229.h,
+                      width: 229.h,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: isCheckedIn
+                              ? [Colors.redAccent, Colors.red]
+                              : [Colors.blueAccent, Colors.blue],
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/hand.svg',
-                          height: 60,
-                          width: 60,
-                        ),
-
-                        SizedBox(height: 5.h),
-                        CustomText(
-                          text: isCheckedIn ? "CHECK OUT" : "CHECK IN",
-                          color: Colors.white,
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icons/hand.svg',
+                            height: 60,
+                            width: 60,
+                          ),
+            
+                          SizedBox(height: 5.h),
+                          CustomText(
+                            text: isCheckedIn ? "CHECK OUT" : "CHECK IN",
+                            color: Colors.white,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-
-              // Location Text
-              Center(
-                child: CustomText(
-                  text: isCheckedIn
-                      ? "Location: You are not in Office reach"
-                      : "Location: Singapore, Adam Park",
-                  color: const Color(0xff8F8F8F),
-                  fontSize: 12.sp,
+                SizedBox(height: 20.h),
+            
+                // Location Text
+                Center(
+                  child: CustomText(
+                    text: isCheckedIn
+                        ? "Location: You are not in Office reach"
+                        : "Location: Singapore, Adam Park",
+                    color: const Color(0xff8F8F8F),
+                    fontSize: 12.sp,
+                  ),
                 ),
-              ),
-              SizedBox(height: 62.h),
-
-              // Bottom Info Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _infoItem("09:12", "Clock In"),
-                  _infoItem(isCheckedIn ? "--:--" : "10:12", "Clock Out"),
-                  _infoItem(isCheckedIn ? "--:--" : "01:12", "Total Hours"),
-                ],
-              ),
-            ],
+                SizedBox(height: 62.h),
+            
+                // Bottom Info Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _infoItem("09:12", "Clock In"),
+                    _infoItem(isCheckedIn ? "--:--" : "10:12", "Clock Out"),
+                    _infoItem(isCheckedIn ? "--:--" : "01:12", "Total Hours"),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
