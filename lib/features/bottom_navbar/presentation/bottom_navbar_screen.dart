@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/features/employee_home/presentation/employee_home_screen.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
 
@@ -11,7 +12,9 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  final List<Widget> screens = [];
+  final List<Widget> screens = [
+    EmployeeHomeScreen()
+  ];
 
   int currentIndex = 0;
 
