@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 
 import '../../../constants/app_color.dart';
@@ -136,34 +137,13 @@ class _MyTaskScreenState extends State<MyTaskScreen> {
 
               SizedBox(height: 30.h),
 
-              // Buttons
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.shade300, width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                  ),
-                  child: Text(
-                    "Add Extra Service",
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
+
 
 
               CustomButton(
-                title: 'Confirm & Submit Task',
+                title: 'Accept',
                 onpress: () {
+                  context.push('/submitTaskScreen');
 
                 },),
 
