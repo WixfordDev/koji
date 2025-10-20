@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/features/employee_history/presentation/employee_history_screen.dart';
 import 'package:koji/features/employee_home/presentation/employee_home_screen.dart';
+import 'package:koji/features/message/presentation/message_screen.dart';
+import 'package:koji/features/profile/presentation/profile_screen.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
+import '../../employee_schedule/presentation/calendar_screen.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
@@ -13,7 +17,11 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   final List<Widget> screens = [
-    EmployeeHomeScreen()
+    EmployeeHomeScreen(),
+    CalendarScreen(),
+    MessageListScreen(),
+    HistoryScreen(),
+    ProfileScreen(),
   ];
 
   int currentIndex = 0;
@@ -93,7 +101,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               width: 22.w,
               height: 22.h,
             ),
-            label: "Messages",
+            label: "History",
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.profile.svg(

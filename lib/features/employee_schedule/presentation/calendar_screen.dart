@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -137,7 +138,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: List.generate(tabs.length, (index) {
                       bool isSelected = selectedTab == index;
                       return GestureDetector(
-                        onTap: () => setState(() => selectedTab = index),
+                        onTap: ()
+                        => context.push('/myTaskScreen'),
                         child: Container(
                           padding:
                           EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),

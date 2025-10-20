@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:koji/shared_widgets/custom_button.dart';
 
 import '../../../constants/app_color.dart';
+import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class SubmitTaskScreen extends StatefulWidget {
@@ -14,7 +14,137 @@ class SubmitTaskScreen extends StatefulWidget {
 }
 
 class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
+  DateTime? startDate;
+  DateTime? endDate;
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
 
+
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _showSignaturePopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 30.h),
+            child: SizedBox(
+              width: 358.w,
+              height: 382.h,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Customer Signature",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Container(
+                    height: 150.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    // child: Signature(
+                    //   controller: _signatureController,
+                    //   backgroundColor: Colors.white,
+                    // ),
+                  ),
+                  SizedBox(height: 30.h),
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: () async {
+
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        padding: EdgeInsets.zero,
+                        elevation: 0,
+                        backgroundColor: Colors.transparent,
+                      ),
+                      child: Ink(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.1, -0.9),
+                            end: Alignment(0.8, 1.0),
+                            colors: [Color(0xFF4082FB), Color(0xFF4082FB)],
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Submit",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  // Cancel Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48.h,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF4082FB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                      ),
+                      child: Text(
+                        "No, Let Me Check",
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF4082FB),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ----------------------------------------------------
+  // ------------------ MAIN UI -------------------------
+  // ----------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +170,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
             ),
           ],
         ),
-
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -51,7 +180,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
             children: [
               SizedBox(height: 20.h),
 
-              // Attachment Section
               Text(
                 "Attachment",
                 style: TextStyle(
@@ -66,7 +194,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
               ),
               SizedBox(height: 12.h),
 
-              // Upload Boxes Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(
@@ -79,7 +206,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                       border: Border.all(
                         color: Colors.grey.shade400,
                         width: 1,
-                        style: BorderStyle.solid,
                       ),
                     ),
                     child: Center(
@@ -94,7 +220,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
               ),
               SizedBox(height: 24.h),
 
-              // TextFields
               _buildTextField(label: "Department", hint: "Handy Man"),
               _buildTextField(label: "Service Category", hint: "Plumbing Service"),
               _buildTextField(label: "Service Description", hint: "Plumbing Service", maxLines: 3),
@@ -103,7 +228,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
               _buildTextField(label: "Customer Address", hint: "Dhaka, Bangladesh"),
               _buildTextField(label: "Assign To", hint: "Koji Tech 123"),
 
-              // Date Pickers
               _buildDateTimeRow(
                 label: "Assign Date",
                 startHint: startDate == null
@@ -117,33 +241,27 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                 icon: Icons.calendar_today_outlined,
               ),
 
-              // Time Pickers
               _buildDateTimeRow(
                 label: "Assign Time",
-                startHint:
-                startTime == null ? "Start Time" : startTime!.format(context),
-                endHint:
-                endTime == null ? "End Time" : endTime!.format(context),
+                startHint: startTime == null ? "Start Time" : startTime!.format(context),
+                endHint: endTime == null ? "End Time" : endTime!.format(context),
                 startOnTap: () => _pickTime(true),
                 endOnTap: () => _pickTime(false),
                 icon: Icons.access_time_outlined,
               ),
 
-
               _buildTextField(label: "Priority", hint: "Important"),
               _buildTextField(label: "Difficulty", hint: "Medium"),
-
-              // Dropdown Fields
               _buildDropdown(label: "Payment Method", hint: "Select Method"),
               _buildDropdown(label: "Payment Status", hint: "Select Status"),
 
               SizedBox(height: 30.h),
 
-              // Buttons
+              // 🔹 Popup Trigger Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: _showSignaturePopup,
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey.shade300, width: 1),
                     shape: RoundedRectangleBorder(
@@ -163,13 +281,10 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
               ),
               SizedBox(height: 16.h),
 
-
               CustomButton(
-                  title: 'Accept',
-                  onpress: () {
-                    context.push('/myTaskScreen');
-                  },),
-
+                title: 'Confirm and Submit Task',
+                onpress: () {},
+              ),
 
               SizedBox(height: 40.h),
             ],
@@ -179,8 +294,13 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
     );
   }
 
-  // Helper: TextField
-  Widget _buildTextField({required String label, required String hint, int maxLines = 1}) {
+  // ---------------- Helper Widgets ----------------
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
       child: Column(
@@ -218,8 +338,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+          Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
           SizedBox(height: 6.h),
           Row(
             children: [
@@ -229,16 +348,14 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   child: AbsorbPointer(
                     child: TextField(
                       decoration: InputDecoration(
-                        prefixIcon:
-                        Icon(icon, color: Colors.grey.shade600, size: 20.sp),
+                        prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 20.sp),
                         hintText: startHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
-                          borderSide:
-                          BorderSide(color: Colors.grey.shade400, width: 1),
+                          borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10.w, vertical: 12.h),
+                        contentPadding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
                       ),
                     ),
                   ),
@@ -251,16 +368,14 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   child: AbsorbPointer(
                     child: TextField(
                       decoration: InputDecoration(
-                        prefixIcon:
-                        Icon(icon, color: Colors.grey.shade600, size: 20.sp),
+                        prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 20.sp),
                         hintText: endHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
-                          borderSide:
-                          BorderSide(color: Colors.grey.shade400, width: 1),
+                          borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10.w, vertical: 12.h),
+                        contentPadding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
                       ),
                     ),
                   ),
@@ -273,7 +388,6 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
     );
   }
 
-  // Helper: Dropdown
   Widget _buildDropdown({required String label, required String hint}) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
@@ -302,11 +416,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
     );
   }
 
-
-  DateTime? startDate;
-  DateTime? endDate;
-  TimeOfDay? startTime;
-  TimeOfDay? endTime;
+  // ---------------- Date & Time Pickers ----------------
 
   Future<void> _pickDate(bool isStart) async {
     final picked = await showDatePicker(
@@ -341,5 +451,4 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
       });
     }
   }
-
 }
