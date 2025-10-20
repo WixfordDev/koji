@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../shared_widgets/custom_text.dart';
+
 class HorizontalListExample extends StatefulWidget {
   final List<Map<String, dynamic>> items; // pass your data list
   final Function(Map<String, dynamic>) onItemSelected; // callback when tapped
@@ -16,7 +18,7 @@ class HorizontalListExample extends StatefulWidget {
 }
 
 class _HorizontalListExampleState extends State<HorizontalListExample> {
-  int selectedIndex = -1;
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -38,17 +40,28 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               widget.onItemSelected(item); // return object
             },
             child: Container(
-              // width: 80.w,
               padding: EdgeInsets.all(10.sp),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.red : Colors.blue,
-                borderRadius: BorderRadius.circular(12),
+                border: isSelected?null: Border.all(
+                  width: 1,
+                  color: Colors.black
+                ),
+                color: isSelected ? Colors.red : Colors.white,
+                borderRadius: BorderRadius.circular(30.r),
               ),
               alignment: Alignment.center,
-              child: Text(
-                item["title"], // show map value
-                style: const TextStyle(color: Colors.white),
+              child:     CustomText(
+                text: "${item["title"]}",
+                fontSize: 10.sp,
+                color:  isSelected ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w500,
+                top: 0.h,
+                bottom: 0.h,
               ),
+              // child: Text(
+              //   item["title"], // show map value
+              //   style: const TextStyle(color: Colors.white),
+              // ),
             ),
           );
         },
