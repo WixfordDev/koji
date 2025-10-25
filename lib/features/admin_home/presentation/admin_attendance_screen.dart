@@ -1,126 +1,198 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:koji/features/admin_home/presentation/widget/hotizontal_list.dart';
+import '../../../constants/app_color.dart';
+import '../../../shared_widgets/custom_text.dart';
 
-class AdminAttendanceScreen extends StatelessWidget {
+class AdminAttendanceScreen extends StatefulWidget {
   const AdminAttendanceScreen({super.key});
-  final List<Map<String, dynamic>> users = const [
-    {
-      "name": "John Doe",
-      "subtitle": "Software Engineer",
-      "image":
-      "https://www.w3schools.com/howto/img_avatar.png", // network image
-    },
-    {
-      "name": "Jane Smith",
-      "subtitle": "Product Manager",
-      "image":
-      "https://www.w3schools.com/howto/img_avatar2.png",
-    },
-    {
-      "name": "Mike Johnson",
-      "subtitle": "UX Designer",
-      "image":
-      "https://www.w3schools.com/howto/img_avatar.png",
-    },
-    {
-      "name": "Mike Johnson",
-      "subtitle": "UX Designer",
-      "image":
-      "https://www.w3schools.com/howto/img_avatar.png",
-    },
-    {
-      "name": "Mike Johnson",
-      "subtitle": "UX Designer",
-      "image":
-      "https://www.w3schools.com/howto/img_avatar.png",
-    },
-  ];
+
+  @override
+  State<AdminAttendanceScreen> createState() => _AdminAttendanceScreenState();
+}
+
+class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Attandance"), centerTitle: true),
-      body: Padding(
-        padding: EdgeInsets.all(10.sp),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
+              onPressed: () => Navigator.pop(context),
+            ),
+            SizedBox(width: 12.w),
+            CustomText(
+              text: "Attendance",
+              color: AppColor.secondaryColor,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 2,
-                mainAxisSpacing: 2,
-                shrinkWrap: true, // Important for scrollable parent
-                physics: NeverScrollableScrollPhysics(),
+              /// Search & Month
+              Row(
                 children: [
-                  DashboardCard(
-                    title: "Users",
-                    subtitle: "1,200",
-                    icon: Icons.people,
-                    color: Colors.purple,
-                    onTap: () => print("Users card tapped"),
-                  ),
-                  DashboardCard(
-                    title: "Revenue",
-                    subtitle: "\$25,000",
-                    icon: Icons.attach_money,
-                    color: Colors.green,
-                    onTap: () => print("Revenue card tapped"),
-                  ),
-                  DashboardCard(
-                    title: "Orders",
-                    subtitle: "320",
-                    icon: Icons.shopping_cart,
-                    color: Colors.orange,
-                    onTap: () => print("Orders card tapped"),
-                  ),
-                  DashboardCard(
-                    title: "Messages",
-                    subtitle: "15",
-                    icon: Icons.message,
-                    color: Colors.blue,
-                    onTap: () => print("Messages card tapped"),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 10.h),
-
-              HorizontalListExample(
-                items: [
-                  {"id": 1, "title": "Pending"},
-                  {"id": 2, "title": "Approval"},
-                  {"id": 3, "title": "Rejected"},
-                ],
-                onItemSelected: (selectedItem) {
-                  print("You clicked: ${selectedItem["title"]}, ID: ${selectedItem["id"]}");
-                },
-              ),
-
-              SizedBox(height: 10.h),
-
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 1,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 25,
-                        backgroundImage: NetworkImage(user['image']),
+                  Expanded(
+                    child: Container(
+                      height: 40.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(100.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      title: Text(user['name']),
-                      subtitle: Text(user['subtitle']),
-                      trailing: Icon(Icons.person),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search, color: Colors.grey, size: 23.r),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: "Search",
+                                border: InputBorder.none,
+                                hintStyle: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Container(
+                    height: 40.h,
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(100.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        CustomText(
+                          text: "November",
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(Icons.calendar_today_outlined,
+                            color: Colors.black, size: 18.r),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.h),
+
+              /// Summary Cards
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildSummaryCard("22", "Present", const Color(0xFFC4EAD5), const Color(0xFF31712B)),
+                  _buildSummaryCard("03", "Absent", const Color(0xFFD2E8F8), const Color(0xFF0B59A1)),
+                  _buildSummaryCard("04", "Late In", const Color(0xFFF3E8C1), const Color(0xFFE3A607)),
+                  _buildSummaryCard("02", "Early Out", const Color(0xFFFCCCCC), const Color(0xFFEE3E3E)),
+                ],
+              ),
+
+              SizedBox(height: 20.h),
+
+              /// Status Filter
+              Row(
+                children: [
+                  _buildStatusChip("Pending", selectedStatus == "Pending"),
+                  SizedBox(width: 10.w),
+                  _buildStatusChip("Approved", selectedStatus == "Approved"),
+                  SizedBox(width: 10.w),
+                  _buildStatusChip("Reject", selectedStatus == "Reject"),
+                ],
+              ),
+              SizedBox(height: 20.h),
+
+              /// Employee List Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(
+                    text: "Employee List",
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  Container(
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        CustomText(
+                          text: "Department",
+                          fontSize: 14.sp,
+                          color: Colors.black87,
+                        ),
+                        Icon(Icons.keyboard_arrow_down, size: 20.r),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+
+              /// Employee Cards
+              ListView.builder(
+                itemCount: employees.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final e = employees[index];
+                  return _buildEmployeeCard(
+                    e['name']!,
+                    e['role']!,
+                    e['checkIn']!,
+                    e['checkOut']!,
                   );
                 },
               ),
@@ -128,75 +200,169 @@ class AdminAttendanceScreen extends StatelessWidget {
           ),
         ),
       ),
-
     );
   }
-}
 
-
-
-class DashboardCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const DashboardCard({
-    Key? key,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    this.color = Colors.blue,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 4,
-        child: Container(
-          padding: const EdgeInsets.all(1),
-          width: 160, // Fixed width for grid/list
-          height: 120, // Fixed height
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.7), color],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+  Widget _buildSummaryCard(
+      String count,
+      String label,
+      Color bgColor,
+      Color topShadowColor,
+      ) {
+    return Container(
+      width: 172.w,
+      height: 90.h,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(9.29.r),
+        boxShadow: [
+          BoxShadow(
+            color: topShadowColor.withOpacity(0.75),
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomText(
+              text: count,
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF0B2750), // dark navy text color
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, size: 36, color: Colors.white),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text(
-                  //   title,
-                  //   style: const TextStyle(
-                  //       color: Colors.white,
-                  //       fontSize: 18,
-                  //       fontWeight: FontWeight.bold),
-                  // ),
-                  // const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            SizedBox(height: 4.h),
+            CustomText(
+              text: label,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF0B2750),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
+  Widget _buildStatusChip(String text, bool isSelected) {
+    return GestureDetector(
+      onTap: () => setState(() => selectedStatus = text),
+      child: Container(
+        padding:
+        EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30.r),
+          gradient: isSelected
+              ? const LinearGradient(
+            colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+              : null,
+          color: !isSelected ? Colors.white : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: CustomText(
+          text: text,
+          fontSize: 14.sp,
+          color: isSelected ? Colors.white : Colors.black,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmployeeCard(
+      String name, String role, String checkIn, String checkOut) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(10.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 25,
+            backgroundImage: AssetImage('assets/images/profile.png'),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  text: name,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+                CustomText(
+                  text: role,
+                  fontSize: 12.sp,
+                  color: Colors.grey,
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    CustomText(
+                      text: "Check In: ",
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black54,
+                    ),
+                    CustomText(
+                      text: checkIn,
+                      fontSize: 10.sp,
+                      color: Colors.green,
+                    ),
+                    CustomText(
+                      text: " | Check Out: ",
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black54,
+                    ),
+                    CustomText(
+                      text: checkOut,
+                      fontSize: 12.sp,
+                      color: Colors.black,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.person_outline, color: Colors.redAccent),
+        ],
+      ),
+    );
+  }
+
+  String selectedStatus = 'Pending';
+
+  final employees = List.generate(
+    6,
+        (index) => {
+      'name': 'Cameron Williamson',
+      'role': 'Manager',
+      'checkIn': '09:00am',
+      'checkOut': '05:00pm',
+      'status': index % 2 == 0 ? 'Check In' : 'Check Out'
+    },
+  );
+
+}
