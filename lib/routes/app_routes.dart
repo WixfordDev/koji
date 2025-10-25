@@ -43,7 +43,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 class AppRouter {
   static GoRouter build() {
     return GoRouter(
-      initialLocation: '/sign-in',
+      initialLocation: '/splash',
       debugLogDiagnostics: true,
 
       // refreshListenable: GoRouterRefreshStream(authBloc.stream),
@@ -109,32 +109,19 @@ class AppRouter {
           builder: (_, _) => NotificationScreen(),
         ),
 
-
         GoRoute(
           path: '/submitTaskScreen',
           builder: (_, _) => SubmitTaskScreen(),
         ),
 
-        GoRoute(
-          path: '/myTaskScreen',
-          builder: (_, _) => MyTaskScreen(),
-        ),
-        GoRoute(
-          path: '/historyScreen',
-          builder: (_, _) => HistoryScreen(),
-        ),
+        GoRoute(path: '/myTaskScreen', builder: (_, _) => MyTaskScreen()),
+        GoRoute(path: '/historyScreen', builder: (_, _) => HistoryScreen()),
         GoRoute(
           path: '/taskReportScreen',
           builder: (_, _) => TaskReportScreen(),
         ),
-        GoRoute(
-          path: '/profileScreen',
-          builder: (_, _) => ProfileScreen(),
-        ),
-        GoRoute(
-          path: '/myProfileScreen',
-          builder: (_, _) => MyProfileScreen(),
-        ),
+        GoRoute(path: '/profileScreen', builder: (_, _) => ProfileScreen()),
+        GoRoute(path: '/myProfileScreen', builder: (_, _) => MyProfileScreen()),
         GoRoute(
           path: '/changePasswordScreen',
           builder: (_, _) => ChangePasswordScreen(),
@@ -151,17 +138,8 @@ class AppRouter {
           path: '/helpSupportScreen',
           builder: (_, _) => HelpSupportScreen(),
         ),
-        GoRoute(
-          path: '/calendarScreen',
-          builder: (_, _) => CalendarScreen(),
-        ),
-        GoRoute(
-          path: '/bottomNavBar',
-          builder: (_, _) => BottomNavBar(),
-        ),
-
-
-
+        GoRoute(path: '/calendarScreen', builder: (_, _) => CalendarScreen()),
+        GoRoute(path: '/bottomNavBar', builder: (_, _) => BottomNavBar()),
       ],
     );
   }

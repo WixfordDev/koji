@@ -1,4 +1,3 @@
-
 // import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -246,7 +245,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-
 class TextFieldCustom extends StatelessWidget {
   final String? labelText;
   final TextEditingController controller;
@@ -397,7 +395,6 @@ class TextFieldCustom extends StatelessWidget {
           color: hintTextColor,
 
           // fontFamily: FontConstants.poppinsRegular,
-
         ),
 
         // Padding
@@ -485,4 +482,3 @@ class TextFieldCustom extends StatelessWidget {
     );
   }
 }
-
