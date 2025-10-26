@@ -54,13 +54,13 @@ class CustomAuthTextField extends StatelessWidget {
           ),
           suffixIcon: suffixIcon != null
               ? GestureDetector(
-            onTap: onSuffixTap,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: EdgeInsets.only(right: 8.w),
-              child: suffixIcon,
-            ),
-          )
+                  onTap: onSuffixTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 8.w),
+                    child: suffixIcon,
+                  ),
+                )
               : null,
         ),
       ),
