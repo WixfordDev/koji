@@ -7,7 +7,6 @@ import 'package:koji/features/profile/presentation/profile_screen.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
 import '../../employee_schedule/presentation/calendar_screen.dart';
-import 'package:koji/features/admin_home/presentation/admin_home_screen.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
@@ -18,8 +17,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   final List<Widget> screens = [
-    // EmployeeHomeScreen(),
-    AdminHomeScreen(),
+    EmployeeHomeScreen(),
     CalendarScreen(),
     MessageListScreen(),
     HistoryScreen(),
