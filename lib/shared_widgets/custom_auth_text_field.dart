@@ -27,7 +27,7 @@ class CustomAuthTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Color(0xffF1F1F1), width: 0.02),
+        border: Border.all(color: Color(0xffF1F1F1),  width: 0.2),
         boxShadow: [
           BoxShadow(
             color: Colors.white10,
