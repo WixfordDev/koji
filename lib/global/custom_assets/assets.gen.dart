@@ -23,6 +23,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/calendar.svg
   SvgGenImage get calendar => const SvgGenImage('assets/icons/calendar.svg');
 
+  /// File path: assets/icons/calendar1.svg
+  SvgGenImage get calendar1 => const SvgGenImage('assets/icons/calendar1.svg');
+
   /// File path: assets/icons/camera.svg
   SvgGenImage get camera => const SvgGenImage('assets/icons/camera.svg');
 
@@ -72,10 +75,14 @@ class $AssetsIconsGen {
   /// File path: assets/icons/terms.svg
   SvgGenImage get terms => const SvgGenImage('assets/icons/terms.svg');
 
+  /// File path: assets/icons/tracking.svg
+  SvgGenImage get tracking => const SvgGenImage('assets/icons/tracking.svg');
+
   /// List of all assets
   List<SvgGenImage> get values => [
     attach,
     calendar,
+    calendar1,
     camera,
     changepass,
     chevron,
@@ -92,6 +99,7 @@ class $AssetsIconsGen {
     schedule,
     select,
     terms,
+    tracking,
   ];
 }
 
