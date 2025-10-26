@@ -15,6 +15,7 @@ import 'package:koji/features/notification/presentation/notification_screen.dart
 
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
+import '../features/admin_home/presentation/admin_home_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
@@ -163,6 +164,10 @@ class AppRouter {
         GoRoute(
           path: '/adminBottomNavBar',
           builder: (_, _) => AdminBottomNavBar(),
+        ),
+        GoRoute(
+          path: '/adminHomeScreen',
+          builder: (_, _) => AdminHomeScreen(),
         ),
 
 
