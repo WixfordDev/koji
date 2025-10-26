@@ -13,6 +13,8 @@ import 'package:koji/features/employee_home/presentation/employee_home_screen.da
 import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/notification/presentation/notification_screen.dart';
 
+import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
+import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
 import '../features/employee_history/presentation/employee_history_screen.dart';
 import '../features/employee_history/presentation/taskreport_screen.dart';
@@ -138,8 +140,18 @@ class AppRouter {
           path: '/helpSupportScreen',
           builder: (_, _) => HelpSupportScreen(),
         ),
+
         GoRoute(path: '/calendarScreen', builder: (_, _) => CalendarScreen()),
         GoRoute(path: '/bottomNavBar', builder: (_, _) => BottomNavBar()),
+
+        GoRoute(
+          path: '/adminScheduleScreen',
+          builder: (_, _) => AdminScheduleScreen(),
+        ),
+        GoRoute(
+          path: '/adminCompleteTaskScreen',
+          builder: (_, _) => AdminCompleteTaskScreen(),
+        ),
       ],
     );
   }
