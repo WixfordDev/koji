@@ -159,7 +159,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 height: 50.h,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.push('/adminScheduleScreen');
+                    context.push('/adminAttendanceScreen');
                   },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
