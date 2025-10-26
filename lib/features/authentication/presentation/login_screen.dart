@@ -78,7 +78,11 @@ class LoginScreen extends StatelessWidget {
                 title: "Login",
                 onpress: () {
                   print("tapped login");
-                  context.push('/bottomNavBar');
+                  if (emailCtrl.text == "admin@gmail.com") {
+                    context.push("/adminBottomNavBar");
+                  } else {
+                    context.push('/bottomNavBar');
+                  }
                 },
               ),
 
