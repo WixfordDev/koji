@@ -7,8 +7,8 @@ class AdminEmployeeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      appBar: AppBar(title: const Text('Custom ExpansionTile Example')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add Employee'), centerTitle: true),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
@@ -43,25 +43,23 @@ class AdminEmployeeView extends StatelessWidget {
 
               width: 100.h,
               decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10.r)
-
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Text("Reject",style:TextStyle(color: Colors.white),),
+              child: Text("Reject", style: TextStyle(color: Colors.white)),
             ),
-            SizedBox(width: 10.h,),
+            SizedBox(width: 10.h),
             Container(
               alignment: Alignment.center,
               height: 50.h,
 
               width: 100.h,
               decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10.r)
-
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Text("Accept",style:TextStyle(color: Colors.white),),
-            )
+              child: Text("Accept", style: TextStyle(color: Colors.white)),
+            ),
           ],
         ),
       ),

@@ -47,6 +47,7 @@ class OnboardingScreen extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: Color(0xffFCFCFC),
       body: Padding(
         padding: EdgeInsets.only(top: 60.h),
         child: Column(

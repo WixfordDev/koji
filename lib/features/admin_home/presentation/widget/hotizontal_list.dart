@@ -16,7 +16,7 @@ class HorizontalListExample extends StatefulWidget {
 }
 
 class _HorizontalListExampleState extends State<HorizontalListExample> {
-  int selectedIndex = -1;
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +41,21 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               // width: 80.w,
               padding: EdgeInsets.all(10.sp),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.red : Colors.blue,
+                border: Border.all(
+                  color: isSelected ? Colors.transparent : Colors.grey,
+                ),
+                color: isSelected ? Colors.red : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Text(
-                item["title"], // show map value
-                style: const TextStyle(color: Colors.white),
+              child: Center(
+                child: Text(
+                  item["title"], // show map value
+                  style: TextStyle(
+                    fontSize: 13.h,
+                    color: isSelected ? Colors.white : Colors.grey,
+                  ),
+                ),
               ),
             ),
           );
