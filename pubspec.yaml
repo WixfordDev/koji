@@ -26,6 +26,9 @@ dependencies:
   table_calendar:
   google_maps_flutter: ^2.13.1
   geolocator: ^14.0.2
+  get: ^4.7.2
+  shared_preferences: ^2.5.3
+  toastification: ^3.0.3
 
 dev_dependencies:
   flutter_test:

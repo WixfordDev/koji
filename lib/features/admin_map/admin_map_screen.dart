@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/shared_widgets/custom_button.dart';
 
 class TrackingScreen extends StatefulWidget {
   @override
@@ -11,7 +13,7 @@ class TrackingScreen extends StatefulWidget {
 class _TrackingScreenState extends State<TrackingScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
-  double _radius = 4.0; // miles
+  double _radius = 2.0; // miles
 
   LatLng _currentLocation = LatLng(23.8103, 90.4125); // default Dhaka
   final List<Employee> _employees = [
@@ -74,14 +76,19 @@ class _TrackingScreenState extends State<TrackingScreen> {
   void _openFilterScreen() {
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16),
-          height: 200,
+          height: 320,
           child: Column(
             children: [
               Text('Filter', style: TextStyle(fontSize: 20)),
-              SizedBox(height: 10),
+              Divider(),
+
+              SizedBox(height: 20.h),
               Text('Miles From Me: ${_radius.toStringAsFixed(1)}'),
               Slider(
                 min: 1,
@@ -93,13 +100,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   });
                 },
               ),
-              ElevatedButton(
-                onPressed: () {
+
+              Spacer(),
+
+              CustomButton(
+                boderColor: Colors.transparent,
+                color: Colors.redAccent,
+                title: "Apply",
+                onpress: () {
                   _filterEmployees();
                   Navigator.pop(context);
                 },
-                child: Text('Apply'),
               ),
+
+              SizedBox(height: 50.h),
             ],
           ),
         );
@@ -119,7 +133,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
         )
         .toSet();
 
-    // add current location marker
+    // ✅ Add current location marker
     markers.add(
       Marker(
         markerId: MarkerId("current_location"),
@@ -129,44 +143,36 @@ class _TrackingScreenState extends State<TrackingScreen> {
       ),
     );
 
+    // ✅ Add radius circle around user’s location
+    Set<Circle> circles = {
+      Circle(
+        circleId: CircleId("radius_circle"),
+        center: _currentLocation,
+        radius: _radius * 1609.34, // convert miles → meters
+        fillColor: Colors.blue.withOpacity(0.15),
+        strokeColor: Colors.blueAccent,
+        strokeWidth: 2,
+      ),
+    };
+
     return Scaffold(
       appBar: AppBar(
+        leading: SizedBox(),
         title: Text("Tracking"),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list),
-            onPressed: () {
-              _openFilterScreen();
-            },
+            onPressed: _openFilterScreen,
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: "Searching employee...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _filteredEmployees = _employees
-                      .where(
-                        (e) =>
-                            e.name.toLowerCase().contains(value.toLowerCase()),
-                      )
-                      .toList();
-                });
-              },
-            ),
-          ),
-          Expanded(
+          // ✅ Google Map with radius circle
+          SizedBox(
+            height: 730.h,
             child: GoogleMap(
               mapType: MapType.normal,
               initialCameraPosition: CameraPosition(
@@ -174,10 +180,57 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 zoom: 14,
               ),
               markers: markers,
+              circles: circles,
               myLocationEnabled: true,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
+            ),
+          ),
+
+          // ✅ Search Field (Floating Style)
+          SafeArea(
+            child: Positioned(
+              top: 400.h,
+              left: 16,
+              right: 16,
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: "Search employee...",
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _filteredEmployees = _employees
+                          .where(
+                            (e) => e.name.toLowerCase().contains(
+                              value.toLowerCase(),
+                            ),
+                          )
+                          .toList();
+                    });
+                  },
+                ),
+              ),
             ),
           ),
         ],
