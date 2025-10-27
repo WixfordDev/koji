@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
-class AdminMapScreen extends StatefulWidget {
+class TrackingScreen extends StatefulWidget {
   @override
-  AdminMapScreen createState() => _AdminMapScreenState();
+  _TrackingScreenState createState() => _TrackingScreenState();
 }
 
-class _AdminMapScreenState extends State<AdminMapScreen> {
+class _TrackingScreenState extends State<TrackingScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
   double _radius = 4.0; // miles

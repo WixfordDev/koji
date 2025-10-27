@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
 
@@ -25,16 +24,18 @@ class AdminHomeScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Parvej Hossain",
-                      style: AppTextStyle.semiBold(16.sp)),
-                  Text("Admin",
-                      style: AppTextStyle.regular(12.sp,
-                          color: Colors.grey.shade600)),
+                  Text("Parvej Hossain", style: AppTextStyle.semiBold(16.sp)),
+                  Text(
+                    "Admin",
+                    style: AppTextStyle.regular(
+                      12.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                 ],
               ),
               const Spacer(),
-              const Icon(Icons.notifications_none_rounded,
-                  color: Colors.black),
+              const Icon(Icons.notifications_none_rounded, color: Colors.black),
             ],
           ),
         ),
@@ -72,37 +73,39 @@ class AdminHomeScreen extends StatelessWidget {
                   spacing: 14.w,
                   runSpacing: 14.h,
                   children: [
-                    _buildQuickCard(
-                      "Task\nManage",
-                      [const Color(0xFFF9B128), const Color(0xFFF48201)],
-                      Icons.task_alt_rounded,
-                    ),
-                    _buildQuickCard(
-                      "Employee\nRequest",
-                      [const Color(0xFF136AB7), const Color(0xFF2D8BE5)],
-                      Icons.assignment_ind_rounded,
-                    ),
-                    _buildQuickCard(
-                      "View\nAttendence",
-                      [const Color(0xFFEC526A), const Color(0xFFF77F6E)],
-                      Icons.calendar_month_rounded,
-                    ),
-                    _buildQuickCard(
-                      "Transaction\nReport",
-                      [const Color(0xFFB060F6), const Color(0xFFE6AAF5)],
-                      Icons.receipt_long_rounded,
-                    ),
+                    _buildQuickCard("Task\nManage", [
+                      const Color(0xFFF9B128),
+                      const Color(0xFFF48201),
+                    ], Icons.task_alt_rounded),
+                    _buildQuickCard("Employee\nRequest", [
+                      const Color(0xFF136AB7),
+                      const Color(0xFF2D8BE5),
+                    ], Icons.assignment_ind_rounded),
+                    _buildQuickCard("View\nAttendence", [
+                      const Color(0xFFEC526A),
+                      const Color(0xFFF77F6E),
+                    ], Icons.calendar_month_rounded),
+                    _buildQuickCard("Transaction\nReport", [
+                      const Color(0xFFB060F6),
+                      const Color(0xFFE6AAF5),
+                    ], Icons.receipt_long_rounded),
                   ],
                 ),
 
                 SizedBox(height: 24.h),
 
-                Text("Today’s Attendance Summary",
-                    style: AppTextStyle.semiBold(15.sp)),
+                Text(
+                  "Today’s Attendance Summary",
+                  style: AppTextStyle.semiBold(15.sp),
+                ),
                 SizedBox(height: 10.h),
 
                 _buildSummaryCard([
-                  _summaryRow("Employees Arrived On Time", "1050", Colors.green),
+                  _summaryRow(
+                    "Employees Arrived On Time",
+                    "1050",
+                    Colors.green,
+                  ),
                   _summaryRow("Late Comers Today", "120", Colors.orange),
                   _summaryRow("Absent Employees Today", "50", Colors.red),
                   _summaryRow("Working Employees Today", "1200", Colors.blue),
@@ -110,8 +113,10 @@ class AdminHomeScreen extends StatelessWidget {
 
                 SizedBox(height: 20.h),
 
-                Text("Today’s Task Summary",
-                    style: AppTextStyle.semiBold(15.sp)),
+                Text(
+                  "Today’s Task Summary",
+                  style: AppTextStyle.semiBold(15.sp),
+                ),
                 SizedBox(height: 10.h),
 
                 _buildSummaryCard([
@@ -123,36 +128,6 @@ class AdminHomeScreen extends StatelessWidget {
               ],
             ),
           ),
-        ),
-
-        /// Bottom Navigation
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 0,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.schedule),
-              label: 'Schedule',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.message_outlined),
-              label: 'Messages',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.track_changes_outlined),
-              label: 'Tracking',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: 'Profile',
-            ),
-          ],
         ),
       ),
     );
@@ -172,7 +147,10 @@ class AdminHomeScreen extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
         borderRadius: BorderRadius.circular(10.r),
       ),
@@ -189,8 +167,7 @@ class AdminHomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(title, style: AppTextStyle.medium(12.sp)),
-                Text(value,
-                    style: AppTextStyle.bold(18.sp, color: color)),
+                Text(value, style: AppTextStyle.bold(18.sp, color: color)),
               ],
             ),
           ),
@@ -211,11 +188,7 @@ class AdminHomeScreen extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black38,
-            blurRadius: 2,
-            offset: Offset(0, 2),
-          )
+          BoxShadow(color: Colors.black38, blurRadius: 2, offset: Offset(0, 2)),
         ],
       ),
       child: Padding(
@@ -249,17 +222,19 @@ class AdminHomeScreen extends StatelessWidget {
             color: Colors.black12,
             blurRadius: 4,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: Column(
         children: children
-            .map((child) => Column(
-          children: [
-            child,
-            Divider(thickness: 0.4, color: Colors.grey[300]),
-          ],
-        ))
+            .map(
+              (child) => Column(
+                children: [
+                  child,
+                  Divider(thickness: 0.4, color: Colors.grey[300]),
+                ],
+              ),
+            )
             .toList(),
       ),
     );
@@ -270,17 +245,14 @@ class AdminHomeScreen extends StatelessWidget {
       children: [
         Icon(Icons.circle, color: color, size: 10.sp),
         SizedBox(width: 8.w),
-        Expanded(
-          child: Text(title, style: AppTextStyle.medium(13.sp)),
-        ),
-        Text(value,
-            style: AppTextStyle.semiBold(13.sp, color: color)),
+        Expanded(child: Text(title, style: AppTextStyle.medium(13.sp))),
+        Text(value, style: AppTextStyle.semiBold(13.sp, color: color)),
         const Icon(Icons.chevron_right, color: Colors.grey),
       ],
     );
   }
-
 }
+
 class AppTextStyle {
   static TextStyle regular(double size, {Color color = Colors.black}) =>
       TextStyle(fontSize: size, fontWeight: FontWeight.w400, color: color);

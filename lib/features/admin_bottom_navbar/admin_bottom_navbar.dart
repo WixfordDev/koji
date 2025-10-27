@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:koji/features/admin_home/presentation/admin_home_screen.dart';
+import 'package:koji/features/admin_map/admin_map_screen.dart';
+import 'package:koji/features/admin_schedule/presentation/admin_schedule.dart';
+import 'package:koji/features/message/presentation/message_screen.dart';
+import 'package:koji/features/profile/presentation/profile_screen.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
 
@@ -12,7 +17,11 @@ class AdminBottomNavBar extends StatefulWidget {
 
 class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
   final List<Widget> screens = [
-
+    AdminHomeScreen(),
+    AdminScheduleScreen(),
+    MessageListScreen(),
+    TrackingScreen(),
+    ProfileScreen(),
   ];
 
   int currentIndex = 0;
@@ -82,12 +91,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
             label: "Messages",
           ),
           BottomNavigationBarItem(
-            icon: Assets.icons.history.svg(
+            icon: Assets.icons.tracking.svg(
               color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
-            activeIcon: Assets.icons.history.svg(
+            activeIcon: Assets.icons.tracking.svg(
               color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
@@ -95,12 +104,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
             label: "Tracking",
           ),
           BottomNavigationBarItem(
-            icon: Assets.icons.tracking.svg(
+            icon: Assets.icons.profile.svg(
               color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
-            activeIcon: Assets.icons.tracking.svg(
+            activeIcon: Assets.icons.profile.svg(
               color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
