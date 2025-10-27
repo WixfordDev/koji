@@ -53,12 +53,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
         items: [
           BottomNavigationBarItem(
             icon: Assets.icons.home.svg(
-              color: AppColor.selectedColor,
+              color: AppColor.unSelectedColor,
               width: 24.w,
               height: 24.h,
             ),
             activeIcon: Assets.icons.home.svg(
-              color: AppColor.unSelectedColor,
+              color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -66,12 +66,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.schedule.svg(
-              color: AppColor.selectedColor,
+              color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.schedule.svg(
-              color: AppColor.unSelectedColor,
+              color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -79,12 +79,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.message.svg(
-              color: AppColor.selectedColor,
+              color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.message.svg(
-              color: AppColor.unSelectedColor,
+              color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -92,12 +92,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.tracking.svg(
-              color: AppColor.selectedColor,
+              color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.tracking.svg(
-              color: AppColor.unSelectedColor,
+              color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -105,12 +105,12 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.profile.svg(
-              color: AppColor.selectedColor,
+              color: AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.profile.svg(
-              color: AppColor.unSelectedColor,
+              color: AppColor.selectedColor,
               width: 22.w,
               height: 22.h,
             ),
