@@ -84,6 +84,7 @@ class AppRouter {
       routes: [
         GoRoute(path: '/splash', builder: (_, x) => const SplashScreen()),
         GoRoute(path: '/sign-in', builder: (_, x) => LoginScreen()),
+
         GoRoute(
           path: '/sign-up',
           builder: (_, x) => const RegistrationScreen(),

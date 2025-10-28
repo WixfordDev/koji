@@ -29,6 +29,8 @@ dependencies:
   get: ^4.7.2
   shared_preferences: ^2.5.3
   toastification: ^3.0.3
+  mime_type: ^1.0.1
+  socket_io_client: ^3.1.2
 
 dev_dependencies:
   flutter_test:
