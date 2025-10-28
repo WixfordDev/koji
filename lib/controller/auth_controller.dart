@@ -21,9 +21,7 @@ class AuthController extends GetxController {
   handleSignUp({
     String? name,
     email,
-    phone,
     password,
-    confirmPassword,
     filePath,
     required BuildContext context,
     required String screenType,
@@ -36,12 +34,10 @@ class AuthController extends GetxController {
 
     signUpLoading(true);
     var body = {
-      "name": "$name",
+      "firstName": "$name",
       "email": "$email",
-      "phone": "$phone",
       "password": "$password",
-      "confirmPassword": "$confirmPassword",
-      "role": "$role",
+      "isAcceptPolicyTerms": "true",
     };
 
     var response = await ApiClient.postMultipartData(
@@ -55,7 +51,7 @@ class AuthController extends GetxController {
         AppConstants.bearerToken,
         response.body["data"]["verificationToken"],
       );
-      //  if(screenType == "user"){
+      //  if(screenType == "Sign Up"){
       //   context.pushNamed(AppRoutes.otpScreen, extra: {
       //     "screenType" : "user",
       //     "email" : ""
@@ -159,11 +155,11 @@ class AuthController extends GetxController {
     print("========================${response.statusCode} \n ${response.body}");
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      var data = response.body['data']["user"];
+      var data = response.body['data']["attributes"]["user"];
       await PrefsHelper.setString(AppConstants.role, data['role']);
       await PrefsHelper.setString(
         AppConstants.bearerToken,
-        response.body["data"]["tokens"]["accessToken"],
+        response.body["data"]["attributes"]["tokens"]["accessToken"],
       );
       await PrefsHelper.setString(AppConstants.email, email);
       await PrefsHelper.setString(AppConstants.name, data['name']);

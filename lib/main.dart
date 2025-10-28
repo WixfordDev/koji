@@ -1,18 +1,31 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
+import 'package:koji/helpers/dependancy_injaction.dart';
 import 'package:koji/routes/app_routes.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp();
+  // await FirebaseMessaging.instance;
+  // FirebaseNotificationService.instance;
+  // FirebaseNotificationService.getFCMToken();
+  // FirebaseNotificationService.printFCMToken();
+
+  PlatformDispatcher.instance.onAccessibilityFeaturesChanged = () {};
+  DependencyInjection di = DependencyInjection();
+  di.dependencies();
+
+  di.lockDevicePortrait();
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
 
   @override
   State<MyApp> createState() => _MyAppState();
