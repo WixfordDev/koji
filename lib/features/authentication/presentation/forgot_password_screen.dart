@@ -14,8 +14,17 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   TextEditingController emailCtrl = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    final extra = GoRouterState.of(context).extra;
+    if (extra == null || extra is! Map) {
+      return const Center(child: Text('Something went wrong Please go back'));
+    }
+    final Map routerData = extra;
+
+    emailCtrl.text = routerData["email"];
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Color(0xffFCFCFC),
