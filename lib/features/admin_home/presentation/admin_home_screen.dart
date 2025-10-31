@@ -141,7 +141,7 @@ class AdminHomeScreen extends StatelessWidget {
   }) {
     return Container(
       width: 165.w,
-      height: 110.h,
+      height: 100.h,
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: Colors.white,

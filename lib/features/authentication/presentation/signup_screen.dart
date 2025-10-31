@@ -77,24 +77,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     fontSize: 22.sp,
                     fontWeight: FontWeight.w700,
                   ),
-                ),
+                ],
+              ),
 
-                SizedBox(height: 20.h),
+              SizedBox(height: 16.h),
 
-                // Role Dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedRole,
-                  hint: Text('Select Role'),
-                  items: roles
-                      .map(
-                        (role) =>
-                            DropdownMenuItem(value: role, child: Text(role)),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRole = value;
-                    });
+              // Sign Up Button
+              SizedBox(
+                width: double.infinity,
+                height: 50.h,
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.push('/verifyScreen');
                   },
                   decoration: InputDecoration(
                     border: OutlineInputBorder(

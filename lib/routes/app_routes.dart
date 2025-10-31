@@ -18,6 +18,7 @@ import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
+import '../features/authentication/presentation/verify_screen/verify_screen.dart';
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
 import '../features/employee_history/presentation/employee_history_screen.dart';
 import '../features/employee_history/presentation/taskreport_screen.dart';
@@ -135,6 +136,10 @@ class AppRouter {
         GoRoute(
           path: '/privacyPolicyScreen',
           builder: (_, _) => PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: '/verifyScreen',
+          builder: (_, _) => VerifyScreen(),
         ),
         GoRoute(
           path: '/termsConditionScreen',
