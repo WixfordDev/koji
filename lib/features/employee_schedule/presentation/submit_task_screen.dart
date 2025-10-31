@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../constants/app_color.dart';
@@ -238,7 +239,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                     : "${endDate!.day}/${endDate!.month}/${endDate!.year}",
                 startOnTap: () => _pickDate(true),
                 endOnTap: () => _pickDate(false),
-                icon: Icons.calendar_today_outlined,
+                iconPath: "assets/icons/calendar.svg",
               ),
 
               _buildDateTimeRow(
@@ -247,7 +248,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                 endHint: endTime == null ? "End Time" : endTime!.format(context),
                 startOnTap: () => _pickTime(true),
                 endOnTap: () => _pickTime(false),
-                icon: Icons.access_time_outlined,
+                iconPath: "assets/icons/time.svg",
               ),
 
               _buildTextField(label: "Priority", hint: "Important"),
@@ -331,7 +332,7 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
     required String endHint,
     required VoidCallback startOnTap,
     required VoidCallback endOnTap,
-    required IconData icon,
+    required String iconPath,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
@@ -348,7 +349,18 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   child: AbsorbPointer(
                     child: TextField(
                       decoration: InputDecoration(
-                        prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 20.sp),
+                        prefixIcon: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w),
+                          child: SvgPicture.asset(
+                            iconPath,
+                            width: 17.w,
+                            height: 17.h,
+                            colorFilter: ColorFilter.mode(
+                              Colors.grey.shade600,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
                         hintText: startHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
@@ -368,7 +380,17 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
                   child: AbsorbPointer(
                     child: TextField(
                       decoration: InputDecoration(
-                        prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 20.sp),
+                        prefixIcon: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w),
+                          child: SvgPicture.asset(
+                            iconPath,
+                            width: 17.w,
+                            height: 17.h,
+                            colorFilter: ColorFilter.mode(
+                              Colors.grey.shade600,
+                              BlendMode.srcIn,
+                            ),
+                          ),),
                         hintText: endHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
@@ -397,6 +419,9 @@ class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
           Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
           SizedBox(height: 6.h),
           DropdownButtonFormField<String>(
+            icon: SvgPicture.asset(
+              "assets/icons/arrowdown.svg",
+            ),
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
