@@ -51,12 +51,12 @@ class AuthController extends GetxController {
         AppConstants.bearerToken,
         response.body["data"]["verificationToken"],
       );
-      //  if(screenType == "Sign Up"){
-      //   context.pushNamed(AppRoutes.otpScreen, extra: {
-      //     "screenType" : "user",
-      //     "email" : ""
-      //   });
-      //  }
+      if (screenType == "Sign Up") {
+        context.pushNamed(
+          AppRoutes.otpScreen,
+          extra: {"screenType": "user", "email": ""},
+        );
+      }
 
       ToastMessageHelper.showToastMessage(
         "Account create successful.\n \nNow you have an one time code your email",
@@ -144,7 +144,7 @@ class AuthController extends GetxController {
     logInLoading.value = true;
 
     var headers = {'Content-Type': 'application/json'};
-    var body = {"email": email, "password": password};
+    var body = {"email": "$email", "password": "$password", "fcmToken": "n/a"};
 
     var response = await ApiClient.postData(
       ApiConstants.loginUpEndPoint,
@@ -159,16 +159,22 @@ class AuthController extends GetxController {
       await PrefsHelper.setString(AppConstants.role, data['role']);
       await PrefsHelper.setString(
         AppConstants.bearerToken,
-        response.body["data"]["attributes"]["tokens"]["accessToken"],
+        response.body["data"]["attributes"]["tokens"]["access"]["token"],
       );
       await PrefsHelper.setString(AppConstants.email, email);
-      await PrefsHelper.setString(AppConstants.name, data['name']);
-      await PrefsHelper.setString(AppConstants.userId, data['_id']);
+      await PrefsHelper.setString(AppConstants.name, data['fullName']);
+      await PrefsHelper.setString(AppConstants.userId, data['id']);
 
       var role = data['role'];
 
       // context.go(AppRoutes.customerBottomNavBar);
       await PrefsHelper.setBool(AppConstants.isLogged, true);
+
+      if (role == "employee") {
+        context.push('/bottomNavBar');
+      } else {
+        context.push("/adminBottomNavBar");
+      }
 
       ToastMessageHelper.showToastMessage('You are logged in');
       logInLoading(false);

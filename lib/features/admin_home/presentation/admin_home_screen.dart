@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -73,22 +74,40 @@ class AdminHomeScreen extends StatelessWidget {
                   spacing: 14.w,
                   runSpacing: 14.h,
                   children: [
-                    _buildQuickCard("Task\nManage", [
-                      const Color(0xFFF9B128),
-                      const Color(0xFFF48201),
-                    ], Icons.task_alt_rounded),
-                    _buildQuickCard("Employee\nRequest", [
-                      const Color(0xFF136AB7),
-                      const Color(0xFF2D8BE5),
-                    ], Icons.assignment_ind_rounded),
-                    _buildQuickCard("View\nAttendence", [
-                      const Color(0xFFEC526A),
-                      const Color(0xFFF77F6E),
-                    ], Icons.calendar_month_rounded),
-                    _buildQuickCard("Transaction\nReport", [
-                      const Color(0xFFB060F6),
-                      const Color(0xFFE6AAF5),
-                    ], Icons.receipt_long_rounded),
+                    GestureDetector(
+                      onTap: () {
+                        context.goNamed("/adminTaskListScreen");
+                      },
+                      child: _buildQuickCard("Task\nManage", [
+                        const Color(0xFFF9B128),
+                        const Color(0xFFF48201),
+                      ], Icons.task_alt_rounded),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        context.goNamed("/adminEmployeeRequestScreen");
+                      },
+                      child: _buildQuickCard("Employee\nRequest", [
+                        const Color(0xFF136AB7),
+                        const Color(0xFF2D8BE5),
+                      ], Icons.assignment_ind_rounded),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        context.goNamed("/adminAttendanceScreen");
+                      },
+                      child: _buildQuickCard("View\nAttendence", [
+                        const Color(0xFFEC526A),
+                        const Color(0xFFF77F6E),
+                      ], Icons.calendar_month_rounded),
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: _buildQuickCard("Transaction\nReport", [
+                        const Color(0xFFB060F6),
+                        const Color(0xFFE6AAF5),
+                      ], Icons.receipt_long_rounded),
+                    ),
                   ],
                 ),
 

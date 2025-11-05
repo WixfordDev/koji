@@ -65,3 +65,6 @@ class _MyAppState extends State<MyApp> {
     return const Size(360, 800);
   }
 }
+
+// cd C:\Android\emulator
+// emulator -avd Pixel_6_API_34

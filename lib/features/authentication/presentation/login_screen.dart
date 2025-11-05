@@ -54,7 +54,7 @@ class LoginScreen extends StatelessWidget {
                   // Email Field
                   CustomAuthTextField(
                     controller: emailCtrl,
-                    hintText: 'example@gmail.com',
+                    hintText: 'Enter Email',
                     keyboardType: TextInputType.emailAddress,
                   ),
 
@@ -63,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                   // Password Field
                   CustomAuthTextField(
                     controller: passwordCtrl,
-                    hintText: '************',
+                    hintText: "Enter Password",
                     obscureText: true,
                     suffixIcon: Icon(Icons.visibility_off),
                   ),
@@ -106,7 +106,7 @@ class LoginScreen extends StatelessWidget {
                           );
 
                           // if (emailCtrl.text == "admin@gmail.com") {
-                          context.push("/adminBottomNavBar");
+                          //   context.push("/adminBottomNavBar");
                           // } else {
                           //   context.push('/bottomNavBar');
                           // }
