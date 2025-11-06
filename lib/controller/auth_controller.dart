@@ -19,31 +19,24 @@ class AuthController extends GetxController {
   ///========================================== Sing up ==================================<>
 
   handleSignUp({
-    String? name,
+    String? firstName,
     email,
     password,
-    filePath,
+    required bool isAcceptPolicyTerms,
     required BuildContext context,
     required String screenType,
   }) async {
-    String role = await PrefsHelper.getString(AppConstants.role);
-
-    List<MultipartBody> multipartBody = filePath == null
-        ? []
-        : [MultipartBody("file", filePath)];
-
     signUpLoading(true);
     var body = {
-      "firstName": "$name",
-      "email": "$email",
-      "password": "$password",
-      "isAcceptPolicyTerms": "true",
+      "firstName": firstName,
+      "email": email,
+      "password": password,
+      "isAcceptPolicyTerms": isAcceptPolicyTerms,
     };
 
-    var response = await ApiClient.postMultipartData(
+    var response = await ApiClient.postData(
       ApiConstants.signUpEndPoint,
-      body,
-      multipartBody: multipartBody,
+      jsonEncode(body),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -53,8 +46,8 @@ class AuthController extends GetxController {
       );
       if (screenType == "Sign Up") {
         context.pushNamed(
-          AppRoutes.otpScreen,
-          extra: {"screenType": "user", "email": ""},
+          "/otp",
+          extra: {"screenType": "user", "email": "$email"},
         );
       }
 
@@ -72,18 +65,53 @@ class AuthController extends GetxController {
   }
 
   RxBool mechanicSignUpLoading = false.obs;
+  RxBool resendOtpLoading = false.obs;
+
+  Future<void> handleResendOtp({
+    required String email,
+    required BuildContext context,
+  }) async {
+    resendOtpLoading(true);
+    try {
+      var body = {"email": email};
+
+      var response = await ApiClient.postData(
+        ApiConstants.forgotPasswordEndPoint,
+        jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessageHelper.showToastMessage(
+          "Verification code sent successfully",
+        );
+      } else {
+        ToastMessageHelper.showToastMessage(
+          "${response.body["message"]}",
+          title: 'Failed',
+        );
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage(
+        "Failed to send verification code",
+        title: 'Error',
+      );
+    } finally {
+      resendOtpLoading(false);
+    }
+  }
 
   ///========================================Verify Email===========================================<>
   RxBool verfyLoading = false.obs;
 
-  verfyEmail(
-    String otpCode, {
+  verfyEmail({
+    required String email,
+    required String code,
     String screenType = '',
     String type = '',
     required BuildContext context,
   }) async {
     verfyLoading(true);
-    var body = {"otp": otpCode};
+    var body = {"email": email, "code": code};
     var response = await ApiClient.postData(
       ApiConstants.verifyEmailEndPoint,
       jsonEncode(body),
@@ -109,15 +137,10 @@ class AuthController extends GetxController {
         );
       }
 
-      if (type == 'Sign Up') {
-        print(
-          '================================ screenType received yjuikhujikgyhujvghg: $screenType',
-        );
-        if (screenType == "user") {
-          // context.go(AppRoutes.logInScreen);
-        }
-      } else {
-        // context.go(AppRoutes.resetPasswordScreen);
+      if (screenType == "forgot") {
+        context.pushNamed("/resetPassword");
+      } else if (screenType == "user") {
+        context.pushNamed("/sign-in");
       }
       verfyLoading(false);
       ToastMessageHelper.showToastMessage("${response.body["message"]}");
@@ -226,7 +249,10 @@ class AuthController extends GetxController {
       }
 
       if (screenType == "forgot") {
-        context.pushNamed("", extra: {"screenType": "forgot", "email": email});
+        context.pushNamed(
+          "/verifyScreen",
+          extra: {"screenType": "forgot", "email": email},
+        );
       }
 
       forgotLoading(false);

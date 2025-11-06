@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/controller/auth_controller.dart';
+import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:koji/shared_widgets/custom_auth_text_field.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
@@ -13,18 +16,21 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final AuthController authController = Get.put(AuthController());
   TextEditingController emailCtrl = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    final extra = GoRouterState.of(context).extra;
-    if (extra == null || extra is! Map) {
-      return const Center(child: Text('Something went wrong Please go back'));
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = GoRouterState.of(context);
+    final extras = state.extra as Map<String, dynamic>?;
+    if (extras != null && emailCtrl.text.isEmpty) {
+      emailCtrl.text = extras["email"] ?? '';
     }
-    final Map routerData = extra;
+  }
 
-    emailCtrl.text = routerData["email"];
-
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Color(0xffFCFCFC),
@@ -62,11 +68,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
 
             SizedBox(height: 200.h),
-            CustomButton(
-              title: "Continue",
-              onpress: () {
-                context.push('/resetPassword');
-              },
+            Obx(
+              () => CustomButton(
+                title: "Continue",
+                loading: authController.forgotLoading.value,
+                onpress: () async {
+                  if (emailCtrl.text.isEmpty) {
+                    ToastMessageHelper.showToastMessage(
+                      "Please enter your email",
+                      title: 'Error',
+                    );
+                    return;
+                  }
+
+                  await authController.handleForgot(
+                    emailCtrl.text,
+                    "forgot",
+                    context: context,
+                  );
+
+                  if (!authController.forgotLoading.value) {
+                    context.pushNamed(
+                      "/verifyScreen",
+                      extra: {"email": emailCtrl.text, "screenType": "forgot"},
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
