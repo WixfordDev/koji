@@ -8,6 +8,7 @@ import 'package:koji/constants/app_color.dart';
 import 'package:koji/core/app_constants.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/helpers/toast_message_helper.dart';
+import 'package:koji/routes/route_helper.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
@@ -45,9 +46,10 @@ class AuthController extends GetxController {
         response.body["data"]["verificationToken"],
       );
       if (screenType == "Sign Up") {
-        context.pushNamed(
-          "/otp",
-          extra: {"screenType": "user", "email": "$email"},
+        RouteHelper.goToVerifyScreen(
+          context,
+          email: email.toString(),
+          screenType: "user",
         );
       }
 
@@ -119,29 +121,15 @@ class AuthController extends GetxController {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       verfyLoading(false);
-      if (screenType == 'forgot') {
-        debugPrint(
-          "==========bearer token save done : ${response.body["data"]['token']}",
-        );
-        await PrefsHelper.setString(
-          AppConstants.bearerToken,
-          response.body["data"]['token'],
-        );
-      } else {
-        debugPrint(
-          "==========bearer token save done : ${response.body["data"]['accessToken']}",
-        );
-        await PrefsHelper.setString(
-          AppConstants.bearerToken,
-          response.body["data"]['accessToken'],
-        );
-      }
 
       if (screenType == "forgot") {
-        context.pushNamed("/resetPassword");
+        RouteHelper.goToResetPassword(context);
       } else if (screenType == "user") {
-        context.pushNamed("/sign-in");
+        RouteHelper.goToSignIn(context);
+      } else {
+        RouteHelper.goToAdminBottomNav(context);
       }
+
       verfyLoading(false);
       ToastMessageHelper.showToastMessage("${response.body["message"]}");
     } else {
@@ -194,18 +182,22 @@ class AuthController extends GetxController {
       await PrefsHelper.setBool(AppConstants.isLogged, true);
 
       if (role == "employee") {
-        context.push('/bottomNavBar');
+        RouteHelper.goToEmployeeBottomNav(context);
       } else {
-        context.push("/adminBottomNavBar");
+        RouteHelper.goToAdminBottomNav(context);
       }
 
       ToastMessageHelper.showToastMessage('You are logged in');
       logInLoading(false);
     } else {
       logInLoading(false);
-      if (response.body["message"] ==
-          "Email not verified. Please verify your email.") {
-        context.go("", extra: {"screenType": "", "email": ""});
+      if (response.body["message"] == "Email not verified") {
+        RouteHelper.goToVerifyScreen(
+          context,
+          email: email.toString(),
+          screenType: "user",
+        );
+
         await PrefsHelper.setString(
           AppConstants.bearerToken,
           response.body["data"]['tokens'],
@@ -249,9 +241,10 @@ class AuthController extends GetxController {
       }
 
       if (screenType == "forgot") {
-        context.pushNamed(
-          "/verifyScreen",
-          extra: {"screenType": "forgot", "email": email},
+        RouteHelper.goToVerifyScreen(
+          context,
+          email: email,
+          screenType: "forgot",
         );
       }
 
@@ -361,32 +354,6 @@ class AuthController extends GetxController {
       resendLoading(false);
     }
   }
-
-  // reSendOtp() async {
-  //   resendLoading(true);
-  //   String token = await PrefsHelper.getString(AppConstants.bearerToken);
-  //   var headers = {
-  //     'Content-Type': 'application/json',
-  //   'Authorization': 'Bearer $token',
-  //   };
-  //   var body = {};
-  //   var response = await ApiClient.postData(
-  //       ApiConstants.resendOtpEndPoint,
-  //       jsonEncode(body),
-  //   headers: headers
-  //   );
-  //
-  //   if (response.statusCode == 200 || response.statusCode == 201) {
-  //     PrefsHelper.setString(AppConstants.bearerToken, response.body["data"]["verificationToken"]);
-  //     ToastMessageHelper.showToastMessage(
-  //         'You have got an one time code to your email');
-  //     print("======>>> successful");
-  //     resendLoading(false);
-  //   }else{
-  //     ToastMessageHelper.showToastMessage("${response.body["message"]}");
-  //     resendLoading(false);
-  //   }
-  // }
 
   ///===============Change Password================<>
 
