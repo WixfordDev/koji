@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/core/app_constants.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/routes/app_routes.dart';
+import 'package:koji/routes/route_helper.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,7 +21,13 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     Future.delayed(Duration(seconds: 3), () async {
-      context.push('/onboarding');
+      var token = await PrefsHelper.getString(AppConstants.bearerToken);
+
+      if (token != null && token.isNotEmpty) {
+        RouteHelper.goToEmployeeBottomNav(context);
+      } else {
+        context.push('/onboarding');
+      }
     });
 
     _controller = AnimationController(
@@ -26,6 +35,13 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     )..repeat();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // dispose the animation controller to avoid ticker leaks
+    _controller.dispose();
+    super.dispose();
   }
 
   @override

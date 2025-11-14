@@ -3,16 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
-import 'package:koji/constants/app_color.dart';
 import 'package:koji/core/app_constants.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:koji/routes/route_helper.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
-import 'package:koji/shared_widgets/custom_button.dart';
-import 'package:koji/shared_widgets/custom_text.dart';
 
 class AuthController extends GetxController {
   RxBool signUpLoading = false.obs;
@@ -45,6 +41,7 @@ class AuthController extends GetxController {
         AppConstants.bearerToken,
         response.body["data"]["verificationToken"],
       );
+
       if (screenType == "Sign Up") {
         RouteHelper.goToVerifyScreen(
           context,
@@ -240,6 +237,9 @@ class AuthController extends GetxController {
         debugPrint("❌ Token missing in forgot response.");
       }
 
+      // Save the email to prefs so reset screen can use it
+      await PrefsHelper.setString(AppConstants.email, email);
+
       if (screenType == "forgot") {
         RouteHelper.goToVerifyScreen(
           context,
@@ -289,30 +289,48 @@ class AuthController extends GetxController {
     required BuildContext context,
   }) async {
     setPasswordLoading(true);
-    var body = {
-      "password": password.toString().trim(),
-      "confirmPassword": confirmPassword.toString().trim(),
-    };
 
-    var response = await ApiClient.postData(
-      ApiConstants.resetPasswordEndPoint,
-      jsonEncode(body),
-    );
+    try {
+      final String? email = await PrefsHelper.getString(AppConstants.email);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      context.pushNamed("");
-      ToastMessageHelper.showToastMessage('${response.body["message"]}');
-      print("======>>> successful");
-      setPasswordLoading(false);
-    } else if (response.statusCode == 1) {
-      setPasswordLoading(false);
-      ToastMessageHelper.showToastMessage("Server error! \n Please try later");
-    } else {
-      setPasswordLoading(false);
-      ToastMessageHelper.showToastMessage(
-        '${response.body["message"]}',
-        title: 'attention',
+      if (email == null || email.isEmpty) {
+        // If email isn't in prefs, inform the user and abort.
+        ToastMessageHelper.showToastMessage(
+          'Email not found. Please enter your email and try again.',
+          title: 'Error',
+        );
+        setPasswordLoading(false);
+        return;
+      }
+
+      var body = {"email": email, "password": password.toString().trim()};
+
+      var headers = {'Content-Type': 'application/json'};
+
+      var response = await ApiClient.postData(
+        ApiConstants.resetPasswordEndPoint,
+        jsonEncode(body),
+        headers: headers,
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Navigate to sign in screen after successful reset
+        RouteHelper.goToSignIn(context);
+        ToastMessageHelper.showToastMessage(
+          response.body["message"] ?? 'Password reset successful',
+        );
+      } else {
+        // Show server-provided message when available
+        final msg = response.body?['message'] ?? 'Failed to reset password';
+        ToastMessageHelper.showToastMessage(msg, title: 'Error');
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage(
+        'Unexpected error: $e',
+        title: 'Error',
+      );
+    } finally {
+      setPasswordLoading(false);
     }
   }
 

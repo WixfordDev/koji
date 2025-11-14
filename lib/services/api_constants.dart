@@ -11,4 +11,8 @@ class ApiConstants {
   static const String verifyEmailEndPoint = "/auth/verify-email";
   static const String forgotPasswordEndPoint = "/auth/forgot-password";
   static const String resetPasswordEndPoint = "/auth/reset-password";
+  // Attendance Endpoints
+  static const String attendanceEmployeeList = "/attendances/employee-list";
+  static const String attendanceCheckIn = "/attendances/check-in";
+  static const String attendanceCheckOut = "/attendances/check-out";
 }

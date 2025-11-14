@@ -37,7 +37,7 @@ class RouteHelper {
   }
 
   static void goToEmployeeBottomNav(BuildContext context) {
-    context.pushNamed(RoutePaths.employeeBottomNavBar);
+    context.pushReplacement(RoutePaths.employeeBottomNavBar);
   }
 
   static void goToEmployeeCalendar(BuildContext context) {

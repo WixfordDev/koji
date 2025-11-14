@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
+import 'package:koji/controller/auth_controller.dart';
 import 'package:koji/shared_widgets/custom_auth_text_field.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
@@ -15,6 +16,7 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   TextEditingController passwordCtrl = TextEditingController();
   TextEditingController confirmPassCtrl = TextEditingController();
+  final AuthController authController = Get.find<AuthController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,11 +57,31 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
 
             SizedBox(height: 200.h),
-            CustomButton(
-              title: "Update Password",
-              onpress: () {
-                context.push('/log-in');
-              },
+            Obx(
+              () => CustomButton(
+                loading: authController.setPasswordLoading.value,
+                title: "Update Password",
+                onpress: () {
+                  final pass = passwordCtrl.text.trim();
+                  final confirm = confirmPassCtrl.text.trim();
+                  if (pass.isEmpty || confirm.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enter and confirm password'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (pass != confirm) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Passwords do not match')),
+                    );
+                    return;
+                  }
+
+                  authController.setPassword(pass, confirm, context: context);
+                },
+              ),
             ),
           ],
         ),
