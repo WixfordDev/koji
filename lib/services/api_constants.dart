@@ -11,4 +11,20 @@ class ApiConstants {
   static const String verifyEmailEndPoint = "/auth/verify-email";
   static const String forgotPasswordEndPoint = "/auth/forgot-password";
   static const String resetPasswordEndPoint = "/auth/reset-password";
+
+
+  /// ==============================> Admin Api =======================================>
+
+  static const String createTaskEndPoint = "/departments";
+  static const String getAllDepartmentEndPoint = "/departments/list?sortBy=createdAt:desc";
+  static const String getAllCategoriesEndPoint = "/categories/list?sortBy=createdAt:desc";
+  static const String getAllEmployeeEndPoint = "/users/list?role=employee&page=1&limit=10&sortBy=createdAt:desc";
+  static const String getAllServiceListEndPoint = "/services/list?sortBy=createdAt:desc";
+  static const String taskEndPoint = "/tasks";
+
+
+
+
+
+
 }
