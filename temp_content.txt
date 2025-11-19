@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart' show Get;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../constants/app_color.dart';
@@ -26,33 +30,14 @@ class AdminCreateTaskScreen extends StatefulWidget {
   State<AdminCreateTaskScreen> createState() => _AdminCreateTaskScreenState();
 }
 
-
 class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   final DepartmentController departmentController = Get.find();
 
+  // Text controllers for form fields
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerNumberController = TextEditingController();
   final TextEditingController _customerAddressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-
-  DateTime? startDate;
-  DateTime? endDate;
-  TimeOfDay? startTime;
-  TimeOfDay? endTime;
-
-  // Image picker
-  final ImagePicker _picker = ImagePicker();
-  List<File?> selectedImages = [null, null, null];
-
-  // Selected values
-  String? selectedDepartment;
-  String? selectedCategory;
-  List<String> selectedRoles = [];
-  String? selectedPriority;
-  String? selectedDifficulty;
-
-  // Selected service items list
-  List<ServiceItemWithQuantity> selectedServiceList = [];
 
   @override
   void initState() {
@@ -62,27 +47,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       departmentController.getAllCategories();
       departmentController.getAllEmployee();
       departmentController.getAllServiceList();
-
-      // Initialize local variables from controller
-      _initializeLocalVariablesFromController();
     });
   }
-
-  void _initializeLocalVariablesFromController() {
-    selectedImages = List.from(departmentController.selectedImages);
-    selectedDepartment = departmentController.selectedDepartment.value;
-    selectedCategory = departmentController.selectedCategory.value;
-    selectedRoles = List.from(departmentController.selectedRoles);
-    selectedPriority = departmentController.selectedPriority.value;
-    selectedDifficulty = departmentController.selectedDifficulty.value;
-    selectedServiceList = List.from(departmentController.selectedServiceList);
-    startDate = departmentController.startDate.value;
-    endDate = departmentController.endDate.value;
-    startTime = departmentController.startTime.value;
-    endTime = departmentController.endTime.value;
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -120,30 +86,27 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
               SizedBox(height: 20.h),
 
               AttachmentPickerWidget(
-                selectedImages: selectedImages,
+                selectedImages: departmentController.selectedImages,
                 onImagePicked: (index, file) {
-                  setState(() {
-                    selectedImages[index] = file;
-                  });
                   departmentController.updateImage(index, file);
                 },
               ),
               SizedBox(height: 24.h),
 
               DepartmentSelectorWidget(
-                selectedDepartment: selectedDepartment,
+                selectedDepartment: departmentController.selectedDepartment.value,
                 onTap: _showDepartmentBottomSheet,
               ),
 
               ServiceCategorySelectorWidget(
-                selectedCategory: selectedCategory,
+                selectedCategory: departmentController.selectedCategory.value,
                 onTap: _showCategoryBottomSheet,
               ),
 
               ServiceListWidget(
-                selectedServiceList: selectedServiceList,
+                selectedServiceList: departmentController.selectedServiceList,
                 onAddPressed: _showServicePickerBottomSheet,
-                onRemovePressed: _removeSelectedService,
+                onRemovePressed: (index) => departmentController.removeServiceItemAt(index),
               ),
 
 
@@ -159,7 +122,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
               /// ===========================> Assign To =====================================================>
 
               AssignToSelectorWidget(
-                selectedRoles: selectedRoles,
+                selectedRoles: departmentController.selectedRoles,
                 onTap: _showAssignRoleBottomSheet,
               ),
 
@@ -169,12 +132,12 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
 
               DateTimePickerWidget(
                 label: "Assign Date",
-                startHint: startDate == null
+                startHint: departmentController.startDate.value == null
                     ? "Start Date"
-                    : "${startDate!.day}/${startDate!.month}/${startDate!.year}",
-                endHint: endDate == null
+                    : "${departmentController.startDate.value!.day}/${departmentController.startDate.value!.month}/${departmentController.startDate.value!.year}",
+                endHint: departmentController.endDate.value == null
                     ? "End Date"
-                    : "${endDate!.day}/${endDate!.month}/${endDate!.year}",
+                    : "${departmentController.endDate.value!.day}/${departmentController.endDate.value!.month}/${departmentController.endDate.value!.year}",
                 startOnTap: () => _pickDate(true),
                 endOnTap: () => _pickDate(false),
                 iconPath: "assets/icons/calendar.svg",
@@ -182,20 +145,20 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
 
               DateTimePickerWidget(
                 label: "Assign Time",
-                startHint: startTime == null ? "Start Time" : startTime!.format(context),
-                endHint: endTime == null ? "End Time" : endTime!.format(context),
+                startHint: departmentController.startTime.value == null ? "Start Time" : departmentController.startTime.value!.format(context),
+                endHint: departmentController.endTime.value == null ? "End Time" : departmentController.endTime.value!.format(context),
                 startOnTap: () => _pickTime(true),
                 endOnTap: () => _pickTime(false),
                 iconPath: "assets/icons/time.svg",
               ),
 
               PrioritySelectorWidget(
-                selectedPriority: selectedPriority,
+                selectedPriority: departmentController.selectedPriority.value,
                 onTap: _showPriorityBottomSheet,
               ),
 
               DifficultySelectorWidget(
-                selectedDifficulty: selectedDifficulty,
+                selectedDifficulty: departmentController.selectedDifficulty.value,
                 onTap: _showDifficultyBottomSheet,
               ),
 
@@ -219,6 +182,268 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     );
   }
 
+  // ---------------- Helper Widgets ----------------
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    TextEditingController? controller,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+          SizedBox(height: 6.h),
+          TextField(
+            controller: controller,
+            maxLines: maxLines,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey.shade400),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: AppColor.primaryColor),
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceList() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Service List", style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+              IconButton(
+                onPressed: () => _showServicePickerBottomSheet(),
+                icon: Icon(Icons.add, size: 20.r, color: AppColor.primaryColor),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          SizedBox(height: 6.h),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: selectedServiceList.isEmpty
+                ? Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 40.h),
+                    child: Center(
+                      child: Text(
+                        "No services added",
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 14.sp),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: selectedServiceList.length,
+                    itemBuilder: (context, index) {
+                      final serviceItemWithQuantity = selectedServiceList[index];
+                      final service = serviceItemWithQuantity.serviceItem;
+                      final name = service.name ?? '';
+                      final price = service.price ?? '0';
+                      final quantity = serviceItemWithQuantity.quantity;
+
+                      return Container(
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF5F5FF),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(index == 0 ? 8.r : 0),
+                            bottom: Radius.circular(index == selectedServiceList.length - 1 ? 8.r : 0),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    "Qty: $quantity",
+                                    style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                "ƒ,Ý$price",
+                                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _removeSelectedService(index),
+                              icon: Icon(Icons.delete_outline, size: 20.r, color: Colors.red.shade400),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildSelectionField({
+    required String label,
+    required String hint,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+          SizedBox(height: 6.h),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    hint,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: Color(0xFFAC87C5), size: 20.r),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateTimeRow({
+    required String label,
+    required String startHint,
+    required String endHint,
+    required VoidCallback startOnTap,
+    required VoidCallback endOnTap,
+    required String iconPath,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+          SizedBox(height: 6.h),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: startOnTap,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          iconPath,
+                          width: 16.w,
+                          height: 16.h,
+                          colorFilter: ColorFilter.mode(
+                            Colors.grey.shade600,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          startHint,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: GestureDetector(
+                  onTap: endOnTap,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          iconPath,
+                          width: 16.w,
+                          height: 16.h,
+                          colorFilter: ColorFilter.mode(
+                            Colors.grey.shade600,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          endHint,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   // ---------------- Service Management ----------------
 
@@ -313,7 +538,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
                                       ),
                                       SizedBox(height: 4.h),
                                       Text(
-                                        "â‚¦$servicePrice",
+                                        "ƒ,Ý$servicePrice",
                                         style: TextStyle(
                                           fontSize: 12.sp,
                                           color: Colors.grey.shade600,
@@ -433,9 +658,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   }
 
   void _removeSelectedService(int index) {
-    setState(() {
-      selectedServiceList.removeAt(index);
-    });
     departmentController.removeServiceItemAt(index);
   }
 
@@ -1011,6 +1233,9 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   }
 
 
+
+  // Sample data
+
   final List<String> priorities = ['Low', 'Medium', 'Important', 'Urgent'];
   final List<String> difficulties = ['Easy', 'Medium', 'Hard'];
 
@@ -1019,7 +1244,16 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(int index) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        selectedImages[index] = File(image.path);
+      });
+    }
+  }
 
+  // Calculate total amount based on selected services
   double _calculateTotalAmount() {
     double total = 0.0;
     for (var serviceWithQty in selectedServiceList) {
@@ -1030,6 +1264,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     return total;
   }
 
+  // Format date to ISO string
   String _formatDateToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
 
@@ -1038,8 +1273,9 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     return dateTime.toIso8601String();
   }
 
+  // Create task function
   Future<void> _createTask() async {
-    // Use controller's validation with local variables
+    // Use controller's validation
     String? validationError = departmentController.validateTaskForm(
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
@@ -1052,30 +1288,36 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       return;
     }
 
-    // Use local values to format dates to ISO strings
-    String assignDate = _formatDateToISO(startDate, startTime);
-    String deadlineDate = _formatDateToISO(endDate, endTime);
+    // Format dates to ISO strings using controller's method
+    String assignDate = departmentController._formatDateToISO(
+      departmentController.startDate.value,
+      departmentController.startTime.value,
+    );
+    String deadlineDate = departmentController._formatDateToISO(
+      departmentController.endDate.value,
+      departmentController.endTime.value,
+    );
 
     // Prepare services list
-    List<String> services = selectedServiceList
+    List<String> services = departmentController.selectedServiceList
         .map((item) => '${item.serviceItem.name} (Qty: ${item.quantity})')
         .toList();
 
-    // Calculate amounts using local values
-    double totalAmount = _calculateTotalAmount();
+    // Calculate amounts using controller's method
+    double totalAmount = departmentController.calculateTotalAmount();
     double otherAmount = 0.0; // This might be for additional costs not included in services
 
     // Get the first selected attachment (or null if none selected)
-    File? attachmentFile = selectedImages
+    File? attachmentFile = departmentController.selectedImages
         .firstWhere((image) => image != null, orElse: () => null);
 
     // Join all selected roles for assignTo (if multiple employees can be assigned)
-    String assignTo = selectedRoles.join(','); // Join with comma if multiple roles, or use first if single assignment needed
+    String assignTo = departmentController.selectedRoles.join(','); // Join with comma if multiple roles, or use first if single assignment needed
 
     // Call the createNewTask method from DepartmentController
     String? result = await departmentController.createNewTask(
-      department: selectedDepartment!,
-      serviceCategory: selectedCategory!,
+      department: departmentController.selectedDepartment.value,
+      serviceCategory: departmentController.selectedCategory.value,
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
       customerAddress: _customerAddressController.text.trim(),
@@ -1087,8 +1329,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       attachmentFile: attachmentFile,
       assignTo: assignTo,
       notes: _notesController.text.trim(),
-      priority: selectedPriority!.toLowerCase(), // Convert to lowercase to match expected format
-      difficulty: selectedDifficulty!.toLowerCase(), // Convert to lowercase to match expected format
+      priority: departmentController.selectedPriority.value.toLowerCase(), // Convert to lowercase to match expected format
+      difficulty: departmentController.selectedDifficulty.value.toLowerCase(), // Convert to lowercase to match expected format
     );
 
     if (result != null) {
@@ -1101,9 +1343,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       _customerAddressController.clear();
       _notesController.clear();
 
-      // Reinitialize local variables from controller
-      _initializeLocalVariablesFromController();
-
       // Show success message
       _showToast('Task created successfully!');
     }
@@ -1114,3 +1353,22 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   }
 
 }
+  
+"  DateTime? startDate;"  
+"  DateTime? endDate;"  
+"  TimeOfDay? startTime;"  
+"  TimeOfDay? endTime;"  
+""  
+"  // Image picker"  
+"  final ImagePicker _picker = ImagePicker();"  
+"  List<File?> selectedImages = [null, null, null];"  
+""  
+"  // Selected values"  
+"  String? selectedDepartment;"  
+"  String? selectedCategory;"  
+"  List<String> selectedRoles = [];"  
+"  String? selectedPriority;"  
+"  String? selectedDifficulty;"  
+""  
+"  // Selected service items list"  
+"  List<DepartmentController.ServiceItemWithQuantity> selectedServiceList = [];" 

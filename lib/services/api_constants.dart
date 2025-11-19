@@ -21,6 +21,7 @@ class ApiConstants {
   static const String getAllEmployeeEndPoint = "/users/list?role=employee&page=1&limit=10&sortBy=createdAt:desc";
   static const String getAllServiceListEndPoint = "/services/list?sortBy=createdAt:desc";
   static const String taskEndPoint = "/tasks";
+  static const String getAttendanceEndPoint = "/info/attendance/status";
 
 
 
