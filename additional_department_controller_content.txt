@@ -1,0 +1,211 @@
+  /// ====== State variables for AdminCreateTaskScreen ======
+  
+  // Images for attachment
+  RxList<File?> selectedImages = <File?>[].obs;
+  
+  // Selected values
+  RxString selectedDepartment = ''.obs;
+  RxString selectedCategory = ''.obs;
+  RxList<String> selectedRoles = <String>[].obs;
+  RxString selectedPriority = ''.obs;
+  RxString selectedDifficulty = ''.obs;
+  
+  // Date and time
+  Rx<DateTime?> startDate = Rx<DateTime?>(null);
+  Rx<DateTime?> endDate = Rx<DateTime?>(null);
+  Rx<TimeOfDay?> startTime = Rx<TimeOfDay?>(null);
+  Rx<TimeOfDay?> endTime = Rx<TimeOfDay?>(null);
+  
+  // Service list
+  RxList<ServiceItemWithQuantity> selectedServiceList = <ServiceItemWithQuantity>[].obs;
+  
+  // Initialize
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize with 3 null image slots
+    selectedImages.assignAll([null, null, null]);
+  }
+  
+  // ServiceItemWithQuantity class
+  class ServiceItemWithQuantity {
+    ServiceItem serviceItem;
+    int quantity;
+
+    ServiceItemWithQuantity({
+      required this.serviceItem,
+      required this.quantity,
+    });
+
+    Map<String, dynamic> toJson() => {
+      'name': serviceItem.name,
+      'price': serviceItem.price,
+      'quantity': quantity,
+    };
+  }
+  
+  // Methods to update state
+  void updateImage(int index, File file) {
+    selectedImages[index] = file;
+    update();
+  }
+  
+  void updateSelectedDepartment(String department) {
+    selectedDepartment.value = department;
+    update();
+  }
+  
+  void updateSelectedCategory(String category) {
+    selectedCategory.value = category;
+    update();
+  }
+  
+  void updateSelectedRoles(List<String> roles) {
+    selectedRoles.assignAll(roles);
+    update();
+  }
+  
+  void addOrRemoveRole(String roleId) {
+    if (selectedRoles.contains(roleId)) {
+      selectedRoles.remove(roleId);
+    } else {
+      selectedRoles.add(roleId);
+    }
+    update();
+  }
+  
+  void updateSelectedPriority(String priority) {
+    selectedPriority.value = priority;
+    update();
+  }
+  
+  void updateSelectedDifficulty(String difficulty) {
+    selectedDifficulty.value = difficulty;
+    update();
+  }
+  
+  void updateSelectedServiceList(List<ServiceItemWithQuantity> serviceList) {
+    selectedServiceList.assignAll(serviceList);
+    update();
+  }
+  
+  void addServiceItemWithQuantity(ServiceItemWithQuantity serviceItem) {
+    selectedServiceList.add(serviceItem);
+    update();
+  }
+  
+  void removeServiceItemAt(int index) {
+    selectedServiceList.removeAt(index);
+    update();
+  }
+  
+  void updateStartDate(DateTime? date) {
+    startDate.value = date;
+    update();
+  }
+  
+  void updateEndDate(DateTime? date) {
+    endDate.value = date;
+    update();
+  }
+  
+  void updateStartTime(TimeOfDay? time) {
+    startTime.value = time;
+    update();
+  }
+  
+  void updateEndTime(TimeOfDay? time) {
+    endTime.value = time;
+    update();
+  }
+  
+  void resetTaskForm() {
+    // Clear text fields would be done in the UI layer
+    selectedDepartment.value = '';
+    selectedCategory.value = '';
+    selectedRoles.clear();
+    selectedPriority.value = '';
+    selectedDifficulty.value = '';
+    selectedServiceList.clear();
+    selectedImages.assignAll([null, null, null]);
+    startDate.value = null;
+    endDate.value = null;
+    startTime.value = null;
+    endTime.value = null;
+    update();
+  }
+  
+  // Format date to ISO string
+  String _formatDateToISO(DateTime? date, TimeOfDay? time) {
+    if (date == null || time == null) return '';
+
+    // Create a DateTime object with the date and time
+    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    return dateTime.toIso8601String();
+  }
+  
+  // Calculate total amount based on selected services
+  double calculateTotalAmount() {
+    double total = 0.0;
+    for (var serviceWithQty in selectedServiceList) {
+      double price = double.tryParse(serviceWithQty.serviceItem.price ?? '0') ?? 0.0;
+      int quantity = serviceWithQty.quantity;
+      total += price * quantity;
+    }
+    return total;
+  }
+  
+  // Validation method
+  String? validateTaskForm({
+    required String customerName,
+    required String customerNumber,
+    required String customerAddress,
+    required String notes,
+  }) {
+    if (selectedDepartment.value.isEmpty) {
+      return 'Please select a department';
+    }
+
+    if (selectedCategory.value.isEmpty) {
+      return 'Please select a service category';
+    }
+
+    if (customerName.trim().isEmpty) {
+      return 'Please enter customer name';
+    }
+
+    if (customerNumber.trim().isEmpty) {
+      return 'Please enter customer number';
+    }
+
+    if (customerAddress.trim().isEmpty) {
+      return 'Please enter customer address';
+    }
+
+    if (selectedRoles.isEmpty) {
+      return 'Please select at least one employee to assign to';
+    }
+
+    if (startDate.value == null || startTime.value == null) {
+      return 'Please select assign date and time';
+    }
+
+    if (endDate.value == null || endTime.value == null) {
+      return 'Please select deadline date and time';
+    }
+
+    if (selectedPriority.value.isEmpty) {
+      return 'Please select a priority';
+    }
+
+    if (selectedDifficulty.value.isEmpty) {
+      return 'Please select a difficulty level';
+    }
+
+    if (selectedServiceList.isEmpty) {
+      return 'Please select at least one service';
+    }
+
+    return null; // No validation errors
+  }
+}
