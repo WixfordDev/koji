@@ -14,6 +14,8 @@ import 'package:koji/features/authentication/presentation/verify_screen/verify_s
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
+import '../features/admin_home/presentation/admin_create_task_screen.dart';
+import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_map/admin_map_screen.dart';
@@ -291,78 +293,16 @@ class AppRouter {
           builder: (_, __) => MessageListScreen(),
         ),
         GoRoute(
-          path: RoutePaths.notificationScreen,
-          builder: (_, __) => NotificationScreen(),
+          path: '/adminMyTaskScreen',
+          name: 'adminMyTaskScreen',
+          builder: (_, _) => AdminMyTaskScreen(),
+        ),
+        GoRoute(
+          path: '/adminCreateTaskScreen',
+          name: 'adminCreateTaskScreen',
+          builder: (_, _) => AdminCreateTaskScreen(),
         ),
 
-        //
-        // GoRoute(
-        //   path: '/employeeHomeScreen',
-        //   builder: (_, _) => EmployeeHomeScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/messageListScreen',
-        //   builder: (_, _) => MessageListScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/notificationScreen',
-        //   builder: (_, _) => NotificationScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/submitTaskScreen',
-        //   builder: (_, _) => SubmitTaskScreen(),
-        // ),
-
-        // GoRoute(path: '/myTaskScreen', builder: (_, _) => MyTaskScreen()),
-        // GoRoute(path: '/historyScreen', builder: (_, _) => HistoryScreen()),
-        // GoRoute(
-        //   path: '/taskReportScreen',
-        //   builder: (_, _) => TaskReportScreen(),
-        // ),
-        // GoRoute(path: '/profileScreen', builder: (_, _) => ProfileScreen()),
-        // GoRoute(path: '/myProfileScreen', builder: (_, _) => MyProfileScreen()),
-        // GoRoute(
-        //   path: '/changePasswordScreen',
-        //   builder: (_, _) => ChangePasswordScreen(),
-        // ),
-        // GoRoute(
-        //   path: '/privacyPolicyScreen',
-        //   builder: (_, _) => PrivacyPolicyScreen(),
-        // ),
-        // GoRoute(path: '/verifyScreen', builder: (_, _) => VerifyScreen()),
-        // GoRoute(
-        //   path: '/termsConditionScreen',
-        //   builder: (_, _) => TermsConditionScreen(),
-        // ),
-        // GoRoute(
-        //   path: '/helpSupportScreen',
-        //   builder: (_, _) => HelpSupportScreen(),
-        // ),
-
-        // GoRoute(path: '/calendarScreen', builder: (_, _) => CalendarScreen()),
-        // GoRoute(path: '/bottomNavBar', builder: (_, _) => BottomNavBar()),
-
-        // GoRoute(
-        //   path: '/adminScheduleScreen',
-        //   builder: (_, _) => AdminScheduleScreen(),
-        // ),
-        // GoRoute(
-        //   path: '/adminCompleteTaskScreen',
-        //   builder: (_, _) => AdminCompleteTaskScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/adminAttendanceScreen',
-        //   builder: (_, _) => AdminAttendanceScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/adminBottomNavBar',
-        //   builder: (_, _) => AdminBottomNavBar(),
-        // ),
       ],
     );
   }

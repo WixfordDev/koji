@@ -19,7 +19,7 @@ class AdminHomeScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundImage: AssetImage('assets/profile.png'),
+                backgroundImage: AssetImage('assets/images/profile.png'),
               ),
               SizedBox(width: 10.w),
               Column(
@@ -76,7 +76,8 @@ class AdminHomeScreen extends StatelessWidget {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        context.goNamed("/adminTaskListScreen");
+                        // context.push("/adminMyTaskScreen");
+                        context.push("/adminCreateTaskScreen");
                       },
                       child: _buildQuickCard("Task\nManage", [
                         const Color(0xFFF9B128),
@@ -85,7 +86,7 @@ class AdminHomeScreen extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        context.goNamed("/adminEmployeeRequestScreen");
+                        context.push("/adminEmployeeRequestScreen");
                       },
                       child: _buildQuickCard("Employee\nRequest", [
                         const Color(0xFF136AB7),
@@ -94,7 +95,7 @@ class AdminHomeScreen extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        context.goNamed("/adminAttendanceScreen");
+                        context.push("/adminAttendanceScreen");
                       },
                       child: _buildQuickCard("View\nAttendence", [
                         const Color(0xFFEC526A),
