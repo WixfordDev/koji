@@ -1,38 +1,48 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:koji/features/admin_map/admin_map_screen.dart';
 
+// Auth Screens
 import 'package:koji/features/authentication/presentation/forgot_password_screen.dart';
 import 'package:koji/features/authentication/presentation/login_screen.dart';
 import 'package:koji/features/authentication/presentation/onboarding_screen.dart';
 import 'package:koji/features/authentication/presentation/reset_password_screen.dart';
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
-import 'package:koji/features/employee_home/presentation/employee_home_screen.dart';
-import 'package:koji/features/message/presentation/message_screen.dart';
-import 'package:koji/features/notification/presentation/notification_screen.dart';
+import 'package:koji/features/authentication/presentation/verify_screen/verify_screen.dart';
 
+// Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
 import '../features/admin_home/presentation/admin_create_task_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
-import '../features/authentication/presentation/verify_screen/verify_screen.dart';
+import '../features/admin_map/admin_map_screen.dart';
+
+// Employee Screens
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
+import '../features/employee_home/presentation/employee_home_screen.dart';
 import '../features/employee_history/presentation/employee_history_screen.dart';
 import '../features/employee_history/presentation/taskreport_screen.dart';
 import '../features/employee_schedule/presentation/calendar_screen.dart';
 import '../features/employee_schedule/presentation/my_task_screen.dart';
 import '../features/employee_schedule/presentation/submit_task_screen.dart';
+
+// Profile Screens
 import '../features/profile/presentation/change_password_screen.dart';
 import '../features/profile/presentation/help_support_screen.dart';
 import '../features/profile/presentation/my_profile_screen.dart';
 import '../features/profile/presentation/privacy_policy_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/terms_condition_screen.dart';
+
+// Common Screens
+import '../features/message/presentation/message_screen.dart';
+import '../features/notification/presentation/notification_screen.dart';
+
+// Route Paths
+import './route_paths.dart';
 
 /* Helper to let GoRouter refresh when Bloc state changes */
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -49,129 +59,238 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 /* Central router builder you can call from main.dart */
 class AppRouter {
+  static final List<GoRoute> _authRoutes = [
+    GoRoute(path: RoutePaths.splash, builder: (_, __) => const SplashScreen()),
+    GoRoute(path: RoutePaths.signIn, builder: (_, __) => LoginScreen()),
+    GoRoute(
+      path: RoutePaths.signUp,
+      builder: (_, __) => const RegistrationScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.onboarding,
+      builder: (_, __) => OnboardingScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.forgotPassword,
+      builder: (_, __) => ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.resetPassword,
+      builder: (_, __) => ResetPasswordScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.verifyScreen,
+      builder: (_, __) => const VerifyScreen(),
+    ),
+  ];
+
+  static final List<GoRoute> _employeeRoutes = [
+    GoRoute(
+      path: RoutePaths.employeeHomeScreen,
+      builder: (_, __) => EmployeeHomeScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeHistoryScreen,
+      builder: (_, __) => HistoryScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeTaskReportScreen,
+      builder: (_, __) => TaskReportScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeCalendarScreen,
+      builder: (_, __) => CalendarScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeMyTaskScreen,
+      builder: (_, __) => MyTaskScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeSubmitTaskScreen,
+      builder: (_, __) => SubmitTaskScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.employeeBottomNavBar,
+      builder: (_, __) => BottomNavBar(),
+    ),
+  ];
+
+  static final List<GoRoute> _adminRoutes = [
+    GoRoute(
+      path: RoutePaths.adminBottomNavBar,
+      builder: (_, __) => AdminBottomNavBar(),
+    ),
+    GoRoute(
+      path: RoutePaths.adminScheduleScreen,
+      builder: (_, __) => AdminScheduleScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.adminCompleteTaskScreen,
+      builder: (_, __) => AdminCompleteTaskScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.adminAttendanceScreen,
+      builder: (_, __) => AdminAttendanceScreen(),
+    ),
+  ];
+
+  static final List<GoRoute> _profileRoutes = [
+    GoRoute(
+      path: RoutePaths.profileScreen,
+      builder: (_, __) => ProfileScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.myProfileScreen,
+      builder: (_, __) => MyProfileScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.changePasswordScreen,
+      builder: (_, __) => ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.privacyPolicyScreen,
+      builder: (_, __) => PrivacyPolicyScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.termsConditionScreen,
+      builder: (_, __) => TermsConditionScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.helpSupportScreen,
+      builder: (_, __) => HelpSupportScreen(),
+    ),
+  ];
+
+  static final List<GoRoute> _commonRoutes = [
+    GoRoute(
+      path: RoutePaths.messageListScreen,
+      builder: (_, __) => MessageListScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.notificationScreen,
+      builder: (_, __) => NotificationScreen(),
+    ),
+  ];
+
   static GoRouter build() {
     return GoRouter(
-      initialLocation: '/splash',
+      initialLocation: RoutePaths.splash,
       debugLogDiagnostics: true,
-
-      // refreshListenable: GoRouterRefreshStream(authBloc.stream),
-      // redirect: (context, state) {
-      // final isLoggedIn = false;
-      //
-      // final goingToSignIn = state.matchedLocation == '/sign-in';
-      //
-      // if (!isLoggedIn && !goingToSignIn) {
-      //   return '/sign-up'; // 👈 this causes the redirect
-      // }
-      //
-      // return null;
-      // final status = authBloc.state.status;
-      // final loggingIn = state.matchedLocation == '/sign-in';
-      //
-      // if (status == AuthStatus.unknown) {
-      //   return state.matchedLocation == '/splash' ? null : '/splash';
-      // }
-      //
-      // if (status == AuthStatus.unauthenticated) {
-      //   return loggingIn ? null : '/sign-in';
-      // }
-      //
-      // if (status == AuthStatus.authenticated) {
-      //   if (loggingIn || state.matchedLocation == '/splash') return '/home';
-      // }
-      // String? token = LocalStorage.getToken();
-      // print(token);
-      // return token != null ? '/home' : '/applyForm-in';
-      //   return '/splash';
-      // },
       routes: [
-        GoRoute(path: '/splash', builder: (_, x) => const SplashScreen()),
-        GoRoute(path: '/sign-in', builder: (_, x) => LoginScreen()),
-
+        // Auth Routes
         GoRoute(
-          path: '/sign-up',
-          builder: (_, x) => const RegistrationScreen(),
+          path: RoutePaths.splash,
+          builder: (_, __) => const SplashScreen(),
         ),
-        GoRoute(path: '/onboarding', builder: (_, x) => OnboardingScreen()),
         GoRoute(
-          path: '/forgotPassword',
-          builder: (_, x) => ForgotPasswordScreen(),
+          path: RoutePaths.signIn,
+          name: RoutePaths.signIn,
+          builder: (_, __) => LoginScreen(),
         ),
-
         GoRoute(
-          path: '/resetPassword',
-          builder: (_, x) => ResetPasswordScreen(),
+          path: RoutePaths.signUp,
+          name: RoutePaths.signUp,
+          builder: (_, __) => const RegistrationScreen(),
         ),
-
         GoRoute(
-          path: '/employeeHomeScreen',
-          builder: (_, _) => EmployeeHomeScreen(),
+          path: RoutePaths.onboarding,
+          name: RoutePaths.onboarding,
+          builder: (_, __) => OnboardingScreen(),
         ),
-
         GoRoute(
-          path: '/messageListScreen',
-          builder: (_, _) => MessageListScreen(),
+          path: RoutePaths.forgotPassword,
+          name: RoutePaths.forgotPassword,
+          builder: (_, __) => ForgotPasswordScreen(),
         ),
-
         GoRoute(
-          path: '/notificationScreen',
-          builder: (_, _) => NotificationScreen(),
+          path: RoutePaths.resetPassword,
+          name: RoutePaths.resetPassword,
+          builder: (_, __) => ResetPasswordScreen(),
         ),
-
         GoRoute(
-          path: '/submitTaskScreen',
-          builder: (_, _) => SubmitTaskScreen(),
+          path: RoutePaths.verifyScreen,
+          name: RoutePaths.verifyScreen,
+          builder: (_, __) => const VerifyScreen(),
         ),
 
-        GoRoute(path: '/myTaskScreen', builder: (_, _) => MyTaskScreen()),
-        GoRoute(path: '/historyScreen', builder: (_, _) => HistoryScreen()),
+        // Employee Routes
         GoRoute(
-          path: '/taskReportScreen',
-          builder: (_, _) => TaskReportScreen(),
-        ),
-        GoRoute(path: '/profileScreen', builder: (_, _) => ProfileScreen()),
-        GoRoute(path: '/myProfileScreen', builder: (_, _) => MyProfileScreen()),
-        GoRoute(
-          path: '/changePasswordScreen',
-          builder: (_, _) => ChangePasswordScreen(),
+          path: RoutePaths.employeeHomeScreen,
+          builder: (_, __) => EmployeeHomeScreen(),
         ),
         GoRoute(
-          path: '/privacyPolicyScreen',
-          builder: (_, _) => PrivacyPolicyScreen(),
+          path: RoutePaths.employeeHistoryScreen,
+          builder: (_, __) => HistoryScreen(),
         ),
         GoRoute(
-          path: '/verifyScreen',
-          builder: (_, _) => VerifyScreen(),
+          path: RoutePaths.employeeTaskReportScreen,
+          builder: (_, __) => TaskReportScreen(),
         ),
         GoRoute(
-          path: '/termsConditionScreen',
-          builder: (_, _) => TermsConditionScreen(),
+          path: RoutePaths.employeeCalendarScreen,
+          builder: (_, __) => CalendarScreen(),
         ),
         GoRoute(
-          path: '/helpSupportScreen',
-          builder: (_, _) => HelpSupportScreen(),
-        ),
-
-        GoRoute(path: '/calendarScreen', builder: (_, _) => CalendarScreen()),
-        GoRoute(path: '/bottomNavBar', builder: (_, _) => BottomNavBar()),
-
-        GoRoute(
-          path: '/adminScheduleScreen',
-          builder: (_, _) => AdminScheduleScreen(),
+          path: RoutePaths.employeeMyTaskScreen,
+          builder: (_, __) => MyTaskScreen(),
         ),
         GoRoute(
-          path: '/adminCompleteTaskScreen',
-          builder: (_, _) => AdminCompleteTaskScreen(),
+          path: RoutePaths.employeeSubmitTaskScreen,
+          builder: (_, __) => SubmitTaskScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.employeeBottomNavBar,
+          builder: (_, __) => BottomNavBar(),
         ),
 
+        // Admin Routes
         GoRoute(
-          path: '/adminAttendanceScreen',
-          builder: (_, _) => AdminAttendanceScreen(),
+          path: RoutePaths.adminBottomNavBar,
+          builder: (_, __) => AdminBottomNavBar(),
+        ),
+        GoRoute(
+          path: RoutePaths.adminScheduleScreen,
+          builder: (_, __) => AdminScheduleScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.adminCompleteTaskScreen,
+          builder: (_, __) => AdminCompleteTaskScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.adminAttendanceScreen,
+          builder: (_, __) => AdminAttendanceScreen(),
         ),
 
+        // Profile Routes
         GoRoute(
-          path: '/adminBottomNavBar',
-          builder: (_, _) => AdminBottomNavBar(),
+          path: RoutePaths.profileScreen,
+          builder: (_, __) => ProfileScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.myProfileScreen,
+          builder: (_, __) => MyProfileScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.changePasswordScreen,
+          builder: (_, __) => ChangePasswordScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.privacyPolicyScreen,
+          builder: (_, __) => PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.termsConditionScreen,
+          builder: (_, __) => TermsConditionScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.helpSupportScreen,
+          builder: (_, __) => HelpSupportScreen(),
+        ),
+
+        // Common Routes
+        GoRoute(
+          path: RoutePaths.messageListScreen,
+          builder: (_, __) => MessageListScreen(),
         ),
         GoRoute(
           path: '/adminMyTaskScreen',
@@ -183,6 +302,7 @@ class AppRouter {
           name: 'adminCreateTaskScreen',
           builder: (_, _) => AdminCreateTaskScreen(),
         ),
+
       ],
     );
   }

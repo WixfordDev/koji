@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/controller/auth_controller.dart';
+import 'package:koji/routes/route_helper.dart';
 import 'package:koji/shared_widgets/custom_auth_text_field.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:get/get.dart';
@@ -76,9 +77,9 @@ class LoginScreen extends StatelessWidget {
                     child: TextButton(
                       onPressed: () {
                         // TODO: Add forgot password logic
-                        context.push(
-                          '/forgotPassword',
-                          extra: {"email": emailCtrl.text},
+                        RouteHelper.goToForgotPassword(
+                          context,
+                          email: emailCtrl.text,
                         );
                       },
                       child: Text(
