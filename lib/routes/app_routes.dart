@@ -14,6 +14,8 @@ import 'package:koji/features/authentication/presentation/verify_screen/verify_s
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
+import '../features/admin_home/presentation/admin_create_task_screen.dart';
+import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_map/admin_map_screen.dart';
@@ -342,27 +344,21 @@ class AppRouter {
         //   builder: (_, _) => HelpSupportScreen(),
         // ),
 
-        // GoRoute(path: '/calendarScreen', builder: (_, _) => CalendarScreen()),
-        // GoRoute(path: '/bottomNavBar', builder: (_, _) => BottomNavBar()),
-
-        // GoRoute(
-        //   path: '/adminScheduleScreen',
-        //   builder: (_, _) => AdminScheduleScreen(),
-        // ),
-        // GoRoute(
-        //   path: '/adminCompleteTaskScreen',
-        //   builder: (_, _) => AdminCompleteTaskScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/adminAttendanceScreen',
-        //   builder: (_, _) => AdminAttendanceScreen(),
-        // ),
-
-        // GoRoute(
-        //   path: '/adminBottomNavBar',
-        //   builder: (_, _) => AdminBottomNavBar(),
-        // ),
+        
+        GoRoute(
+          path: '/adminBottomNavBar',
+          builder: (_, _) => AdminBottomNavBar(),
+        ),
+        GoRoute(
+          path: '/adminMyTaskScreen',
+          name: 'adminMyTaskScreen',
+          builder: (_, _) => AdminMyTaskScreen(),
+        ),
+        GoRoute(
+          path: '/adminCreateTaskScreen',
+          name: 'adminCreateTaskScreen',
+          builder: (_, _) => AdminCreateTaskScreen(),
+        ),
       ],
     );
   }

@@ -155,15 +155,18 @@ class CustomButton extends StatelessWidget {
 
             loaderIgnore ? const SizedBox() : SizedBox(width: 20.w),
 
-            // loaderIgnore
-            //     ? const SizedBox()
-            //     : loading
-            //     ? SizedBox(
-            //         height: 40.h,
-            //         width: 25.w,
-            //         child: Assets.lottie.loading.lottie(fit: BoxFit.cover),
-            //       )
-            //     : SizedBox(width: 20.w),
+            loaderIgnore
+            ? const SizedBox()
+            : loading
+            ? SizedBox(
+                height: 20.h,
+                width: 20.w,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : SizedBox(width: 20.w),
           ],
         ),
       ),
