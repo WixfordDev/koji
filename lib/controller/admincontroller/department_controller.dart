@@ -139,6 +139,29 @@ class DepartmentController extends GetxController {
 
 
 
+  /// ============================ Employee Request =====================================
+
+  RxBool getEmployeeRequestLoading = false.obs;
+  Rx<AllEmployeeModel> employeeRequest = AllEmployeeModel().obs;
+
+  getEmployeeRequest() async {
+    getEmployeeRequestLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getEmployeeUserListEndPoint);
+
+      if (response.statusCode == 200) {
+        employeeRequest.value = AllEmployeeModel.fromJson(response.body['data']['attributes']);
+        getEmployeeRequestLoading(false);
+      } else if (response.statusCode == 404) {
+        getEmployeeRequestLoading(false);
+      } else {
+        getEmployeeRequestLoading(false);
+      }
+    } catch (e) {
+      getEmployeeRequestLoading(false);
+    }
+  }
+
   //// ----------------------------------- Create Task --------------------------------
 
   var createNewLoading = false.obs;
