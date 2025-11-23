@@ -16,16 +16,6 @@ class AdminAttendanceScreen extends StatefulWidget {
 class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
 
-  final AdminHomeController adminHomeController = Get.find();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      adminHomeController.getAllAttendanceSummary();
-
-    });
-  }
 
 
   @override

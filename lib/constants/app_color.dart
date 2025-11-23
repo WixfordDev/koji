@@ -8,7 +8,9 @@ class AppColor {
   static const Color selectedColor = Color(0xFF162238);
   static const Color unSelectedColor = Color(0xFF8C8C8C);
   static const Color textColor = Color(0xFF333333);
+  static const Color textColor666666 = Color(0xFF666666);
   static const Color textColorF4F4F5 = Color(0xFFF4F4F5);
+  static const Color textColor4F4F4F = Color(0xFF4F4F4F);
   static const Color textColor707070 = Color(0xFF707070);
   static const Color accentColor = Color(0xFFFF69B4);
   static const Color borderColor = Color(0xFFE0E0E0);

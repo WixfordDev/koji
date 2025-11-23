@@ -17,8 +17,15 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/arrowdown.svg
+  SvgGenImage get arrowdown => const SvgGenImage('assets/icons/arrowdown.svg');
+
   /// File path: assets/icons/attach.svg
   SvgGenImage get attach => const SvgGenImage('assets/icons/attach.svg');
+
+  /// File path: assets/icons/attendanceicon.svg
+  SvgGenImage get attendanceicon =>
+      const SvgGenImage('assets/icons/attendanceicon.svg');
 
   /// File path: assets/icons/calendar.svg
   SvgGenImage get calendar => const SvgGenImage('assets/icons/calendar.svg');
@@ -35,6 +42,10 @@ class $AssetsIconsGen {
 
   /// File path: assets/icons/chevron.svg
   SvgGenImage get chevron => const SvgGenImage('assets/icons/chevron.svg');
+
+  /// File path: assets/icons/employeerequest.svg
+  SvgGenImage get employeerequest =>
+      const SvgGenImage('assets/icons/employeerequest.svg');
 
   /// File path: assets/icons/hand.svg
   SvgGenImage get hand => const SvgGenImage('assets/icons/hand.svg');
@@ -60,6 +71,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/myprofile.svg
   SvgGenImage get myprofile => const SvgGenImage('assets/icons/myprofile.svg');
 
+  /// File path: assets/icons/notifications.svg
+  SvgGenImage get notifications =>
+      const SvgGenImage('assets/icons/notifications.svg');
+
   /// File path: assets/icons/privacy.svg
   SvgGenImage get privacy => const SvgGenImage('assets/icons/privacy.svg');
 
@@ -72,20 +87,42 @@ class $AssetsIconsGen {
   /// File path: assets/icons/select.svg
   SvgGenImage get select => const SvgGenImage('assets/icons/select.svg');
 
+  /// File path: assets/icons/taskmanager.svg
+  SvgGenImage get taskmanager =>
+      const SvgGenImage('assets/icons/taskmanager.svg');
+
   /// File path: assets/icons/terms.svg
   SvgGenImage get terms => const SvgGenImage('assets/icons/terms.svg');
+
+  /// File path: assets/icons/time.svg
+  SvgGenImage get time => const SvgGenImage('assets/icons/time.svg');
+
+  /// File path: assets/icons/totalemployee.svg
+  SvgGenImage get totalemployee =>
+      const SvgGenImage('assets/icons/totalemployee.svg');
 
   /// File path: assets/icons/tracking.svg
   SvgGenImage get tracking => const SvgGenImage('assets/icons/tracking.svg');
 
+  /// File path: assets/icons/transaction.svg
+  SvgGenImage get transaction =>
+      const SvgGenImage('assets/icons/transaction.svg');
+
+  /// File path: assets/icons/viewattendance.svg
+  SvgGenImage get viewattendance =>
+      const SvgGenImage('assets/icons/viewattendance.svg');
+
   /// List of all assets
   List<SvgGenImage> get values => [
+    arrowdown,
     attach,
+    attendanceicon,
     calendar,
     calendar1,
     camera,
     changepass,
     chevron,
+    employeerequest,
     hand,
     help,
     history,
@@ -94,12 +131,18 @@ class $AssetsIconsGen {
     message,
     mydoc,
     myprofile,
+    notifications,
     privacy,
     profile,
     schedule,
     select,
+    taskmanager,
     terms,
+    time,
+    totalemployee,
     tracking,
+    transaction,
+    viewattendance,
   ];
 }
 
