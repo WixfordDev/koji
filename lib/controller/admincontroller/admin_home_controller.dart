@@ -3,7 +3,9 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../services/api_client.dart';
 import '../../../services/api_constants.dart';
 import '../../models/admin-model/all_attendance_model.dart';
+import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
+import '../../models/admin-model/employee_request_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -64,6 +66,32 @@ class AdminHomeController extends GetxController {
 
 
 
+
+
+  /// ============================ Employee Request =====================================
+
+
+  RxBool getEmployeeRequestLoading = false.obs;
+  Rx<AllEmployeeModel> employeeRequest = AllEmployeeModel().obs;
+
+  getEmployeeRequest() async {
+    getEmployeeRequestLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getEmployeeUserListEndPoint);
+
+      if (response.statusCode == 200) {
+
+        employeeRequest.value = AllEmployeeModel.fromJson(response.body['data']['attributes']);
+        getEmployeeRequestLoading(false);
+      } else if (response.statusCode == 404) {
+        getEmployeeRequestLoading(false);
+      } else {
+        getEmployeeRequestLoading(false);
+      }
+    } catch (e) {
+      getEmployeeRequestLoading(false);
+    }
+  }
 
 
 
