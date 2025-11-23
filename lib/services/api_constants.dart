@@ -22,6 +22,7 @@ class ApiConstants {
   static const String getAllServiceListEndPoint = "/services/list?sortBy=createdAt:desc";
   static const String taskEndPoint = "/tasks";
   static const String getAttendanceEndPoint = "/info/attendance/status";
+  static const String getTaskSummaryEndPoint = "/info/task/summary";
 
 
 

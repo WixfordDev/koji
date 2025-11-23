@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:koji/controller/auth_controller.dart';
+import 'package:koji/controller/admincontroller/admin_home_controller.dart';
 import 'package:koji/controller/admincontroller/department_controller.dart';
 
 class DependencyInjection implements Bindings {
@@ -10,6 +11,7 @@ class DependencyInjection implements Bindings {
   void dependencies() {
     Get.lazyPut(() => AuthController(), fenix: true);
     Get.lazyPut(() => DepartmentController(), fenix: true);
+    Get.lazyPut(() => AdminHomeController(), fenix: true);
   }
 
   void lockDevicePortrait() {
