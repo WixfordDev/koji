@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../shared_widgets/custom_text.dart';
+import 'admin_view_attendance_screen.dart';
 
 class AdminAttendanceScreen extends StatefulWidget {
   const AdminAttendanceScreen({super.key});
@@ -15,6 +16,18 @@ class AdminAttendanceScreen extends StatefulWidget {
 
 class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
+
+  late AdminHomeController adminHomeController;
+
+  @override
+  void initState() {
+    super.initState();
+    adminHomeController = Get.find<AdminHomeController>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adminHomeController.getAdminAllAttendance();
+
+    });
+  }
 
 
 
@@ -75,13 +88,19 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                           SizedBox(width: 6.w),
                           Expanded(
                             child: TextField(
+                              textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
                                 hintText: "Search",
                                 border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
                                 hintStyle: TextStyle(
                                   fontSize: 12.sp,
                                   color: Colors.grey,
                                 ),
+                              ),
+                              style: TextStyle(
+                                fontSize: 12.sp,
                               ),
                             ),
                           ),
@@ -105,6 +124,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       ],
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CustomText(
                           text: "November",
@@ -187,21 +207,58 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               ),
               SizedBox(height: 16.h),
 
-              /// Employee Cards
-              ListView.builder(
-                itemCount: employees.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  final e = employees[index];
-                  return _buildEmployeeCard(
-                    e['name']!,
-                    e['role']!,
-                    e['checkIn']!,
-                    e['checkOut']!,
-                  );
-                },
-              ),
+              /// ===========================>  Employee Cards ===========================>
+              Obx(() {
+                if (adminHomeController.getAdminAllAttendanceLoading.value) {
+                  return const Center(child: CustomLoader());
+                }
+
+                final attendanceList = adminHomeController.allAttendance.value.results ?? [];
+                return ListView.builder(
+                  itemCount: attendanceList.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final attendance = attendanceList[index];
+
+                    // Format time from DateTime
+                    String checkInTime = attendance.clockIn != null
+                        ? "${attendance.clockIn!.hour}:${attendance.clockIn!.minute.toString().padLeft(2, '0')}"
+                        : "N/A";
+
+                    String checkOutTime = attendance.clockOut != null
+                        ? "${attendance.clockOut!.hour}:${attendance.clockOut!.minute.toString().padLeft(2, '0')}"
+                        : "N/A";
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AdminViewAttendanceScreen(
+                              employeeName: attendance.employee?.fullName ?? "Unknown",
+                              role: attendance.employee?.role ?? "N/A",
+                              employeeId: attendance.employee?.id ?? "",
+                              image: attendance.employee?.image,
+                              checkIn: checkInTime,
+                              breakTime: "N/A", // Placeholder - you may want to implement break time logic
+                              checkOut: checkOutTime,
+                            ),
+                          ),
+                        );
+                      },
+                      child: _buildEmployeeCard(
+                        attendance.employee?.fullName ?? "Unknown",
+                        attendance.employee?.role ?? "N/A",
+                        checkInTime,
+                        checkOutTime,
+                        attendance.employee?.image,
+                      ),
+                    );
+                  },
+                );
+              })
+
             ],
           ),
         ),
@@ -286,7 +343,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
   }
 
   Widget _buildEmployeeCard(
-      String name, String role, String checkIn, String checkOut) {
+      String name, String role, String checkIn, String checkOut, String? imageUrl) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(10.w),
@@ -303,9 +360,14 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 25,
-            backgroundImage: AssetImage('assets/images/profile.png'),
+            backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                ? NetworkImage(imageUrl)
+                : AssetImage('assets/images/profile.png') as ImageProvider,
+            child: imageUrl == null || imageUrl.isEmpty
+                ? Icon(Icons.person)
+                : null,
           ),
           SizedBox(width: 10.w),
           Expanded(
@@ -338,13 +400,13 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                     ),
                     CustomText(
                       text: " | Check Out: ",
-                      fontSize: 12.sp,
+                      fontSize: 10.sp,
                       fontWeight: FontWeight.w400,
                       color: Colors.black54,
                     ),
                     CustomText(
                       text: checkOut,
-                      fontSize: 12.sp,
+                      fontSize: 10.sp,
                       color: Colors.black,
                     ),
                   ],
@@ -360,15 +422,5 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
   String selectedStatus = 'Pending';
 
-  final employees = List.generate(
-    6,
-        (index) => {
-      'name': 'Cameron Williamson',
-      'role': 'Manager',
-      'checkIn': '09:00am',
-      'checkOut': '05:00pm',
-      'status': index % 2 == 0 ? 'Check In' : 'Check Out'
-    },
-  );
 
 }

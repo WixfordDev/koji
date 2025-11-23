@@ -1,9 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:koji/features/admin_map/admin_map_screen.dart';
-
 import 'package:koji/features/authentication/presentation/forgot_password_screen.dart';
 import 'package:koji/features/authentication/presentation/login_screen.dart';
 import 'package:koji/features/authentication/presentation/onboarding_screen.dart';
@@ -13,12 +10,12 @@ import 'package:koji/features/authentication/presentation/splash_screen.dart';
 import 'package:koji/features/employee_home/presentation/employee_home_screen.dart';
 import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/notification/presentation/notification_screen.dart';
-
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
 import '../features/admin_home/presentation/admin_create_task_screen.dart';
 import '../features/admin_home/presentation/admin_employee_request_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
+import '../features/admin_home/presentation/admin_view_attendance_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/authentication/presentation/verify_screen/verify_screen.dart';
@@ -190,6 +187,7 @@ class AppRouter {
           name: 'adminEmployeeRequestScreen',
           builder: (_, _) => AdminEmployeeRequestScreen(),
         ),
+
       ],
     );
   }
