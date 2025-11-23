@@ -12,6 +12,12 @@ class ApiConstants {
   static const String forgotPasswordEndPoint = "/auth/forgot-password";
   static const String resetPasswordEndPoint = "/auth/reset-password";
 
+  /// Attendance Endpoints
+  static const String attendanceEmployeeList = "/attendances/employee-list";
+  static const String attendanceCheckIn = "/attendances/check-in";
+  static const String attendanceCheckOut = "/attendances/check-out";
+
+
 
   /// ==============================> Admin Api =======================================>
 
@@ -24,9 +30,6 @@ class ApiConstants {
   static const String getAttendanceEndPoint = "/info/attendance/status";
   static const String getTaskSummaryEndPoint = "/info/task/summary";
   static const String getEmployeeUserListEndPoint = "/users/list?role=employee&page=1&limit=10";
-
-
-
 
 
 
