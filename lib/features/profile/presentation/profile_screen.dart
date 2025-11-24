@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/controller/profile_controller.dart';
 import '../../../constants/app_color.dart';
 import '../../../global/custom_assets/assets.gen.dart';
 import '../../../shared_widgets/custom_button.dart';
@@ -8,19 +11,32 @@ import '../../../shared_widgets/custom_delete_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+
+  late ProfileController profileController;
+
+  @override
+  void initState() {
+    super.initState();
+    profileController = Get.find<ProfileController>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      profileController.getProfile();
 
 
-
-class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
-
-
-
-
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         forceMaterialTransparency: true,
         backgroundColor: Colors.transparent,
@@ -46,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -79,13 +95,13 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 32.h),
-          
+
               /// ==================================> My Profile =============================>
               GestureDetector(
                 onTap: () {
 
                   context.push('/myProfileScreen');
-          
+
                 },
                 child: Container(
                   width: 345.w,
@@ -127,12 +143,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-          
+
               /// ==================================> Change password =============================>
               GestureDetector(
                 onTap: () {
                   context.push('/changePasswordScreen');
-          
+
                 },
                 child: Container(
                   width: 345.w,
@@ -159,7 +175,7 @@ class ProfileScreen extends StatelessWidget {
                             SizedBox(width: 5.w),
                             CustomText(text: 'Change Password',
                               fontSize: 16.sp,
-                              color: AppColor.secondaryColor,                            fontWeight: FontWeight.w500,
+                              color: AppColor.secondaryColor,fontWeight: FontWeight.w500,
                             )
                           ],
                         ),
@@ -173,11 +189,11 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-          
+
               /// ==================================> My Documents =============================>
               GestureDetector(
                 onTap: () {
-          
+
                 },
                 child: Container(
                   width: 345.w,
@@ -219,7 +235,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-          
+
               /// ==================================> Terms =============================>
               GestureDetector(
                 onTap: () {
@@ -265,7 +281,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-          
+
               /// ==================================> Privacy Policy =============================>
               GestureDetector(
                 onTap: () {
@@ -312,7 +328,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-          
+
               /// ==================================> Help and Support  =============================>
               GestureDetector(
                 onTap: () {
@@ -357,14 +373,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-          
+
               SizedBox(height: 16.h),
-          
+
               Divider(),
-          
+
               SizedBox(height: 50.h),
-          
-          
+
+
               CustomButton(
                 title: 'Log out',
                 onpress: () {
@@ -431,8 +447,6 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
-
-
 }
 
 
