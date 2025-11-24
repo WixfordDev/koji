@@ -86,13 +86,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     "forgot",
                     context: context,
                   );
-
-                  if (!authController.forgotLoading.value) {
-                    context.pushNamed(
-                      "/verifyScreen",
-                      extra: {"email": emailCtrl.text, "screenType": "forgot"},
-                    );
-                  }
                 },
               ),
             ),
