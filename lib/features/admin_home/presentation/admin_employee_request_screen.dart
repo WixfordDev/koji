@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:koji/features/admin_home/presentation/admin_employee_view.dart';
+import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import 'package:koji/features/admin_home/presentation/widget/hotizontal_list.dart';
 import 'package:koji/shared_widgets/custom_auth_text_field.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
@@ -77,7 +78,7 @@ class _AdminEmployeeRequestScreenState
               child: GetX<AdminHomeController>(
                 builder: (controller) {
                   if (controller.getEmployeeRequestLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: CustomLoader());
                   }
 
                   final employees = controller.employeeRequest.value.results ?? [];

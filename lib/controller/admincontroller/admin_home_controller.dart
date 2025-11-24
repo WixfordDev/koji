@@ -3,9 +3,9 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../services/api_client.dart';
 import '../../../services/api_constants.dart';
 import '../../models/admin-model/all_attendance_model.dart';
+import '../../models/admin-model/all_attendance_list_model.dart';
 import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
-import '../../models/admin-model/employee_request_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -92,6 +92,38 @@ class AdminHomeController extends GetxController {
       getEmployeeRequestLoading(false);
     }
   }
+
+
+
+  /// ============================ Get All Attendance Individual Records =====================================
+
+  RxBool getAdminAllAttendanceLoading = false.obs;
+  Rx<AllAttendanceModel> allAttendance = AllAttendanceModel().obs;
+
+  getAdminAllAttendance() async {
+    getAdminAllAttendanceLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getAllAttendanceEndPoint);
+
+      if (response.statusCode == 200) {
+        allAttendance.value = AllAttendanceModel.fromJson(response.body['data']['attributes']);
+        getAdminAllAttendanceLoading(false);
+      } else if (response.statusCode == 404) {
+        allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+        getAdminAllAttendanceLoading(false);
+      } else {
+        allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+        getAdminAllAttendanceLoading(false);
+        print("Error getting attendance: ${response.statusCode}");
+      }
+    } catch (e) {
+      allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+      getAdminAllAttendanceLoading(false);
+      print("Exception in getAdminAllAttendance: $e");
+    }
+  }
+
+
 
 
 
