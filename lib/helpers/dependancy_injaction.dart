@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:koji/controller/auth_controller.dart';
 import 'package:koji/controller/admincontroller/admin_home_controller.dart';
 import 'package:koji/controller/admincontroller/department_controller.dart';
+import 'package:koji/controller/profile_controller.dart';
 
 class DependencyInjection implements Bindings {
   DependencyInjection();
@@ -12,6 +13,7 @@ class DependencyInjection implements Bindings {
     Get.lazyPut(() => AuthController(), fenix: true);
     Get.lazyPut(() => DepartmentController(), fenix: true);
     Get.lazyPut(() => AdminHomeController(), fenix: true);
+    Get.lazyPut(() => ProfileController(), fenix: true);
   }
 
   void lockDevicePortrait() {

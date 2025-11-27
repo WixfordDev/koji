@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/controller/profile_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../constants/app_color.dart';
 import '../../../global/custom_assets/assets.gen.dart';
+import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_delete_button.dart';
 import '../../../shared_widgets/custom_text.dart';
@@ -28,8 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     profileController = Get.find<ProfileController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       profileController.getProfile();
-
-
     });
   }
 
@@ -42,17 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            IconButton(
-              padding: EdgeInsets.zero,
-              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
-              onPressed: () => Navigator.pop(context),
-            ),
 
-          ],
-        ),
 
       ),
       body: Padding(
@@ -63,36 +53,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 24.h),
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(40.r),
-                      child: Image.asset(
-                        "assets/images/profile.png",
-                      ),),
-                  ),
-                  SizedBox(height: 8.h),
-                  CustomText(
-                    text: 'Ebrahim Hossen',
-                    fontSize: 24.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  CustomText(
-                    text: 'Employee',
-                    fontSize: 14.sp,
-                    color: AppColor.textColor707070,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomText(
-                    text: 'ID: Koji Tech 123',
-                    fontSize: 14.sp,
-                    color: AppColor.textColor707070,
-                  ),
+              Obx(()=>
+                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 24.h),
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(40.r),
+                        child: profileController.profile.value.user?.image != null
+                          ? CachedNetworkImage(
+                              imageUrl: "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                              width: 80.r,
+                              height: 80.r,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Shimmer.fromColors(
+                                baseColor: AppColor.borderColor,
+                                highlightColor: AppColor.backgroundColor,
+                                child: Container(
+                                  width: 80.r,
+                                  height: 80.r,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(40.r),
+                                    color: AppColor.borderColor,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Assets.images.profile.image(
+                                width: 80.r,
+                                height: 80.r,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Assets.images.profile.image(
+                              width: 80.r,
+                              height: 80.r,
+                              fit: BoxFit.cover,
+                            ),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    CustomText(
+                      text: profileController.profile.value.user?.firstName ?? 'N/A',
+                      fontSize: 24.sp,
+                      color: AppColor.secondaryColor,
+                    ),
+                    CustomText(
+                      text: profileController.profile.value.user?.role ?? 'N/A',
+                      fontSize: 14.sp,
+                      color: AppColor.textColor707070,
+                    ),
+                    SizedBox(height: 4.h),
+                    CustomText(
+                      text: 'ID: Koji Tech 123',
+                      fontSize: 14.sp,
+                      color: AppColor.textColor707070,
+                    ),
 
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: 32.h),
 
@@ -394,7 +413,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,

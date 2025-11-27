@@ -217,81 +217,104 @@ class AppRouter {
         // Employee Routes
         GoRoute(
           path: RoutePaths.employeeHomeScreen,
+          name: RoutePaths.employeeHomeScreen,
           builder: (_, __) => EmployeeHomeScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeHistoryScreen,
+          name: RoutePaths.employeeHistoryScreen,
           builder: (_, __) => HistoryScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeTaskReportScreen,
+          name: RoutePaths.employeeTaskReportScreen,
           builder: (_, __) => TaskReportScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeCalendarScreen,
+          name: RoutePaths.employeeCalendarScreen,
           builder: (_, __) => CalendarScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeMyTaskScreen,
+          name: RoutePaths.employeeMyTaskScreen,
           builder: (_, __) => MyTaskScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeSubmitTaskScreen,
+          name: RoutePaths.employeeSubmitTaskScreen,
           builder: (_, __) => SubmitTaskScreen(),
         ),
         GoRoute(
           path: RoutePaths.employeeBottomNavBar,
+          name: RoutePaths.employeeBottomNavBar,
           builder: (_, __) => BottomNavBar(),
         ),
 
         // Admin Routes
         GoRoute(
           path: RoutePaths.adminBottomNavBar,
+          name: RoutePaths.adminBottomNavBar,
           builder: (_, __) => AdminBottomNavBar(),
         ),
         GoRoute(
           path: RoutePaths.adminScheduleScreen,
+          name: RoutePaths.adminScheduleScreen,
           builder: (_, __) => AdminScheduleScreen(),
         ),
         GoRoute(
           path: RoutePaths.adminCompleteTaskScreen,
+          name: RoutePaths.adminCompleteTaskScreen,
           builder: (_, __) => AdminCompleteTaskScreen(),
         ),
         GoRoute(
           path: RoutePaths.adminAttendanceScreen,
+          name: RoutePaths.adminAttendanceScreen,
           builder: (_, __) => AdminAttendanceScreen(),
         ),
 
         // Profile Routes
         GoRoute(
           path: RoutePaths.profileScreen,
+          name: RoutePaths.profileScreen,
           builder: (_, __) => ProfileScreen(),
         ),
         GoRoute(
           path: RoutePaths.myProfileScreen,
+          name: RoutePaths.myProfileScreen,
           builder: (_, __) => MyProfileScreen(),
         ),
         GoRoute(
           path: RoutePaths.changePasswordScreen,
+          name: RoutePaths.changePasswordScreen,
           builder: (_, __) => ChangePasswordScreen(),
         ),
         GoRoute(
           path: RoutePaths.privacyPolicyScreen,
+          name: RoutePaths.privacyPolicyScreen,
           builder: (_, __) => PrivacyPolicyScreen(),
         ),
         GoRoute(
           path: RoutePaths.termsConditionScreen,
+          name: RoutePaths.termsConditionScreen,
           builder: (_, __) => TermsConditionScreen(),
         ),
         GoRoute(
           path: RoutePaths.helpSupportScreen,
+          name: RoutePaths.helpSupportScreen,
           builder: (_, __) => HelpSupportScreen(),
         ),
 
         // Common Routes
         GoRoute(
           path: RoutePaths.messageListScreen,
+          name: RoutePaths.messageListScreen,
           builder: (_, __) => MessageListScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.notificationScreen,
+          name: RoutePaths.notificationScreen,
+          builder: (_, __) => NotificationScreen(),
         ),
         GoRoute(
           path: '/adminMyTaskScreen',
