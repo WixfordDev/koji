@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:koji/controller/profile_controller.dart';
 import 'package:koji/shared_widgets/custom_auth_text_field.dart';
+import 'package:koji/helpers/toast_message_helper.dart';
 import '../../../constants/app_color.dart';
 import '../../../global/custom_assets/assets.gen.dart';
+import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
@@ -14,13 +18,25 @@ import '../../../shared_widgets/custom_text.dart';
 
 
 class MyProfileScreen extends StatefulWidget {
-  MyProfileScreen({super.key});
+  const MyProfileScreen({super.key});
 
   @override
   State<MyProfileScreen> createState() => _MyProfileScreenState();
 }
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
+  late ProfileController profileController;
+
+  @override
+  void initState() {
+    super.initState();
+    profileController = Get.find<ProfileController>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +84,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 child: _pickedImage != null
                                     ? Image.file(
                                   _pickedImage!,
+                                  width: 100.r,
+                                  height: 100.r,
+                                  fit: BoxFit.cover,
+                                )
+                                    : profileController.profile.value.user?.image != null
+                                    ? Image.network(
+                                  "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                                  width: 100.r,
+                                  height: 100.r,
+                                  fit: BoxFit.cover,
                                 )
                                     : Image.asset(
                                   "assets/images/profile.png",
+                                  width: 100.r,
+                                  height: 100.r,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ),
@@ -239,11 +268,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 hintText: "Singapore, New Town, Post Code- 45932",
               ),
               SizedBox(height: 24.h),
-              CustomButton(
-                title: 'Update',
-                onpress: () {
-
-                },),
+              Obx(() =>
+                CustomButton(
+                  title: profileController.updateProfileLoading.value ? 'Updating...' : 'Update',
+                  onpress: () {
+                    if (!profileController.updateProfileLoading.value) {
+                      _updateProfile();
+                    }
+                  },
+                ),
+              ),
               SizedBox(height: 80.h),
             ],
           ),
@@ -409,11 +443,33 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     return months[month - 1];
   }
 
+  Future<void> _updateProfile() async {
+    // Validate required fields
+    if (nameCtrl.text.trim().isEmpty) {
+      ToastMessageHelper.showToastMessage(
+        "Please enter your name",
+        title: 'Error',
+      );
+      return;
+    }
 
+    if (phoneCtrl.text.trim().isEmpty) {
+      ToastMessageHelper.showToastMessage(
+        "Please enter your phone number",
+        title: 'Error',
+      );
+      return;
+    }
 
-
-
-
+    // Call the profile update method from the controller
+    await profileController.profileUpdate(
+      firstName: nameCtrl.text.trim(),
+      phoneNumber: phoneCtrl.text.trim(),
+      address: addressCtrl.text.trim(),
+      file: _pickedImage,
+      screenType: 'update',
+    );
+  }
 
 }
 
