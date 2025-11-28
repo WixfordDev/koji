@@ -10,6 +10,7 @@ import 'package:koji/features/authentication/presentation/reset_password_screen.
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
 import 'package:koji/features/authentication/presentation/verify_screen/verify_screen.dart';
+import 'package:koji/models/chat_model.dart';
 
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
@@ -38,6 +39,7 @@ import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/terms_condition_screen.dart';
 
 // Common Screens
+import '../features/message/presentation/chat_screen.dart';
 import '../features/message/presentation/message_screen.dart';
 import '../features/notification/presentation/notification_screen.dart';
 
@@ -296,6 +298,20 @@ class AppRouter {
           path: RoutePaths.notificationScreen,
           builder: (_, __) => NotificationScreen(),
         ),
+        GoRoute(
+          path: RoutePaths.chatScreen,
+          builder: (_, __) => ChatScreen(
+            conversation: Conversation(
+              id: "temp",
+              sender: null,
+              receiver: null,
+              unseenMsg: 0,
+              blockStatus: "unblocked",
+              blockedBy: null,
+              lastMsg: null,
+            ),
+          ),
+        ),
 
         //
         // GoRoute(
@@ -343,12 +359,11 @@ class AppRouter {
         //   path: '/helpSupportScreen',
         //   builder: (_, _) => HelpSupportScreen(),
         // ),
-
-        
         GoRoute(
           path: '/adminBottomNavBar',
           builder: (_, _) => AdminBottomNavBar(),
         ),
+
         GoRoute(
           path: '/adminMyTaskScreen',
           name: 'adminMyTaskScreen',

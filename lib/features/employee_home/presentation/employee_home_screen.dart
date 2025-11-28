@@ -73,7 +73,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   Future<void> _fetchAttendanceList() async {
     final now = DateTime.now();
     final month =
-        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     try {
       final resp = await AttendanceService.getEmployeeList(date: month);
       if (resp.statusCode == 200 || resp.statusCode == 201) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import '../../../constants/app_color.dart';
+import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class AdminAttendanceScreen extends StatefulWidget {
@@ -11,6 +14,19 @@ class AdminAttendanceScreen extends StatefulWidget {
 }
 
 class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
+
+
+  final AdminHomeController adminHomeController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adminHomeController.getAllAttendanceSummary();
+
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {

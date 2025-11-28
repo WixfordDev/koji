@@ -34,4 +34,5 @@ class RoutePaths {
   // Common Routes
   static const String messageListScreen = '/messageListScreen';
   static const String notificationScreen = '/notificationScreen';
+  static const String chatScreen = '/chatScreen';
 }

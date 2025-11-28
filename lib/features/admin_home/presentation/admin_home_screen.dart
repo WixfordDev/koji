@@ -19,7 +19,7 @@ class AdminHomeScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundImage: AssetImage('assets/profile.png'),
+                backgroundImage: AssetImage('assets/images/profile.png'),
               ),
               SizedBox(width: 10.w),
               Column(
