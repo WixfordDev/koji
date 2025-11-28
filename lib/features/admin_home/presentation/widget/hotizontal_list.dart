@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HorizontalListExample extends StatefulWidget {
-  final List<Map<String, dynamic>> items; // pass your data list
-  final Function(Map<String, dynamic>) onItemSelected; // callback when tapped
+  final List<Map<String, dynamic>> items;
+  final Function(Map<String, dynamic>) onItemSelected;
 
   const HorizontalListExample({
     super.key,
@@ -35,10 +35,9 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               setState(() {
                 selectedIndex = index;
               });
-              widget.onItemSelected(item); // return object
+              widget.onItemSelected(item);
             },
             child: Container(
-              // width: 80.w,
               padding: EdgeInsets.all(10.sp),
               decoration: BoxDecoration(
                 border: Border.all(
@@ -50,10 +49,10 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               alignment: Alignment.center,
               child: Center(
                 child: Text(
-                  item["title"], // show map value
+                  item["title"],
                   style: TextStyle(
                     fontSize: 13.h,
-                    color: isSelected ? Colors.white : Colors.grey,
+                    color: isSelected ? Colors.white : Colors.white,
                   ),
                 ),
               ),
