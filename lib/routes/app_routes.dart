@@ -10,6 +10,7 @@ import 'package:koji/features/authentication/presentation/reset_password_screen.
 import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
 import 'package:koji/features/authentication/presentation/verify_screen/verify_screen.dart';
+import 'package:koji/models/chat_model.dart';
 
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
@@ -39,6 +40,7 @@ import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/terms_condition_screen.dart';
 
 // Common Screens
+import '../features/message/presentation/chat_screen.dart';
 import '../features/message/presentation/message_screen.dart';
 import '../features/notification/presentation/notification_screen.dart';
 
@@ -313,10 +315,77 @@ class AppRouter {
         ),
         GoRoute(
           path: RoutePaths.notificationScreen,
-          name: RoutePaths.notificationScreen,
+
           builder: (_, __) => NotificationScreen(),
         ),
         GoRoute(
+          path: RoutePaths.chatScreen,
+          builder: (_, __) => ChatScreen(
+            conversation: Conversation(
+              id: "temp",
+              sender: null,
+              receiver: null,
+              unseenMsg: 0,
+              blockStatus: "unblocked",
+              blockedBy: null,
+              lastMsg: null,
+            ),
+          ),
+        ),
+
+        //
+        // GoRoute(
+        //   path: '/employeeHomeScreen',
+        //   builder: (_, _) => EmployeeHomeScreen(),
+        // ),
+
+        // GoRoute(
+        //   path: '/messageListScreen',
+        //   builder: (_, _) => MessageListScreen(),
+        // ),
+
+        // GoRoute(
+        //   path: '/notificationScreen',
+        //   builder: (_, _) => NotificationScreen(),
+        // ),
+
+        // GoRoute(
+        //   path: '/submitTaskScreen',
+        //   builder: (_, _) => SubmitTaskScreen(),
+        // ),
+
+        // GoRoute(path: '/myTaskScreen', builder: (_, _) => MyTaskScreen()),
+        // GoRoute(path: '/historyScreen', builder: (_, _) => HistoryScreen()),
+        // GoRoute(
+        //   path: '/taskReportScreen',
+        //   builder: (_, _) => TaskReportScreen(),
+        // ),
+        // GoRoute(path: '/profileScreen', builder: (_, _) => ProfileScreen()),
+        // GoRoute(path: '/myProfileScreen', builder: (_, _) => MyProfileScreen()),
+        // GoRoute(
+        //   path: '/changePasswordScreen',
+        //   builder: (_, _) => ChangePasswordScreen(),
+        // ),
+        // GoRoute(
+        //   path: '/privacyPolicyScreen',
+        //   builder: (_, _) => PrivacyPolicyScreen(),
+        // ),
+        // GoRoute(path: '/verifyScreen', builder: (_, _) => VerifyScreen()),
+        // GoRoute(
+        //   path: '/termsConditionScreen',
+        //   builder: (_, _) => TermsConditionScreen(),
+        // ),
+        // GoRoute(
+        //   path: '/helpSupportScreen',
+        //   builder: (_, _) => HelpSupportScreen(),
+        // ),
+        GoRoute(
+          path: '/adminBottomNavBar',
+          builder: (_, _) => AdminBottomNavBar(),
+        ),
+
+        GoRoute(
+
           path: '/adminMyTaskScreen',
           name: 'adminMyTaskScreen',
           builder: (_, _) => AdminMyTaskScreen(),
@@ -327,12 +396,12 @@ class AppRouter {
           builder: (_, _) => AdminCreateTaskScreen(),
         ),
 
-
         GoRoute(
           path: '/adminEmployeeRequestScreen',
           name: 'adminEmployeeRequestScreen',
           builder: (_, _) => AdminEmployeeRequestScreen(),
         ),
+
 
       ],
     );

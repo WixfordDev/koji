@@ -3,7 +3,7 @@ class ApiConstants {
   // static const String imageBaseUrl = "http://192.168.10.80:8080";
   static const String baseUrl = "https://koji.sobhoy.com/api/v1/";
   static const String imageBaseUrl = "https://koji.sobhoy.com";
-  static const String socketUrl = "https://koji.sobhoy.com";
+  static const String socketUrl = "https://wskogi.sobhoy.com";
 
   static const String signUpEndPoint = "/auth/register";
   static const String loginUpEndPoint = "/auth/login";
@@ -12,21 +12,24 @@ class ApiConstants {
   static const String forgotPasswordEndPoint = "/auth/forgot-password";
   static const String resetPasswordEndPoint = "/auth/reset-password";
 
-  /// Attendance Endpoints
+  // Attendance Endpoints
   static const String attendanceEmployeeList = "/attendances/employee-list";
   static const String attendanceCheckIn = "/attendances/check-in";
   static const String attendanceCheckOut = "/attendances/check-out";
 
-
-
   /// ==============================> Admin Api =======================================>
 
   static const String createTaskEndPoint = "/departments";
-  static const String getAllDepartmentEndPoint = "/departments/list?sortBy=createdAt:desc";
-  static const String getAllCategoriesEndPoint = "/categories/list?sortBy=createdAt:desc";
-  static const String getAllEmployeeEndPoint = "/users/list?role=employee&page=1&limit=10&sortBy=createdAt:desc";
-  static const String getAllServiceListEndPoint = "/services/list?sortBy=createdAt:desc";
+  static const String getAllDepartmentEndPoint =
+      "/departments/list?sortBy=createdAt:desc";
+  static const String getAllCategoriesEndPoint =
+      "/categories/list?sortBy=createdAt:desc";
+  static const String getAllEmployeeEndPoint =
+      "/users/list?role=employee&page=1&limit=10&sortBy=createdAt:desc";
+  static const String getAllServiceListEndPoint =
+      "/services/list?sortBy=createdAt:desc";
   static const String taskEndPoint = "/tasks";
+
   static const String getAttendanceEndPoint = "/info/attendance/status";
   static const String getAllAttendanceEndPoint = "/attendances/list";
   static const String getTaskSummaryEndPoint = "/info/task/summary";
@@ -36,4 +39,5 @@ class ApiConstants {
 
 
 
+  static const String getAttendanceEndPoint = "/info/attendance/status";
 }

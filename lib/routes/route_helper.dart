@@ -111,6 +111,10 @@ class RouteHelper {
     context.pushNamed(RoutePaths.messageListScreen);
   }
 
+  static void goToChat(BuildContext context) {
+    context.pushNamed(RoutePaths.chatScreen);
+  }
+
   // Helper Methods
   static void goBack(BuildContext context) {
     context.pop();
