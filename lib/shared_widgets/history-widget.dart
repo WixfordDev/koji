@@ -27,18 +27,20 @@ class HistoryCardWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(14.r),
       onTap: onTap,
       child: Container(
-        width: 293.w,
-        height: 350.h,
-        margin: EdgeInsets.only(bottom: 16.h),
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 8.h),
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: Colors.grey.shade300, width: 1),
+          border: Border.all(
+            color: completed ? Colors.green.shade200 : Colors.orange.shade200,
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
@@ -46,137 +48,125 @@ class HistoryCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 4.h),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: CustomText(
-                  text: "You finished your 2:00 PM shift.",
-                  color: Colors.grey.shade600,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            CustomText(
-              text: title,
-              color: AppColor.secondaryColor,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w700,
-            ),
-            SizedBox(height: 6.h),
-            Row(
-              children: [
-                CustomText(
-                  text: "Category:",
-                  color: Colors.grey.shade600,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(width: 6.w),
-                CustomText(
-                  text: category,
-                  color: AppColor.secondaryColor,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            Row(
-              children: [
-                CustomText(
-                  text: "Time:",
-                  color: Colors.grey.shade600,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(width: 6.w),
-                CustomText(
-                  text: time,
-                  color: AppColor.secondaryColor,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              children: [
-                CustomText(
-                  text: "Break:",
-                  color: Colors.grey.shade600,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(width: 6.w),
-                CustomText(
-                  text: breakTime,
-                  color: AppColor.secondaryColor,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ],
-            ),
-            SizedBox(height: 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // avatar row
-                Row(
-                  children: [
-                    for (int i = 0; i < 3; i++)
-                      Padding(
-                        padding: EdgeInsets.only(right: 4.w),
-                        child: CircleAvatar(
-                          radius: 14.r,
-                          backgroundImage:
-                          const AssetImage("assets/images/profile.jpg"),
-                        ),
-                      ),
-                    Container(
-                      padding:
-                      EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: AppColor.primaryColor,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: CustomText(
-                        text: "+2",
-                        color: Colors.white,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: CustomText(
+                    text: title,
+                    color: AppColor.secondaryColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                // completed tag
                 Container(
-                  padding:
-                  EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: completed
+                        ? Colors.green.shade50
+                        : Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(
+                      color: completed
+                          ? Colors.green.shade200
+                          : Colors.orange.shade200,
+                      width: 1,
+                    ),
                   ),
                   child: CustomText(
-                    text: completed ? "• Completed" : "• Pending",
+                    text: completed ? "Completed" : "Pending",
                     color: completed
-                        ? Colors.grey.shade700
-                        : AppColor.primaryColor,
-                    fontSize: 13.sp,
+                        ? Colors.green.shade700
+                        : Colors.orange.shade700,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
+            SizedBox(height: 12.h),
+            _buildInfoRow(
+              icon: Icons.category_outlined,
+              title: "Category",
+              value: category,
+            ),
+            SizedBox(height: 8.h),
+            _buildInfoRow(
+              icon: Icons.calendar_today,
+              title: "Date Range",
+              value: time,
+            ),
+            SizedBox(height: 8.h),
+            _buildInfoRow(
+              icon: Icons.notes_outlined,
+              title: "Notes",
+              value: breakTime,
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: completed ? Colors.green.shade50 : Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: completed ? Colors.green : Colors.orange,
+                        size: 16.sp,
+                      ),
+                      SizedBox(width: 6.w),
+                      CustomText(
+                        text: "Progress",
+                        color: completed ? Colors.green.shade700 : Colors.orange.shade700,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ],
+                  ),
+                  CustomText(
+                    text: completed ? "100%" : "0%",
+                    color: completed ? Colors.green : Colors.orange,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoRow({required IconData icon, required String title, required String value}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: AppColor.primaryColor,
+          size: 16.sp,
+        ),
+        SizedBox(width: 8.w),
+        CustomText(
+          text: "$title: ",
+          color: Colors.grey.shade600,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+        ),
+        Expanded(
+          child: CustomText(
+            text: value,
+            color: AppColor.secondaryColor,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

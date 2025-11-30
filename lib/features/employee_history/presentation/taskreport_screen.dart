@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:koji/models/task_report_model.dart';
 import '../../../constants/app_color.dart';
+import '../../../controller/task_report_controller.dart';
 import '../../../shared_widgets/custom_text.dart';
 import '../../../shared_widgets/task_report_card_widget.dart';
 
 class TaskReportScreen extends StatefulWidget {
-  const TaskReportScreen({super.key});
+  final String? taskId;
+
+  const TaskReportScreen({Key? key, this.taskId}) : super(key: key);
 
   @override
   State<TaskReportScreen> createState() => _TaskReportScreenState();
 }
 
 class _TaskReportScreenState extends State<TaskReportScreen> {
+  late TaskReportController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(TaskReportController());
+
+    // Only fetch the task report if a taskId is provided
+    if (widget.taskId != null && widget.taskId!.isNotEmpty) {
+      controller.fetchTaskReport(widget.taskId!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,33 +63,274 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TaskReportCard(),
-              SizedBox(height: 24.h),
-              SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.r),
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.error.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Error loading task report",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        TextButton(
+                          onPressed: () => controller.fetchTaskReport(
+                            widget.taskId.toString(),
+                          ),
+                          child: const Text("Retry"),
+                        ),
+                      ],
                     ),
-                    backgroundColor: const Color(0xFF000066),
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                  ),
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  label: const Text(
-                    "Download Task Report",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
-                  onPressed: () {},
-                ),
-              ),
-              SizedBox(height: 30.h),
+                  );
+                }
+
+                final taskReport = controller.taskReport.value;
+                if (taskReport == null) {
+                  return const Center(child: Text("No task report found"));
+                }
+
+                return _buildTaskReportCard(taskReport);
+              }),
+              Obx(() {
+                if (controller.isLoading.value ||
+                    controller.taskReport.value == null) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  children: [
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52.h,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.r),
+                          ),
+                          backgroundColor: const Color(0xFF000066),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                        ),
+                        icon: const Icon(Icons.download, color: Colors.white),
+                        label: const Text(
+                          "Download Task Report",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          // Add download functionality here
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 30.h),
+                  ],
+                );
+              }),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTaskReportCard(TaskReportAttributes taskReport) {
+    return Container(
+      width: 370.w,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color:
+                    taskReport.status.toLowerCase().contains('completed') ||
+                        taskReport.status.toLowerCase().contains('done') ||
+                        taskReport.isSubmited
+                    ? const Color(0xFFE8F9EE) // Green for completed
+                    : const Color(0xFFFFF3E0), // Orange for pending
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Text(
+                taskReport.isSubmited
+                    ? "Task Submitted Successfully"
+                    : "Task is in progress",
+                style: TextStyle(
+                  color:
+                      taskReport.status.toLowerCase().contains('completed') ||
+                          taskReport.status.toLowerCase().contains('done') ||
+                          taskReport.isSubmited
+                      ? const Color(0xFF249E58) // Green
+                      : const Color(0xFFFF9800), // Orange
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          CustomText(
+            text: taskReport.serviceCategory.name,
+            color: AppColor.secondaryColor,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+          ),
+          SizedBox(height: 10.h),
+          _buildRow("Category:", taskReport.serviceCategory.name),
+          _buildRow("Service List:", _formatServices(taskReport.services)),
+          _buildRow("Customer Name:", taskReport.customerName),
+          _buildRow("Customer Number:", taskReport.customerNumber),
+          _buildRow("Customer Address:", taskReport.customerAddress),
+          _buildRow("Assign To:", taskReport.assignTo.fullName),
+          _buildRow("Assign Date:", _formatDate(taskReport.assignDate)),
+          _buildRow("Deadline:", _formatDate(taskReport.deadline)),
+          _buildRow("Priority:", taskReport.priority),
+          _buildRow("Difficulty:", taskReport.difficulty),
+          _buildRow(
+            "Invoice No.:",
+            taskReport.invoicePath != null ? taskReport.invoicePath! : "N/A",
+          ),
+          _buildRow(
+            "Total Amount:",
+            "BDT ${taskReport.totalAmount.toString()}",
+          ),
+          _buildRow("Status:", taskReport.status),
+          _buildRow("Payment Status:", taskReport.paymentStatus),
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              // Display submitted documents if available
+              if (taskReport.submitedDoc.isNotEmpty)
+                ...taskReport.submitedDoc
+                    .take(3)
+                    .map(
+                      (doc) => Padding(
+                        padding: EdgeInsets.only(right: 6.w),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Image.asset(
+                            'assets/images/task.png', // Placeholder image
+                            width: 40.w,
+                            height: 40.w,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    )
+              else
+                // Display attachments if no submitted documents
+                ...taskReport.attachments
+                    .take(3)
+                    .map(
+                      (doc) => Padding(
+                        padding: EdgeInsets.only(right: 6.w),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Image.asset(
+                            'assets/images/task.png', // Placeholder image
+                            width: 40.w,
+                            height: 40.w,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color:
+                      taskReport.status.toLowerCase().contains('completed') ||
+                          taskReport.status.toLowerCase().contains('done') ||
+                          taskReport.isSubmited
+                      ? const Color(0xFFE8F9EE) // Green for completed
+                      : const Color(0xFFFFF3E0), // Orange for pending
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  taskReport.isSubmited ? "● Submitted" : "● Pending",
+                  style: TextStyle(
+                    color:
+                        taskReport.status.toLowerCase().contains('completed') ||
+                            taskReport.status.toLowerCase().contains('done') ||
+                            taskReport.isSubmited
+                        ? const Color(0xFF249E58) // Green
+                        : const Color(0xFFFF9800), // Orange
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRow(String title, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 5,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatServices(List<Service> services) {
+    if (services.isEmpty) return "No services";
+    return services
+        .map((service) => "${service.name} (x${service.quantity})")
+        .join("\n");
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return "${date.day}/${date.month}/${date.year}";
+    } catch (e) {
+      return dateString; // Return as is if parsing fails
+    }
   }
 }

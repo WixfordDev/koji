@@ -31,4 +31,10 @@ class ApiConstants {
   static const String taskEndPoint = "/tasks";
 
   static const String getAttendanceEndPoint = "/info/attendance/status";
+
+  // Employee Task Endpoints
+  static const String employeeTaskList = "/tasks/employ/list";
+
+  // Task Report Endpoints
+  static const String taskReportEndPoint = "/tasks/";
 }
