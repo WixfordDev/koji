@@ -38,21 +38,31 @@ class _HorizontalListExampleState extends State<HorizontalListExample> {
               widget.onItemSelected(item);
             },
             child: Container(
-              padding: EdgeInsets.all(10.sp),
+              width: isSelected ? 77.w : 110.w,
+              height: 36.h,
+              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: isSelected ? Colors.transparent : Colors.grey,
-                ),
-                color: isSelected ? Colors.red : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(30),
+                border: isSelected
+                    ? Border.all(color: Colors.transparent)
+                    : Border.all(color: const Color(0xFFC8C8C8)),
+                gradient: isSelected
+                    ? const LinearGradient(
+                        colors: [Color(0xffEC526A), Color(0xffF77F6E)],
+                        begin: Alignment(0.00, -1.00),
+                        end: Alignment(0.00, 1.00),
+                        stops: [0.00, 0.95],
+                      )
+                    : null,
+                color: isSelected ? null : Colors.transparent,
               ),
-              alignment: Alignment.center,
               child: Center(
                 child: Text(
                   item["title"],
                   style: TextStyle(
                     fontSize: 13.h,
-                    color: isSelected ? Colors.white : Colors.white,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected ? Colors.white : const Color(0xFF717171),
                   ),
                 ),
               ),

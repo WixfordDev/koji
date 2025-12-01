@@ -159,8 +159,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // context.push("/adminMyTaskScreen");
-                          context.push("/adminCreateTaskScreen");
+                          context.push("/adminMyTaskScreen");
                         },
                         child: _buildQuickCard("Task\nManage", [
                           const Color(0xFFF9B128),
@@ -186,7 +185,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ], Assets.icons.viewattendance.svg(height: 40.h, width: 40.w),),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+
+                        },
                         child: _buildQuickCard("Transaction\nReport", [
                           const Color(0xFFB060F6),
                           const Color(0xFFE6AAF5),
