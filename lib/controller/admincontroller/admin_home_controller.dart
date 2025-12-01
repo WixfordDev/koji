@@ -6,6 +6,7 @@ import '../../models/admin-model/all_attendance_model.dart';
 import '../../models/admin-model/all_attendance_list_model.dart';
 import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
+import '../../models/admin-model/get_alllist_task_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -123,6 +124,32 @@ class AdminHomeController extends GetxController {
     }
   }
 
+
+
+  /// ============================ Get All List Task  =====================================
+
+
+  RxBool getAllListTaskLoading = false.obs;
+  Rx<GetAllListTaskModel> getAllListTask = GetAllListTaskModel().obs;
+
+  getAllListTasks() async {
+    getAllListTaskLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getAllTaskEndPoint);
+
+      if (response.statusCode == 200) {
+
+        getAllListTask.value = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        getAllListTaskLoading(false);
+      } else if (response.statusCode == 404) {
+        getAllListTaskLoading(false);
+      } else {
+        getAllListTaskLoading(false);
+      }
+    } catch (e) {
+      getAllListTaskLoading(false);
+    }
+  }
 
 
 

@@ -20,12 +20,82 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
+  // Sample event data - Replace with your actual data
+  Map<DateTime, Map<String, int>> _events = {
+    DateTime(2025, 9, 1): {'completed': 2, 'pending': 6},
+    DateTime(2025, 9, 13): {'completed': 2, 'pending': 6},
+  };
+
+  List<Widget> _buildEventMarkers(DateTime day) {
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    final events = _events[normalizedDay];
+
+    if (events == null) return [];
+
+    List<Widget> markers = [];
+
+    if (events['completed'] != null && events['completed']! > 0) {
+      markers.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 4.w,
+              height: 4.h,
+              decoration: const BoxDecoration(
+                color: Color(0xFF4CD964),
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 2.w),
+            Text(
+              '+${events['completed']}',
+              style: TextStyle(
+                fontSize: 9.sp,
+                color: Color(0xFF4CD964),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (events['pending'] != null && events['pending']! > 0) {
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
+      markers.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 4.w,
+              height: 4.h,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFF1414),
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 2.w),
+            Text(
+              '+${events['pending']}',
+              style: TextStyle(
+                fontSize: 9.sp,
+                color: Color(0xFFFF1414),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return markers;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -38,7 +108,17 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.arrow_back_ios, size: 18.sp, color: Colors.black),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _focusedDay = DateTime(
+                            _focusedDay.year,
+                            _focusedDay.month - 1,
+                          );
+                        });
+                      },
+                      child: Icon(Icons.arrow_back_ios, size: 18.sp, color: Colors.black),
+                    ),
                     Text(
                       DateFormat.yMMMM().format(_focusedDay),
                       style: TextStyle(
@@ -47,11 +127,21 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                         color: Colors.black,
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, size: 18.sp, color: Colors.black),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _focusedDay = DateTime(
+                            _focusedDay.year,
+                            _focusedDay.month + 1,
+                          );
+                        });
+                      },
+                      child: Icon(Icons.arrow_forward_ios, size: 18.sp, color: Colors.black),
+                    ),
                   ],
                 ),
 
-                SizedBox(height: 8.h),
+                SizedBox(height: 12.h),
 
                 /// Table Calendar
                 TableCalendar(
@@ -67,7 +157,9 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                     });
                   },
                   onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
+                    setState(() {
+                      _focusedDay = focusedDay;
+                    });
                   },
                   headerVisible: false,
                   calendarStyle: CalendarStyle(
@@ -83,10 +175,35 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                     cellMargin: EdgeInsets.all(4.w),
                   ),
                   daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(fontSize: 13.sp, color: Colors.black),
-                    weekendStyle: TextStyle(fontSize: 13.sp, color: Colors.black),
+                    weekdayStyle: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    weekendStyle: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  daysOfWeekHeight: 40.h, // Added proper height for day headers
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, date, events) {
+                      final markers = _buildEventMarkers(date);
+                      if (markers.isEmpty) return const SizedBox.shrink();
+
+                      return Positioned(
+                        bottom: 2.h,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: markers,
+                        ),
+                      );
+                    },
                   ),
                 ),
+
+                SizedBox(height: 12.h),
 
                 /// Legend
                 Row(
@@ -98,7 +215,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                           height: 8.h,
                           width: 8.w,
                           decoration: const BoxDecoration(
-                            color: Colors.green,
+                            color: Color(0xFF4CD964),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -116,7 +233,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                           height: 8.h,
                           width: 8.w,
                           decoration: const BoxDecoration(
-                            color: Colors.red,
+                            color: Color(0xFFFF1414),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -130,13 +247,15 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                   ],
                 ),
 
+                SizedBox(height: 12.h),
+
                 Divider(
                   color: AppColor.textColorF4F4F5,
                 ),
 
+                SizedBox(height: 8.h),
+
                 /// ========================> Handy Man Staff =============================>
-
-
                 ScheduleCard(
                   staffName: 'Handy Man Staff',
                   category: 'Plumbing Service',
@@ -146,11 +265,8 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                   isCompleted: true,
                   onTap: () {
                     context.push('/adminCompleteTaskScreen');
-
                   },
                 ),
-
-
 
                 SizedBox(height: 16.h),
               ],
@@ -160,5 +276,4 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       ),
     );
   }
-
 }
