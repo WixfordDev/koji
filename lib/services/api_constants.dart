@@ -37,8 +37,11 @@ class ApiConstants {
   static const String getEmployeeUserListEndPoint = "/users/list?role=employee&page=1&limit=10";
   static const String getProfileEndPoint = "/users/self/in";
   static const String updateProfileEndPoint = "/users/self/update";
+  static const String helpSupportEndPoint = "/info/support";
+  static const String transactionsEndPoint = "/info/transactions";
+  static const String privacyPolicyEndPoint = "/info/privacy-policy";
+  static const String termsConditionsEndPoint = "/info/terms-condition";
+  static const String aboutUsEndPoint = "/info/about-us";
 
 
-
-  static const String getAttendanceEndPoint = "/info/attendance/status";
 }

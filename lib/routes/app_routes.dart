@@ -18,6 +18,7 @@ import '../features/admin_home/presentation/admin_attendance_screen.dart';
 import '../features/admin_home/presentation/admin_create_task_screen.dart';
 import '../features/admin_home/presentation/admin_employee_request_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
+import '../features/admin_home/presentation/admin_transaction_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_map/admin_map_screen.dart';
@@ -32,6 +33,7 @@ import '../features/employee_schedule/presentation/my_task_screen.dart';
 import '../features/employee_schedule/presentation/submit_task_screen.dart';
 
 // Profile Screens
+import '../features/profile/presentation/about_us_screen.dart';
 import '../features/profile/presentation/change_password_screen.dart';
 import '../features/profile/presentation/help_support_screen.dart';
 import '../features/profile/presentation/my_profile_screen.dart';
@@ -157,6 +159,10 @@ class AppRouter {
     GoRoute(
       path: RoutePaths.termsConditionScreen,
       builder: (_, __) => TermsConditionScreen(),
+    ),
+    GoRoute(
+      path: RoutePaths.aboutUsScreen,
+      builder: (_, __) => AboutUsScreen(),
     ),
     GoRoute(
       path: RoutePaths.helpSupportScreen,
@@ -302,6 +308,11 @@ class AppRouter {
           builder: (_, __) => TermsConditionScreen(),
         ),
         GoRoute(
+          path: RoutePaths.aboutUsScreen,
+          name: RoutePaths.aboutUsScreen,
+          builder: (_, __) => AboutUsScreen(),
+        ),
+        GoRoute(
           path: RoutePaths.helpSupportScreen,
           name: RoutePaths.helpSupportScreen,
           builder: (_, __) => HelpSupportScreen(),
@@ -400,6 +411,13 @@ class AppRouter {
           path: '/adminEmployeeRequestScreen',
           name: 'adminEmployeeRequestScreen',
           builder: (_, _) => AdminEmployeeRequestScreen(),
+        ),
+
+
+        GoRoute(
+          path: '/adminTransactionScreen',
+          name: 'adminTransactionScreen',
+          builder: (_, _) => AdminTransactionScreen(),
         ),
 
 

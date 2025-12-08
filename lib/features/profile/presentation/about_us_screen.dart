@@ -6,22 +6,22 @@ import 'package:koji/controller/profile_controller.dart';
 import '../../../constants/app_color.dart';
 import '../../../shared_widgets/custom_text.dart';
 
-class TermsConditionScreen extends StatefulWidget {
-  TermsConditionScreen({super.key});
+class AboutUsScreen extends StatefulWidget {
+  AboutUsScreen({super.key});
 
   @override
-  State<TermsConditionScreen> createState() => _TermsConditionScreenState();
+  State<AboutUsScreen> createState() => _AboutUsScreenState();
 }
 
-class _TermsConditionScreenState extends State<TermsConditionScreen> {
+class _AboutUsScreenState extends State<AboutUsScreen> {
   // Get your controller instance
-  final controller = Get.find<ProfileController>(); // Replace with your actual controller
+  final controller = Get.find<ProfileController>();
 
   @override
   void initState() {
     super.initState();
-    // Fetch terms and conditions when screen loads
-    controller.getTermsConditions();
+    // Fetch about us content when screen loads
+    controller.getAboutUs();
   }
 
   @override
@@ -42,7 +42,7 @@ class _TermsConditionScreenState extends State<TermsConditionScreen> {
             ),
             SizedBox(width: 12.w),
             CustomText(
-              text: "Terms & Condition",
+              text: "About Us",
               color: AppColor.secondaryColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w500,
@@ -52,7 +52,7 @@ class _TermsConditionScreenState extends State<TermsConditionScreen> {
       ),
       body: Obx(() {
         // Show loading indicator
-        if (controller.getTermsConditionsLoading.value) {
+        if (controller.getAboutUsLoading.value) {
           return Center(
             child: CircularProgressIndicator(
               color: AppColor.secondaryColor,
@@ -70,15 +70,22 @@ class _TermsConditionScreenState extends State<TermsConditionScreen> {
                 SizedBox(height: 16.h),
 
                 // Display HTML content from API
-                if (controller.termsConditionsContent.value.isNotEmpty)
+                if (controller.aboutUsContent.value.isNotEmpty &&
+                    controller.aboutUsContent.value != 'No about us content available.')
                   Html(
-                    data: controller.termsConditionsContent.value,
+                    data: controller.aboutUsContent.value,
                     style: {
                       "body": Style(
                         fontSize: FontSize(14.sp),
                         color: AppColor.secondaryColor,
                         margin: Margins.zero,
                         padding: HtmlPaddings.zero,
+                      ),
+                      "h2": Style(
+                        fontSize: FontSize(18.sp),
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.secondaryColor,
+                        margin: Margins(top: Margin(12.h), bottom: Margin(8.h)),
                       ),
                       "h1": Style(
                         fontSize: FontSize(20.sp),
@@ -88,7 +95,8 @@ class _TermsConditionScreenState extends State<TermsConditionScreen> {
                       "p": Style(
                         fontSize: FontSize(14.sp),
                         color: AppColor.secondaryColor,
-                        lineHeight: LineHeight(1.5),
+                        lineHeight: LineHeight(1.6),
+                        margin: Margins(bottom: Margin(16.h)),
                       ),
                       "strong": Style(
                         fontWeight: FontWeight.bold,
@@ -96,11 +104,16 @@ class _TermsConditionScreenState extends State<TermsConditionScreen> {
                     },
                   )
                 else
-                  CustomText(
-                    text: 'No terms and conditions available.',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                    textAlign: TextAlign.center,
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.h),
+                      child: CustomText(
+                        text: controller.aboutUsContent.value,
+                        fontSize: 14.sp,
+                        color: AppColor.secondaryColor,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
 
                 SizedBox(height: 20.h),

@@ -98,6 +98,10 @@ class RouteHelper {
     context.pushNamed(RoutePaths.termsConditionScreen);
   }
 
+  static void goToAboutUs(BuildContext context) {
+    context.pushNamed(RoutePaths.aboutUsScreen);
+  }
+
   static void goToHelpSupport(BuildContext context) {
     context.pushNamed(RoutePaths.helpSupportScreen);
   }

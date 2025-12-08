@@ -7,6 +7,7 @@ import '../../models/admin-model/all_attendance_list_model.dart';
 import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
 import '../../models/admin-model/get_alllist_task_model.dart';
+import '../../models/admin-model/transaction_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -148,6 +149,33 @@ class AdminHomeController extends GetxController {
       }
     } catch (e) {
       getAllListTaskLoading(false);
+    }
+  }
+
+
+
+  /// ============================ Get Transactions  =====================================
+
+
+  RxBool getTransactionLoading = false.obs;
+  Rx<TransactionModel> transaction = TransactionModel().obs;
+
+  getTransaction() async {
+    getTransactionLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.transactionsEndPoint);
+
+      if (response.statusCode == 200) {
+
+        transaction.value = TransactionModel.fromJson(response.body['data']['attributes']);
+        getTransactionLoading(false);
+      } else if (response.statusCode == 404) {
+        getTransactionLoading(false);
+      } else {
+        getTransactionLoading(false);
+      }
+    } catch (e) {
+      getTransactionLoading(false);
     }
   }
 

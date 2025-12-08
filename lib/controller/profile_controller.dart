@@ -97,6 +97,167 @@ class ProfileController extends GetxController {
     }
   }
 
+  // Privacy Policy
+  RxBool getPrivacyPolicyLoading = false.obs;
+  Rx<String> privacyPolicyContent = ''.obs;
+
+  getPrivacyPolicy() async {
+    getPrivacyPolicyLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.privacyPolicyEndPoint);
+
+      if (response.statusCode == 200) {
+        if (response.body['data'] != null &&
+            response.body['data']['attributes'] != null &&
+            (response.body['data']['attributes'] as List).isNotEmpty) {
+          privacyPolicyContent.value = response.body['data']['attributes'][0]['content'] ?? '';
+        } else {
+          privacyPolicyContent.value = 'No privacy policy content available.';
+        }
+        getPrivacyPolicyLoading(false);
+      } else {
+        getPrivacyPolicyLoading(false);
+        ToastMessageHelper.showToastMessage(
+          "Failed to fetch privacy policy: ${response.body['message'] ?? 'Unknown error'}",
+          title: 'Error',
+        );
+      }
+    } catch (e) {
+      getPrivacyPolicyLoading(false);
+      ToastMessageHelper.showToastMessage(
+        "An error occurred while fetching privacy policy: $e",
+        title: 'Error',
+      );
+    }
+  }
+
+  // Terms & Conditions
+  RxBool getTermsConditionsLoading = false.obs;
+  Rx<String> termsConditionsContent = ''.obs;
+
+  getTermsConditions() async {
+    getTermsConditionsLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.termsConditionsEndPoint);
+
+      if (response.statusCode == 200) {
+        if (response.body['data'] != null &&
+            response.body['data']['attributes'] != null &&
+            (response.body['data']['attributes'] as List).isNotEmpty) {
+          termsConditionsContent.value = response.body['data']['attributes'][0]['content'] ?? '';
+        } else {
+          termsConditionsContent.value = 'No terms and conditions content available.';
+        }
+        getTermsConditionsLoading(false);
+      } else {
+        getTermsConditionsLoading(false);
+        ToastMessageHelper.showToastMessage(
+          "Failed to fetch terms and conditions: ${response.body['message'] ?? 'Unknown error'}",
+          title: 'Error',
+        );
+      }
+    } catch (e) {
+      getTermsConditionsLoading(false);
+      ToastMessageHelper.showToastMessage(
+        "An error occurred while fetching terms and conditions: $e",
+        title: 'Error',
+      );
+    }
+  }
+
+  // About Us
+  RxBool getAboutUsLoading = false.obs;
+  Rx<String> aboutUsContent = ''.obs;
+
+  getAboutUs() async {
+    getAboutUsLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.aboutUsEndPoint);
+
+      if (response.statusCode == 200) {
+        if (response.body['data'] != null &&
+            response.body['data']['attributes'] != null &&
+            (response.body['data']['attributes'] as List).isNotEmpty) {
+          aboutUsContent.value = response.body['data']['attributes'][0]['content'] ?? '';
+        } else {
+          aboutUsContent.value = 'No about us content available.';
+        }
+        getAboutUsLoading(false);
+      } else {
+        getAboutUsLoading(false);
+        ToastMessageHelper.showToastMessage(
+          "Failed to fetch about us: ${response.body['message'] ?? 'Unknown error'}",
+          title: 'Error',
+        );
+      }
+    } catch (e) {
+      getAboutUsLoading(false);
+      ToastMessageHelper.showToastMessage(
+        "An error occurred while fetching about us: $e",
+        title: 'Error',
+      );
+    }
+  }
+
+
+
+
+
+  RxBool helpSupportLoading = false.obs;
+
+  helpSupport({
+    String? title,
+    String? description,
+    File? files,
+    required String screenType,
+  }) async {
+    helpSupportLoading(true);
+
+    var body = {
+      "title": title ?? "",
+      "description": description ?? "",
+    };
+
+
+    List<MultipartBody>? multipartBody;
+    if (files != null) {
+      multipartBody = [MultipartBody("image", files)];
+    }
+
+    try {
+      var response = await ApiClient.patchMultipartData(
+        ApiConstants.helpSupportEndPoint,
+        body,
+        multipartBody: multipartBody,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessageHelper.showToastMessage(
+          "Help Support successfully",
+        );
+
+
+        helpSupportLoading(false);
+      } else {
+        ToastMessageHelper.showToastMessage(
+          "${response.body["message"]}",
+          title: 'Failed',
+        );
+        helpSupportLoading(false);
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage(
+        "An error occurred: $e",
+        title: 'Error',
+      );
+      helpSupportLoading(false);
+    }
+  }
+
+
+
+
+
 
 }
 

@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:koji/features/authentication/presentation/splash_screen.dart';
 import 'package:koji/helpers/dependancy_injaction.dart';
 import 'package:koji/routes/app_routes.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
