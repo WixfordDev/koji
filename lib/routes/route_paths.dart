@@ -29,6 +29,7 @@ class RoutePaths {
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String privacyPolicyScreen = '/privacyPolicyScreen';
   static const String termsConditionScreen = '/termsConditionScreen';
+  static const String aboutUsScreen = '/aboutUsScreen';
   static const String helpSupportScreen = '/helpSupportScreen';
 
   // Common Routes
