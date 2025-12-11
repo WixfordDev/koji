@@ -7,18 +7,11 @@ class EmployeeHistoryController extends GetxController {
   var isLoading = true.obs;
   var selectedStatus = 'pending'.obs; // Default to pending
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchTaskList();
-  }
-
   Future<void> fetchTaskList({String? status}) async {
     try {
       isLoading.value = true;
-      final actualStatus = status ?? selectedStatus.value;
       final response = await EmployeeTaskService.getEmployeeTaskList(
-        status: _mapStatusForApi(actualStatus),
+        status: "${status ?? ""}",
       );
       taskList.assignAll(response.data.attributes.results);
     } catch (error) {
@@ -28,24 +21,8 @@ class EmployeeHistoryController extends GetxController {
     }
   }
 
-  // Map UI status values to API status values
-  String _mapStatusForApi(String status) {
-    switch (status) {
-      case 'pending':
-        return 'pending';
-      case 'completed':
-      case 'done':
-        return 'completed';
-      case 'in_progress':
-      case 'progress':
-        return 'progress';
-      default:
-        return ''; // For 'all' status
-    }
-  }
-
   void updateStatusFilter(String status) {
     selectedStatus.value = status;
-    fetchTaskList(status: status);
+    fetchTaskList();
   }
 }

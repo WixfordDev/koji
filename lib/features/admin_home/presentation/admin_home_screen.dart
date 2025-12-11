@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/shared_widgets/custom_text.dart';
 
-class AdminHomeScreen extends StatelessWidget {
+import '../../../constants/app_color.dart';
+import '../../../controller/admincontroller/admin_home_controller.dart';
+import '../../../global/custom_assets/assets.gen.dart';
+
+class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
+
+
+
+  @override
+  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+}
+
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+
+  late AdminHomeController adminHomeController;
+
+  @override
+  void initState() {
+    super.initState();
+    adminHomeController = Get.find<AdminHomeController>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adminHomeController.getAllAttendanceSummary();
+      adminHomeController.getAllTaskSummary();
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +52,16 @@ class AdminHomeScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Parvej Hossain", style: AppTextStyle.semiBold(16.sp)),
-                  Text(
+                  CustomText(
+                    text: "Parvej Hossain",
+                    color: AppColor.secondaryColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  CustomText(text:
                     "Admin",
-                    style: AppTextStyle.regular(
-                      12.sp,
-                      color: Colors.grey.shade600,
-                    ),
+                    color: AppColor.textColor4F4F4F,
+                    fontSize: 12.sp,
                   ),
                 ],
               ),
@@ -43,110 +73,165 @@ class AdminHomeScreen extends StatelessWidget {
         body: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// Top Stats Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildInfoCard(
-                      title: "Total Employee",
-                      value: "1502",
-                      color: Colors.red,
-                      icon: Icons.person,
-                    ),
-                    _buildInfoCard(
-                      title: "Attendance",
-                      value: "96%",
-                      color: Colors.blue,
-                      icon: Icons.group,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.h),
+            child: Obx(() {
+              // Check if data is available
+              final attendanceSummary = adminHomeController.allAttendanceSummary.value;
+              final taskSummary = adminHomeController.allTaskSummary.value;
 
-                Text("Quick Action", style: AppTextStyle.semiBold(16.sp)),
-                SizedBox(height: 12.h),
+              bool isDataAvailable =
+                  (attendanceSummary.totalEmployees != null && attendanceSummary.totalEmployees! > 0) ||
+                  (attendanceSummary.employeesArrivedOnTime != null) ||
+                  (attendanceSummary.lateComersToday != null) ||
+                  (attendanceSummary.absentEmployeesToday != null) ||
+                  (attendanceSummary.workingEmployeesToday != null) ||
+                  (taskSummary.totalTask != null) ||
+                  (taskSummary.completeTask != null) ||
+                  (taskSummary.pendingTask != null) ||
+                  (taskSummary.inProgressTask != null);
 
-                /// Quick Action Cards
-                Wrap(
-                  spacing: 14.w,
-                  runSpacing: 14.h,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        // context.push("/adminMyTaskScreen");
-                        context.push("/adminCreateTaskScreen");
-                      },
-                      child: _buildQuickCard("Task\nManage", [
-                        const Color(0xFFF9B128),
-                        const Color(0xFFF48201),
-                      ], Icons.task_alt_rounded),
+              if (!isDataAvailable) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 100.h),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 60.sp,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 16.h),
+                        CustomText(
+                          text: "No Data Available",
+                          color: Colors.grey[600]!,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(height: 8.h),
+                        CustomText(
+                          text: "There is no data to display at the moment.",
+                          color: Colors.grey[500]!,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        context.push("/adminEmployeeRequestScreen");
-                      },
-                      child: _buildQuickCard("Employee\nRequest", [
-                        const Color(0xFF136AB7),
-                        const Color(0xFF2D8BE5),
-                      ], Icons.assignment_ind_rounded),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        context.push("/adminAttendanceScreen");
-                      },
-                      child: _buildQuickCard("View\nAttendence", [
-                        const Color(0xFFEC526A),
-                        const Color(0xFFF77F6E),
-                      ], Icons.calendar_month_rounded),
-                    ),
-                    GestureDetector(
-                      onTap: () {},
-                      child: _buildQuickCard("Transaction\nReport", [
-                        const Color(0xFFB060F6),
-                        const Color(0xFFE6AAF5),
-                      ], Icons.receipt_long_rounded),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 24.h),
-
-                Text(
-                  "Today’s Attendance Summary",
-                  style: AppTextStyle.semiBold(15.sp),
-                ),
-                SizedBox(height: 10.h),
-
-                _buildSummaryCard([
-                  _summaryRow(
-                    "Employees Arrived On Time",
-                    "1050",
-                    Colors.green,
                   ),
-                  _summaryRow("Late Comers Today", "120", Colors.orange),
-                  _summaryRow("Absent Employees Today", "50", Colors.red),
-                  _summaryRow("Working Employees Today", "1200", Colors.blue),
-                ]),
+                );
+              }
 
-                SizedBox(height: 20.h),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Top Stats Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildInfoCard(
+                        title: "Total Employee",
+                        value: "${adminHomeController.allAttendanceSummary.value.totalEmployees ?? 'N/A'}",
+                        color: Colors.red,
+                        icon: Assets.icons.totalemployee.svg(height: 30.h, width: 30.w,),
+                      ),
+                      _buildInfoCard(
+                        title: "Attendance",
+                        value: "${adminHomeController.allAttendanceSummary.value.totalEmployees ?? 'N/A'} %",
+                        color: Colors.blue,
+                        icon: Assets.icons.attendanceicon.svg(height: 30.h, width: 30.w),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
 
-                Text(
-                  "Today’s Task Summary",
-                  style: AppTextStyle.semiBold(15.sp),
-                ),
-                SizedBox(height: 10.h),
+                  CustomText(
+                    text: "Quick Action",
+                    color: AppColor.secondaryColor,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  SizedBox(height: 12.h),
 
-                _buildSummaryCard([
-                  _summaryRow("Total Task", "20", Colors.green),
-                  _summaryRow("Complete Task", "05", Colors.orange),
-                  _summaryRow("Pending Task", "15", Colors.red),
-                  _summaryRow("In - Progress Task", "09", Colors.blue),
-                ]),
-              ],
-            ),
+                  /// Quick Action Cards
+                  Wrap(
+                    spacing: 14.w,
+                    runSpacing: 14.h,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          context.push("/adminMyTaskScreen");
+                        },
+                        child: _buildQuickCard("Task\nManage", [
+                          const Color(0xFFF9B128),
+                          const Color(0xFFF48201),
+                        ], Assets.icons.taskmanager.svg(height: 40.h, width: 40.w),),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          context.push("/adminEmployeeRequestScreen");
+                        },
+                        child: _buildQuickCard("Employee\nRequest", [
+                          const Color(0xFF136AB7),
+                          const Color(0xFF2D8BE5),
+                        ], Assets.icons.employeerequest.svg(height: 40.h, width: 40.w),),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          context.push("/adminAttendanceScreen");
+                        },
+                        child: _buildQuickCard("View\nAttendence", [
+                          const Color(0xFFEC526A),
+                          const Color(0xFFF77F6E),
+                        ], Assets.icons.viewattendance.svg(height: 40.h, width: 40.w),),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+
+                        },
+                        child: _buildQuickCard("Transaction\nReport", [
+                          const Color(0xFFB060F6),
+                          const Color(0xFFE6AAF5),
+                        ], Assets.icons.transaction.svg(height: 40.h, width: 40.w),),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 24.h),
+
+               /// =============================> Today Attendance Summary =====================>
+                  Text(
+                    "Today’s Attendance Summary",
+                    style: AppTextStyle.semiBold(15.sp),),
+
+                  SizedBox(height: 10.h),
+
+                  _buildSummaryCard([
+                    _summaryRow("Employees Arrived On Time", "${adminHomeController.allAttendanceSummary.value.employeesArrivedOnTime ?? 'N/A'}", Colors.green,),
+                    _summaryRow("Late Comers Today", "${adminHomeController.allAttendanceSummary.value.lateComersToday ?? 'N/A'}", Colors.orange),
+                    _summaryRow("Absent Employees Today", "${adminHomeController.allAttendanceSummary.value.absentEmployeesToday ?? 'N/A'}", Colors.red),
+                    _summaryRow("Working Employees Today", "${adminHomeController.allAttendanceSummary.value.workingEmployeesToday ?? 'N/A'}", Colors.blue),
+                  ]),
+
+                  SizedBox(height: 20.h),
+
+                  /// ===========================> Today Task Summary ============================>
+
+
+                  Text(
+                    "Today’s Task Summary",
+                    style: AppTextStyle.semiBold(15.sp),
+                  ),
+                  SizedBox(height: 10.h),
+
+                  _buildSummaryCard([
+                    _summaryRow("Total Task", "${adminHomeController.allTaskSummary.value.totalTask ?? 'N/A'}", Colors.green),
+                    _summaryRow("Complete Task", "${adminHomeController.allTaskSummary.value.completeTask ?? 'N/A'}", Colors.orange),
+                    _summaryRow("Pending Task", "${adminHomeController.allTaskSummary.value.pendingTask ?? 'N/A'}", Colors.red),
+                    _summaryRow("In - Progress Task", "${adminHomeController.allTaskSummary.value.inProgressTask ?? 'N/A'}", Colors.blue),
+                  ]),
+                ],
+              );
+            }),
           ),
         ),
       ),
@@ -157,7 +242,7 @@ class AdminHomeScreen extends StatelessWidget {
     required String title,
     required String value,
     required Color color,
-    required IconData icon,
+    required Widget icon,
   }) {
     return Container(
       width: 165.w,
@@ -178,7 +263,7 @@ class AdminHomeScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: color.withOpacity(0.15),
-            child: Icon(icon, color: color),
+            child: icon,
           ),
           SizedBox(width: 10.w),
           SingleChildScrollView(
@@ -186,8 +271,8 @@ class AdminHomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(title, style: AppTextStyle.medium(12.sp)),
-                Text(value, style: AppTextStyle.bold(18.sp, color: color)),
+                Text(title, style: AppTextStyle.medium(10.sp)),
+                Text(value, style: AppTextStyle.bold(16.sp, color: color)),
               ],
             ),
           ),
@@ -196,7 +281,7 @@ class AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickCard(String title, List<Color> gradient, IconData icon) {
+  Widget _buildQuickCard(String title, List<Color> gradient, Widget icon) {
     return Container(
       width: 165.w,
       height: 220.h,
@@ -218,7 +303,7 @@ class AdminHomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: Colors.white, size: 40.sp),
+              icon,
               Text(
                 title,
                 style: AppTextStyle.semiBold(16.sp, color: Colors.white),
@@ -272,6 +357,7 @@ class AdminHomeScreen extends StatelessWidget {
     );
   }
 }
+
 
 class AppTextStyle {
   static TextStyle regular(double size, {Color color = Colors.black}) =>

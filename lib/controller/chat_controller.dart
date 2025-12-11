@@ -16,6 +16,9 @@ class ChatController extends GetxController {
   IO.Socket? socket;
   String? currentUserId;
 
+  // Track which conversation is currently requesting messages
+  String? _currentConversationId;
+
   @override
   void onInit() {
     super.onInit();
@@ -28,23 +31,37 @@ class ChatController extends GetxController {
     currentUserId = await PrefsHelper.getString('userId');
     String token = await PrefsHelper.getString('bearerToken');
 
-    // Initialize socket connection
+    // Initialize socket connection with enhanced configuration
     socket = IO.io(
       ApiConstants.socketUrl,
       IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .enableReconnection()
-          .setReconnectionAttempts(5)
-          .setReconnectionDelay(2000)
-          .setReconnectionDelayMax(10000)
-          .enableForceNew()
-          .setTimeout(30000)
+          .setTransports(['websocket']) // Use only WebSocket transport
+          .enableReconnection() // Enable auto-reconnection
+          .setReconnectionAttempts(10) // Increase reconnection attempts
+          .setReconnectionDelay(3000) // Wait 3 seconds between attempts
+          .setReconnectionDelayMax(30000) // Max 30 seconds between attempts
+          .setTimeout(45000) // Increase timeout for slow connections
+          .setExtraHeaders({
+            'Authorization': 'Bearer $token', // Pass token in headers
+          })
+          .enableForceNew() // Force new connection
+          .disableAutoConnect() // Don't connect immediately
           .build(),
     );
 
-    socket!.onConnect((_) {
+    // Setup listeners before connecting
+    setupSocketListeners();
+
+    // Connect manually after setting up listeners
+    socket!.connect();
+  }
+
+  void setupSocketListeners() {
+    socket!.onConnect((_) async {
       print('✅ Socket connected successfully: ${socket!.connected}');
       print('Socket ID: ${socket!.id}');
+
+      String token = await PrefsHelper.getString('bearerToken');
       // Emit user connection with token
       socket!.emit("user-connected", {
         "userId": currentUserId,
@@ -59,16 +76,21 @@ class ChatController extends GetxController {
       print('❌ Socket connect error: $err');
     });
 
-    // socket!.onConnectTimeout((err) {
-    //   print('❌ Socket connect timeout: $err');
-    // });
-
     socket!.onDisconnect((reason) {
       print('⚠️ Socket disconnected: $reason');
+      // Try to reconnect after a delay
+      Future.delayed(const Duration(seconds: 5), () {
+        if (!socket!.connected) {
+          print('Attempting to reconnect after disconnection...');
+          connect();
+        }
+      });
     });
 
     socket!.onReconnect((attemptNumber) {
       print('🔄 Socket reconnected on attempt: $attemptNumber');
+      // After successful reconnection, send the user-connected event again
+      reconnectWithToken();
     });
 
     socket!.onReconnectAttempt((attemptNumber) {
@@ -77,18 +99,117 @@ class ChatController extends GetxController {
 
     socket!.onReconnectFailed((_) {
       print('❌ Socket reconnection failed');
+      // Try manual reconnection after longer delay
+      Future.delayed(const Duration(seconds: 15), () {
+        if (!socket!.connected) {
+          print('Attempting manual reconnection after failure...');
+          connect();
+        }
+      });
     });
 
-    socket!.on('message', (data) {
+    socket!.on('new-message', (data) {
       // Handle incoming message
       if (data != null) {
         print('📥 Received message: $data');
         try {
           Message newMessage = Message.fromJson(data);
-          // Add to messages list if it's for the current conversation
-          messages.add(newMessage);
+          print('Parsed message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
+
+          // Add to messages list if it's for the current conversation and not already present
+          final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
+          if (existingMessage == -1) {
+            print('Adding new message to list');
+            messages.add(newMessage);
+          } else {
+            print('Updating existing message in list');
+            // Update the existing temporary message with the server response
+            messages[existingMessage] = newMessage;
+          }
+          update();
         } catch (e) {
           print('❌ Error parsing message: $e');
+        }
+      }
+    });
+
+    socket!.on('message-page', (data) {
+      // Handle incoming historical messages for a conversation
+      if (data != null) {
+        print('📥 Received historical messages: $data');
+        try {
+          if (data is List) {
+            // Process list of messages
+            print('Processing ${data.length} historical messages');
+            for (var msgData in data) {
+              Message newMessage = Message.fromJson(msgData);
+              print('Parsed historical message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
+
+              // If the message doesn't have a conversationId, use the one that was requested
+              if (newMessage.conversationId == null) {
+                newMessage = Message(
+                  id: newMessage.id,
+                  text: newMessage.text,
+                  type: newMessage.type ?? 'text',
+                  msgByUserId: newMessage.msgByUserId,
+                  createdAt: newMessage.createdAt,
+                  conversationId: _currentConversationId,
+                  imageUrl: newMessage.imageUrl,
+                  videoUrl: newMessage.videoUrl,
+                  fileUrl: newMessage.fileUrl,
+                  linkUrl: newMessage.linkUrl,
+                );
+
+                print('Updated message with conversationId: $_currentConversationId');
+              }
+
+              // Add to messages list if not already present
+              final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
+              if (existingMessage == -1) {
+                print('Adding historical message to list');
+                messages.add(newMessage);
+              } else {
+                print('Historical message already exists in list, updating');
+                messages[existingMessage] = newMessage;
+              }
+            }
+            update();
+          } else {
+            // Single message - this shouldn't typically happen for historical messages
+            Message newMessage = Message.fromJson(data);
+            print('Parsed historical message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
+
+            // If the message doesn't have a conversationId, use the one that was requested
+            if (newMessage.conversationId == null) {
+              newMessage = Message(
+                id: newMessage.id,
+                text: newMessage.text,
+                type: newMessage.type ?? 'text',
+                msgByUserId: newMessage.msgByUserId,
+                createdAt: newMessage.createdAt,
+                conversationId: _currentConversationId,
+                imageUrl: newMessage.imageUrl,
+                videoUrl: newMessage.videoUrl,
+                fileUrl: newMessage.fileUrl,
+                linkUrl: newMessage.linkUrl,
+              );
+
+              print('Updated single message with conversationId: $_currentConversationId');
+            }
+
+            // Add to messages list if not already present
+            final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
+            if (existingMessage == -1) {
+              print('Adding single historical message to list');
+              messages.add(newMessage);
+            } else {
+              print('Single historical message already exists in list, updating');
+              messages[existingMessage] = newMessage;
+            }
+            update();
+          }
+        } catch (e) {
+          print('❌ Error parsing historical message: $e');
         }
       }
     });
@@ -110,32 +231,56 @@ class ChatController extends GetxController {
       }
     });
 
-    socket!.on('conversation_update', (data) {
-      // Handle conversation updates
-      if (data != null) {
-        print('🔄 Received conversation update: $data');
-        try {
-          // Update conversations list
-          Conversation updatedConversation = Conversation.fromJson(data);
-          int index = conversations.indexWhere(
-            (conv) => conv.id == updatedConversation.id,
-          );
-          if (index != -1) {
-            conversations[index] = updatedConversation;
-          } else {
-            conversations.insert(0, updatedConversation);
-          }
-        } catch (e) {
-          print('❌ Error parsing conversation update: $e');
+    socket!.onError((error) {
+      print('❌ Socket general error: $error');
+      // Attempt to reconnect if there's a general error
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!socket!.connected) {
+          print('Attempting to reconnect after general error...');
+          connect();
         }
-      }
+      });
     });
+
+    // socket!.on('conversation_update', (data) {
+    //   // Handle conversation updates
+    //   if (data != null) {
+    //     print('🔄 Received conversation update: $data');
+    //     try {
+    //       // Update conversations list
+    //       Conversation updatedConversation = Conversation.fromJson(data);
+    //       int index = conversations.indexWhere(
+    //         (conv) => conv.id == updatedConversation.id,
+    //       );
+    //       if (index != -1) {
+    //         conversations[index] = updatedConversation;
+    //       } else {
+    //         conversations.insert(0, updatedConversation);
+    //       }
+    //     } catch (e) {
+    //       print('❌ Error parsing conversation update: $e');
+    //     }
+    //   }
+    // });
   }
 
   getChatUser() {
-    if (socket != null && socket!.connected) {
-      socket!.emit("conversation-list", {"currentUserId": currentUserId});
-    }
+    socket!.emit("conversation-list", {"currentUserId": currentUserId});
+    print("=====================================> get chant user called");
+  }
+
+  /// Request messages for a specific conversation
+  void getMessagesForConversation(String conversationId) {
+    print('Requesting messages for conversation: $conversationId');
+
+    // Set the current conversation ID before requesting messages
+    _currentConversationId = conversationId;
+
+    // Clear previous messages to avoid mix-up
+    messages.clear();
+
+    // Emit event to request messages for the specific conversation
+    socket?.emit("message-page", {"receiver": conversationId});
   }
 
   Future<void> loadConversations() async {
@@ -158,28 +303,68 @@ class ChatController extends GetxController {
 
     isSendingMessage.value = true;
     try {
-      final response = await ChatService.sendMessage(
+      // Create a temporary message for immediate UI feedback
+      final tempMessage = Message(
         conversationId: conversationId,
         text: text,
+        type: type,
+        msgByUserId: currentUserId,
+        createdAt: DateTime.now().toIso8601String(),
+        id: null,  // Will be assigned by server
         imageUrl: imageUrl,
         videoUrl: videoUrl,
         fileUrl: fileUrl,
         linkUrl: linkUrl,
-        type: type,
       );
+      messages.add(tempMessage);
+      update();
+      print('Added temporary message to UI: ${tempMessage.text}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Add message to local list and emit via socket
-        Message newMessage = Message.fromJson(response.body);
-        messages.add(newMessage);
-
-        // Emit to socket for real-time delivery
-        socket?.emit('send_message', response.body);
-
-        update();
+      // Get receiver ID from conversation ID by checking the conversation
+      final conversation = conversations.firstWhere((conv) => conv.id == conversationId, orElse: () => conversations.first);
+      String? receiverId;
+      if (conversation.sender?.id == currentUserId) {
+        receiverId = conversation.receiver?.id;
+      } else {
+        receiverId = conversation.sender?.id;
       }
+
+      // Emit to socket for real-time delivery using the correct format
+      final messagePayload = {
+        'sender': currentUserId,
+        'receiver': receiverId,
+        'type': type,
+        'msgByUserId': currentUserId,
+      };
+
+      // Add content based on type
+      switch (type) {
+        case 'text':
+          messagePayload['text'] = text;
+          break;
+        case 'image':
+          messagePayload['imageUrl'] = imageUrl;
+          break;
+        case 'video':
+          messagePayload['videoUrl'] = videoUrl;
+          break;
+        case 'file':
+          messagePayload['fileUrl'] = fileUrl;
+          break;
+        case 'link':
+          messagePayload['linkUrl'] = linkUrl;
+          break;
+        default:
+          messagePayload['text'] = text;
+          break;
+      }
+
+      socket?.emit('new-message', messagePayload);
+      print('Emitted message via socket: $messagePayload');
+
     } catch (e) {
       print('Error sending message: $e');
+      // Show error to user if needed
     } finally {
       isSendingMessage.value = false;
     }
@@ -200,6 +385,32 @@ class ChatController extends GetxController {
       print('Error creating conversation: $e');
     }
     return null;
+  }
+
+  // Additional methods for socket management
+  void connect() {
+    if (socket != null && !socket!.connected) {
+      socket!.connect();
+    }
+  }
+
+  Future<void> reconnectWithToken() async {
+    String token = await PrefsHelper.getString('bearerToken');
+    socket!.emit("user-connected", {"userId": currentUserId, "token": token});
+  }
+
+  /// Manual reconnection method that can be called from UI to reconnect to the socket server
+  Future<void> manualReconnect() async {
+    print('Attempting manual reconnection...');
+
+    // Disconnect first
+    socket?.disconnect();
+
+    // Wait a bit before reconnecting
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Initialize socket again
+    initializeSocket();
   }
 
   @override

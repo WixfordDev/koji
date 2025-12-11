@@ -26,7 +26,13 @@ class SocketServices {
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableReconnection()
+          .setReconnectionAttempts(10)
+          .setReconnectionDelay(3000)
+          .setReconnectionDelayMax(30000)
+          .setTimeout(45000)
           .enableForceNew()
+          .setPingTimeout(60000)
+          .setPingInterval(25000)
           .build(),
     );
 
@@ -48,23 +54,49 @@ class SocketServices {
       print('========> Socket connect error: $err');
     });
 
-    // socket.onDisconnect((_) {
-    //   print('========> Socket disconnected! Attempting to reconnect...');
-    //   Future.delayed(Duration(seconds: 2), () {
-    //     if (!socket.connected) {
-    //       socket.connect(); // Force reconnect if needed
-    //     }
-    //   });
-    // });
+    socket.onConnectTimeout((err) {
+      print('========> Socket connect timeout: $err');
+    });
 
-    socket.onReconnect((_) {
-      print('========> Socket reconnected! $token');
-      // init();
+    socket.onDisconnect((reason) {
+      print('========> Socket disconnected: $reason');
+      // Try to reconnect after a delay
+      Future.delayed(const Duration(seconds: 5), () {
+        if (!socket.connected) {
+          print('Attempting to reconnect after disconnection...');
+          connect();
+        }
+      });
+    });
+
+    socket.onReconnect((attemptNumber) {
+      print('========> Socket reconnected on attempt: $attemptNumber');
+    });
+
+    socket.onReconnectAttempt((attemptNumber) {
+      print('========> Socket attempting to reconnect: $attemptNumber');
+    });
+
+    socket.onReconnectFailed((_) {
+      print('========> Socket reconnection failed');
+      // Try manual reconnection after longer delay
+      Future.delayed(const Duration(seconds: 15), () {
+        if (!socket.connected) {
+          print('Attempting manual reconnection after failure...');
+          connect();
+        }
+      });
     });
 
     socket.onError((error) {
       print('========> Socket error: $error');
     });
+  }
+
+  void connect() {
+    if (!socket.connected) {
+      socket.connect();
+    }
   }
 
   Future<dynamic> emitWithAck(String event, dynamic body) async {

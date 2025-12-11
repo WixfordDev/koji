@@ -3,6 +3,10 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../services/api_client.dart';
 import '../../../services/api_constants.dart';
 import '../../models/admin-model/all_attendance_model.dart';
+import '../../models/admin-model/all_attendance_list_model.dart';
+import '../../models/admin-model/all_employee_model.dart';
+import '../../models/admin-model/all_task_summary_model.dart';
+import '../../models/admin-model/get_alllist_task_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -15,11 +19,8 @@ class AdminHomeController extends GetxController {
   getAllAttendanceSummary({String? date}) async {
     getAllAttendanceLoading(true);
     try {
-      // Build the endpoint with the date parameter if provided
-      String endpoint = ApiConstants.getAttendanceEndPoint;
-      if (date != null) {
-        endpoint = "$endpoint?date=$date";
-      }
+      String formattedDate = date ?? DateTime.now().toIso8601String().split('T')[0];
+      String endpoint = "${ApiConstants.getAttendanceEndPoint}?date=$formattedDate";
 
       var response = await ApiClient.getData(endpoint);
 
@@ -28,11 +29,9 @@ class AdminHomeController extends GetxController {
         getAllAttendanceLoading(false);
       } else if (response.statusCode == 404) {
         getAllAttendanceLoading(false);
-        // Handle 404 error case
         print("Attendance data not found for the specified date");
       } else {
         getAllAttendanceLoading(false);
-        // Handle other error cases
         print("Error getting attendance: ${response.statusCode}");
       }
     } catch (e) {
@@ -40,6 +39,120 @@ class AdminHomeController extends GetxController {
       print("Exception in getAllAttendanceSummary: $e");
     }
   }
+
+  /// ============================ Get All Task Summary =====================================
+
+
+  RxBool getAllTaskSummaryLoading = false.obs;
+  Rx<AllTaskSummaryModel> allTaskSummary = AllTaskSummaryModel().obs;
+
+  getAllTaskSummary() async {
+    getAllTaskSummaryLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getTaskSummaryEndPoint);
+
+      if (response.statusCode == 200) {
+
+        allTaskSummary.value = AllTaskSummaryModel.fromJson(response.body['data']['attributes']);
+        getAllTaskSummaryLoading(false);
+      } else if (response.statusCode == 404) {
+        getAllTaskSummaryLoading(false);
+      } else {
+        getAllTaskSummaryLoading(false);
+      }
+    } catch (e) {
+      getAllTaskSummaryLoading(false);
+    }
+  }
+
+
+
+
+
+  /// ============================ Employee Request =====================================
+
+
+  RxBool getEmployeeRequestLoading = false.obs;
+  Rx<AllEmployeeModel> employeeRequest = AllEmployeeModel().obs;
+
+  getEmployeeRequest() async {
+    getEmployeeRequestLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getEmployeeUserListEndPoint);
+
+      if (response.statusCode == 200) {
+
+        employeeRequest.value = AllEmployeeModel.fromJson(response.body['data']['attributes']);
+        getEmployeeRequestLoading(false);
+      } else if (response.statusCode == 404) {
+        getEmployeeRequestLoading(false);
+      } else {
+        getEmployeeRequestLoading(false);
+      }
+    } catch (e) {
+      getEmployeeRequestLoading(false);
+    }
+  }
+
+
+
+  /// ============================ Get All Attendance Individual Records =====================================
+
+  RxBool getAdminAllAttendanceLoading = false.obs;
+  Rx<AllAttendanceModel> allAttendance = AllAttendanceModel().obs;
+
+  getAdminAllAttendance() async {
+    getAdminAllAttendanceLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getAllAttendanceEndPoint);
+
+      if (response.statusCode == 200) {
+        allAttendance.value = AllAttendanceModel.fromJson(response.body['data']['attributes']);
+        getAdminAllAttendanceLoading(false);
+      } else if (response.statusCode == 404) {
+        allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+        getAdminAllAttendanceLoading(false);
+      } else {
+        allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+        getAdminAllAttendanceLoading(false);
+        print("Error getting attendance: ${response.statusCode}");
+      }
+    } catch (e) {
+      allAttendance.value = AllAttendanceModel(results: [], totalResults: 0);
+      getAdminAllAttendanceLoading(false);
+      print("Exception in getAdminAllAttendance: $e");
+    }
+  }
+
+
+
+  /// ============================ Get All List Task  =====================================
+
+
+  RxBool getAllListTaskLoading = false.obs;
+  Rx<GetAllListTaskModel> getAllListTask = GetAllListTaskModel().obs;
+
+  getAllListTasks() async {
+    getAllListTaskLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getAllTaskEndPoint);
+
+      if (response.statusCode == 200) {
+
+        getAllListTask.value = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        getAllListTaskLoading(false);
+      } else if (response.statusCode == 404) {
+        getAllListTaskLoading(false);
+      } else {
+        getAllListTaskLoading(false);
+      }
+    } catch (e) {
+      getAllListTaskLoading(false);
+    }
+  }
+
+
+
 
 }
 

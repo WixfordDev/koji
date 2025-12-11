@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -27,18 +29,13 @@ class AdminCreateTaskScreen extends StatefulWidget {
 }
 
 
-class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
+class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with WidgetsBindingObserver {
   final DepartmentController departmentController = Get.find();
 
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerNumberController = TextEditingController();
   final TextEditingController _customerAddressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-
-  DateTime? startDate;
-  DateTime? endDate;
-  TimeOfDay? startTime;
-  TimeOfDay? endTime;
 
   // Image picker
   final ImagePicker _picker = ImagePicker();
@@ -57,13 +54,17 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Listen for app lifecycle changes to ensure UI is updated when returning to screen
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       departmentController.getAllDepartment();
       departmentController.getAllCategories();
       departmentController.getAllEmployee();
       departmentController.getAllServiceList();
 
-      // Initialize local variables from controller
+      // Initialize local variables from controller (excluding date/time since we use reactive approach now)
       _initializeLocalVariablesFromController();
     });
   }
@@ -76,10 +77,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     selectedPriority = departmentController.selectedPriority.value;
     selectedDifficulty = departmentController.selectedDifficulty.value;
     selectedServiceList = List.from(departmentController.selectedServiceList);
-    startDate = departmentController.startDate.value;
-    endDate = departmentController.endDate.value;
-    startTime = departmentController.startTime.value;
-    endTime = departmentController.endTime.value;
   }
 
 
@@ -167,27 +164,31 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
 
               ///  ==================================== Assign to date =======================================>
 
-              DateTimePickerWidget(
+              Obx(() => DateTimePickerWidget(
                 label: "Assign Date",
-                startHint: startDate == null
+                startHint: departmentController.startDate.value == null
                     ? "Start Date"
-                    : "${startDate!.day}/${startDate!.month}/${startDate!.year}",
-                endHint: endDate == null
+                    : _formatDate(departmentController.startDate.value!),
+                endHint: departmentController.endDate.value == null
                     ? "End Date"
-                    : "${endDate!.day}/${endDate!.month}/${endDate!.year}",
+                    : _formatDate(departmentController.endDate.value!),
                 startOnTap: () => _pickDate(true),
                 endOnTap: () => _pickDate(false),
                 iconPath: "assets/icons/calendar.svg",
-              ),
+              )),
 
-              DateTimePickerWidget(
+              Obx(() => DateTimePickerWidget(
                 label: "Assign Time",
-                startHint: startTime == null ? "Start Time" : startTime!.format(context),
-                endHint: endTime == null ? "End Time" : endTime!.format(context),
+                startHint: departmentController.startTime.value == null
+                    ? "Start Time"
+                    : _formatTime(departmentController.startTime.value!),
+                endHint: departmentController.endTime.value == null
+                    ? "End Time"
+                    : _formatTime(departmentController.endTime.value!),
                 startOnTap: () => _pickTime(true),
                 endOnTap: () => _pickTime(false),
                 iconPath: "assets/icons/time.svg",
-              ),
+              )),
 
               PrioritySelectorWidget(
                 selectedPriority: selectedPriority,
@@ -978,7 +979,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     );
   }
 
-  // ---------------- Date & Time Pickers ----------------
+// ---------------- Date & Time Pickers ----------------
 
   Future<void> _pickDate(bool isStart) async {
     final picked = await showDatePicker(
@@ -986,13 +987,28 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xffEC526A), // Using the app's primary color from the design
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
+
     if (picked != null) {
       if (isStart) {
         departmentController.updateStartDate(picked);
       } else {
         departmentController.updateEndDate(picked);
       }
+      // Force UI update
+      setState(() {});
     }
   }
 
@@ -1000,23 +1016,47 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xffEC526A), // Using the app's primary color from the design
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
+
     if (picked != null) {
       if (isStart) {
         departmentController.updateStartTime(picked);
       } else {
         departmentController.updateEndTime(picked);
       }
+      // Force UI update
+      setState(() {});
     }
   }
-
 
   final List<String> priorities = ['Low', 'Medium', 'Important', 'Urgent'];
   final List<String> difficulties = ['Easy', 'Medium', 'Hard'];
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh UI when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      setState(() {});
+    }
   }
 
 
@@ -1039,7 +1079,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   }
 
   Future<void> _createTask() async {
-    // Use controller's validation with local variables
+    // Use controller's validation method
     String? validationError = departmentController.validateTaskForm(
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
@@ -1052,9 +1092,9 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
       return;
     }
 
-    // Use local values to format dates to ISO strings
-    String assignDate = _formatDateToISO(startDate, startTime);
-    String deadlineDate = _formatDateToISO(endDate, endTime);
+    // Use controller values to format dates to ISO strings
+    String assignDate = _formatDateToISO(departmentController.startDate.value, departmentController.startTime.value);
+    String deadlineDate = _formatDateToISO(departmentController.endDate.value, departmentController.endTime.value);
 
     // Prepare services list
     List<String> services = selectedServiceList
@@ -1112,5 +1152,32 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> {
   void _showToast(String message) {
     ToastMessageHelper.showToastMessage(message);
   }
+
+  // Format date as "5 Nov 2024" or "05/11/2024"
+  String _formatDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Option 1: "5 Nov 2024" format
+    return "${date.day} ${months[date.month - 1]} ${date.year}";
+
+    // Option 2: "05/11/2024" format (uncomment if preferred)
+    // return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+  }
+
+// Format time as "09:30 AM" or "09:30"
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+
+    // Option 1: 24-hour format "09:30"
+    return "$hour:$minute";
+
+    // Option 2: 12-hour format with AM/PM (uncomment if preferred)
+    // final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    // final hour12 = time.hourOfPeriod.toString().padLeft(2, '0');
+    // return "$hour12:$minute $period";
+  }
+
 
 }
