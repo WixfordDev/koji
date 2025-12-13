@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:get/get.dart';
 import 'package:koji/constants/app_color.dart';
 import 'package:koji/controller/chat_controller.dart';
 import 'package:koji/features/message/presentation/chat_screen.dart';
 import 'package:koji/models/chat_model.dart';
+import 'package:koji/routes/route_paths.dart';
 import 'package:koji/services/api_constants.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 
@@ -22,6 +24,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
   void initState() {
     super.initState();
     chatController.initializeSocket();
+
     chatController.getChatUser();
   }
 
@@ -76,6 +79,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
                 text: otherUser?.fullName ?? 'Unknown User',
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
+                textAlign: TextAlign.left,
               ),
               subtitle: conversation.lastMsg != null
                   ? Text(
@@ -115,8 +119,11 @@ class _MessageListScreenState extends State<MessageListScreen> {
                 ],
               ),
               onTap: () {
-                // Navigate to chat screen
-                Get.to(() => ChatScreen(conversation: conversation));
+                // Navigate to chat screen using GoRouter with extra data
+                context.pushNamed(
+                  RoutePaths.chatScreen,
+                  extra: conversation,
+                );
               },
             );
           },

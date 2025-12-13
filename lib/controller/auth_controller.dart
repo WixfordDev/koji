@@ -37,11 +37,6 @@ class AuthController extends GetxController {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      await PrefsHelper.setString(
-        AppConstants.bearerToken,
-        response.body["data"]["verificationToken"],
-      );
-
       if (screenType == "Sign Up") {
         RouteHelper.goToVerifyScreen(
           context,
@@ -54,6 +49,11 @@ class AuthController extends GetxController {
         "Account create successful.\n \nNow you have an one time code your email",
       );
       signUpLoading(false);
+
+      await PrefsHelper.setString(
+        AppConstants.bearerToken,
+        response.body["data"]["verificationToken"],
+      );
     } else {
       ToastMessageHelper.showToastMessage(
         "${response.body["message"]}",

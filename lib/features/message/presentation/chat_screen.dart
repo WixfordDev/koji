@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:koji/constants/app_color.dart';
@@ -8,9 +9,8 @@ import 'package:koji/services/api_constants.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 
 class ChatScreen extends StatefulWidget {
-  final Conversation conversation;
-
-  const ChatScreen({super.key, required this.conversation});
+  final Conversation? conversation;
+  const ChatScreen({super.key, this.conversation});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -19,7 +19,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   late ChatController chatController;
   late TextEditingController messageController;
-  late Conversation conversation;
+  Conversation? conversation;
   User? otherUser;
 
   @override
@@ -27,17 +27,55 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     chatController = Get.find<ChatController>();
     conversation = widget.conversation;
-    otherUser = conversation.sender?.id == chatController.currentUserId
-        ? conversation.receiver
-        : conversation.sender;
 
-    // Load messages for this conversation
+    print('ChatScreen init - Conversation ID: ${conversation?.id}');
+
+    // Only set otherUser if conversation is not null
+    if (conversation != null) {
+      otherUser = conversation!.sender?.id == chatController.currentUserId
+          ? conversation!.receiver
+          : conversation!.sender;
+
+      // Request historical messages for this conversation after a short delay
+      // to ensure the socket is properly connected
+      Future.delayed(Duration.zero, () {
+        chatController.getMessagesForConversation(conversation!.id!);
+      });
+    } else {
+      otherUser = null;
+    }
 
     messageController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
+    print('Rebuilding ChatScreen - Conversation ID: ${conversation?.id}');
+    print('Current messages count: ${chatController.messages.length}');
+
+    // Handle the case when no conversation is provided
+    if (conversation == null) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+          title: CustomText(
+            text: 'Invalid Conversation',
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        body: const Center(
+          child: Text('No conversation data available'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -75,21 +113,30 @@ class _ChatScreenState extends State<ChatScreen> {
           // Messages list
           Expanded(
             child: Obx(() {
-              if (chatController.isLoadingMessages.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              print('Messages list rebuild - Count: ${chatController.messages.length}');
 
-              if (chatController.messages.isEmpty) {
+              // Filter messages for current conversation
+              final filteredMessages = chatController.messages
+                  .where((message) => message.conversationId == conversation!.id)
+                  .toList();
+
+              print('Filtered messages for conversation ${conversation!.id}: ${filteredMessages.length}');
+
+              if (filteredMessages.isEmpty) {
+                // If no messages in filtered list, check if we're still loading data
+                // Since we're listening for the "message-page" event in the controller,
+                // we just need to wait for the messages to arrive
                 return const Center(child: Text('No messages yet'));
               }
 
               return ListView.builder(
                 reverse: false, // Show messages from top to bottom
-                itemCount: chatController.messages.length,
+                itemCount: filteredMessages.length,
                 itemBuilder: (context, index) {
-                  Message message = chatController.messages[index];
-                  bool isMe =
-                      message.msgByUserId == chatController.currentUserId;
+                  Message message = filteredMessages[index];
+                  bool isMe = message.msgByUserId == chatController.currentUserId;
+
+                  print('Building message bubble for: ${message.text} - isMe: $isMe');
 
                   return _buildMessageBubble(message, isMe);
                 },
@@ -98,13 +145,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
 
           // Message input
-          _buildMessageInput(messageController, conversation.id!),
+          _buildMessageInput(messageController, conversation!.id!),
         ],
       ),
     );
   }
 
   Widget _buildMessageBubble(Message message, bool isMe) {
+    print('Drawing message bubble: ${message.text}');
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       child: Align(
@@ -233,6 +281,7 @@ class _ChatScreenState extends State<ChatScreen> {
       DateTime date = DateTime.parse(dateString);
       return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
+      print('Error parsing date: $e');
       return '';
     }
   }

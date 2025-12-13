@@ -331,17 +331,12 @@ class AppRouter {
         ),
         GoRoute(
           path: RoutePaths.chatScreen,
-          builder: (_, __) => ChatScreen(
-            conversation: Conversation(
-              id: "temp",
-              sender: null,
-              receiver: null,
-              unseenMsg: 0,
-              blockStatus: "unblocked",
-              blockedBy: null,
-              lastMsg: null,
-            ),
-          ),
+          name: RoutePaths.chatScreen,
+          builder: (_, state) {
+            // Get the conversation from the state.extra
+            final conversation = state.extra as Conversation?;
+            return ChatScreen(conversation: conversation!);
+          },
         ),
 
         //

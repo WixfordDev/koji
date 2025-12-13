@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/controller/profile_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:koji/routes/route_helper.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../constants/app_color.dart';
 import '../../../global/custom_assets/assets.gen.dart';
@@ -11,7 +12,6 @@ import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_delete_button.dart';
 import '../../../shared_widgets/custom_text.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   late ProfileController profileController;
 
   @override
@@ -36,65 +35,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         forceMaterialTransparency: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-
-
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: SingleChildScrollView(
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              Obx(()=>
-                 Column(
+              Obx(
+                () => Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: 24.h),
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(40.r),
-                        child: profileController.profile.value.user?.image != null
-                          ? CachedNetworkImage(
-                              imageUrl: "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
-                              width: 80.r,
-                              height: 80.r,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Shimmer.fromColors(
-                                baseColor: AppColor.borderColor,
-                                highlightColor: AppColor.backgroundColor,
-                                child: Container(
-                                  width: 80.r,
-                                  height: 80.r,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(40.r),
-                                    color: AppColor.borderColor,
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Assets.images.profile.image(
+                        child:
+                            profileController.profile.value.user?.image != null
+                            ? CachedNetworkImage(
+                                imageUrl:
+                                    "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                                width: 80.r,
+                                height: 80.r,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) =>
+                                    Shimmer.fromColors(
+                                      baseColor: AppColor.borderColor,
+                                      highlightColor: AppColor.backgroundColor,
+                                      child: Container(
+                                        width: 80.r,
+                                        height: 80.r,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            40.r,
+                                          ),
+                                          color: AppColor.borderColor,
+                                        ),
+                                      ),
+                                    ),
+                                errorWidget: (context, url, error) =>
+                                    Assets.images.profile.image(
+                                      width: 80.r,
+                                      height: 80.r,
+                                      fit: BoxFit.cover,
+                                    ),
+                              )
+                            : Assets.images.profile.image(
                                 width: 80.r,
                                 height: 80.r,
                                 fit: BoxFit.cover,
                               ),
-                            )
-                          : Assets.images.profile.image(
-                              width: 80.r,
-                              height: 80.r,
-                              fit: BoxFit.cover,
-                            ),
                       ),
                     ),
                     SizedBox(height: 8.h),
                     CustomText(
-                      text: profileController.profile.value.user?.firstName ?? 'N/A',
+                      text:
+                          profileController.profile.value.user?.firstName ??
+                          'N/A',
                       fontSize: 24.sp,
                       color: AppColor.secondaryColor,
                     ),
@@ -109,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontSize: 14.sp,
                       color: AppColor.textColor707070,
                     ),
-
                   ],
                 ),
               ),
@@ -118,9 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               /// ==================================> My Profile =============================>
               GestureDetector(
                 onTap: () {
-
                   context.push('/myProfileScreen');
-
                 },
                 child: Container(
                   width: 345.w,
@@ -128,10 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   margin: EdgeInsets.only(left: 2.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -145,17 +141,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               height: 22.h,
                             ),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'My Profile',
+                            CustomText(
+                              text: 'My Profile',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
                               fontWeight: FontWeight.w400,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -167,7 +164,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               GestureDetector(
                 onTap: () {
                   context.push('/changePasswordScreen');
-
                 },
                 child: Container(
                   width: 345.w,
@@ -175,10 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   margin: EdgeInsets.only(left: 2.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,16 +185,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               height: 22.h,
                             ),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'Change Password',
+                            CustomText(
+                              text: 'Change Password',
                               fontSize: 16.sp,
-                              color: AppColor.secondaryColor,fontWeight: FontWeight.w500,
-                            )
+                              color: AppColor.secondaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -211,19 +206,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               /// ==================================> My Documents =============================>
               GestureDetector(
-                onTap: () {
-
-                },
+                onTap: () {},
                 child: Container(
                   width: 345.w,
                   height: 54.h,
                   margin: EdgeInsets.only(left: 2.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -232,22 +222,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Row(
                           children: [
-                            Assets.icons.mydoc.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
+                            Assets.icons.mydoc.svg(width: 22.w, height: 22.h),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'My Documents',
+                            CustomText(
+                              text: 'My Documents',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
                               fontWeight: FontWeight.w400,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -266,10 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   margin: EdgeInsets.only(left: 2.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,22 +263,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Row(
                           children: [
-                            Assets.icons.terms.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
+                            Assets.icons.terms.svg(width: 22.w, height: 22.h),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'Terms & Condition',
+                            CustomText(
+                              text: 'Terms & Condition',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
                               fontWeight: FontWeight.w400,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -313,10 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     // color: AppColors.backgroundColor,
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -325,22 +305,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Row(
                           children: [
-                            Assets.icons.terms.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
+                            Assets.icons.terms.svg(width: 22.w, height: 22.h),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'Privacy Policy',
+                            CustomText(
+                              text: 'Privacy Policy',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
                               fontWeight: FontWeight.w400,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -407,10 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   margin: EdgeInsets.only(left: 2.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
-                    ),
+                    border: Border.all(color: AppColor.borderColor, width: 1.w),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -419,22 +394,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Row(
                           children: [
-                            Assets.icons.help.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
+                            Assets.icons.help.svg(width: 22.w, height: 22.h),
                             SizedBox(width: 5.w),
-                            CustomText(text: 'Help & Support',
+                            CustomText(
+                              text: 'Help & Support',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
                               fontWeight: FontWeight.w400,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
+                        child: Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
@@ -447,13 +420,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               SizedBox(height: 50.h),
 
-
               CustomButton(
                 title: 'Log out',
                 onpress: () {
                   _showLogoutConfirmationDialog(context);
                 },
-                color: AppColor.redColor,            ),
+                color: AppColor.redColor,
+              ),
               SizedBox(height: 80.h),
             ],
           ),
@@ -461,13 +434,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           backgroundColor: AppColor.borderColor,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
@@ -480,7 +456,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   text: 'Ready to Log out ?',
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
-                  color: AppColor.secondaryColor,                ),
+                  color: AppColor.secondaryColor,
+                ),
                 SizedBox(height: 24.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -500,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         bgColor: AppColor.successColor,
                         textColor: AppColor.backgroundColor,
                         onTap: () async {
-
+                          RouteHelper.goToSignIn(context);
                         },
                       ),
                     ),
@@ -514,5 +491,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-
-
