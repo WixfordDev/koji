@@ -186,7 +186,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-
+                          context.push("/adminTransactionScreen");
                         },
                         child: _buildQuickCard("Transaction\nReport", [
                           const Color(0xFFB060F6),

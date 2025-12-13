@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:koji/shared_widgets/custom_button.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../constants/app_color.dart';
+import '../../../controller/profile_controller.dart';
+import '../../../helpers/toast_message_helper.dart';
 import '../../../shared_widgets/custom_auth_text_field.dart';
+import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class HelpSupportScreen extends StatefulWidget {
@@ -14,9 +19,14 @@ class HelpSupportScreen extends StatefulWidget {
 }
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
+  late ProfileController profileController = Get.find<ProfileController>();
+
   final TextEditingController issueCtrl = TextEditingController();
   final TextEditingController desCtrl = TextEditingController();
   final TextEditingController attachFileCtrl = TextEditingController();
+
+  File? attachedFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   Widget build(BuildContext context) {
@@ -90,40 +100,120 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ),
               SizedBox(height: 4.h),
               GestureDetector(
-                onTap: () {
-
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/attach.svg',
-                      width: 24.w,
-                      height: 24.h,
-                      color: AppColor.secondaryColor,
-                    ),
-                    SizedBox(width: 10.w),
-                    CustomText(
-                      text: 'Attach File',
-                      color: AppColor.secondaryColor,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
+                onTap: _pickFile,
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColor.borderColor),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/attach.svg',
+                        width: 24.w,
+                        height: 24.h,
+                        color: AppColor.secondaryColor,
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Text(
+                          attachedFile != null
+                              ? attachedFile!.path.split('/').last
+                              : 'Attach File',
+                          style: TextStyle(
+                            color: attachedFile != null
+                                ? AppColor.secondaryColor
+                                : Colors.grey.shade600,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                      if (attachedFile != null)
+                        IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            size: 20.r,
+                            color: AppColor.redColor,
+                          ),
+                          onPressed: _clearAttachment,
+                        ),
+                    ],
+                  ),
                 ),
               ),
 
               SizedBox(height: 24.h),
 
-              CustomButton(
-                title: 'Submit',
-                onpress: () {
-                },
-              ),
+              Obx(() => CustomButton(
+                title: profileController.helpSupportLoading.value ? 'Submitting...' : 'Submit',
+                onpress: _submitHelpSupport,
+                loading: profileController.helpSupportLoading.value,
+              )),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _pickFile() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          attachedFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage(
+        'Error picking file: $e',
+        title: 'Error',
+      );
+    }
+  }
+
+  void _clearAttachment() {
+    setState(() {
+      attachedFile = null;
+    });
+  }
+
+  void _submitHelpSupport() {
+    String title = issueCtrl.text.trim();
+    String description = desCtrl.text.trim();
+
+    if (title.isEmpty) {
+      ToastMessageHelper.showToastMessage(
+        'Please enter an issue title',
+        title: 'Validation Error',
+      );
+      return;
+    }
+
+    if (description.isEmpty) {
+      ToastMessageHelper.showToastMessage(
+        'Please enter a description',
+        title: 'Validation Error',
+      );
+      return;
+    }
+
+    profileController.helpSupport(
+      title: title,
+      description: description,
+      files: attachedFile,
+      screenType: 'help_support',
+    ).then((_) {
+      if (!profileController.helpSupportLoading.value) {
+        // Clear form after successful submission
+        issueCtrl.clear();
+        desCtrl.clear();
+        attachedFile = null;
+      }
+    });
   }
 }

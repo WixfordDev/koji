@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     SizedBox(height: 4.h),
                     CustomText(
-                      text: 'ID: Koji Tech 123',
+                      text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
                       fontSize: 14.sp,
                       color: AppColor.textColor707070,
                     ),
@@ -319,6 +319,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Assets.icons.chevron.svg(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.h),
+
+
+              /// ==================================> Privacy Policy =============================>
+              GestureDetector(
+                onTap: () {
+                  context.push('/aboutUsScreen');
+                },
+                child: Container(
+                  width: 345.w,
+                  height: 54.h,
+                  margin: EdgeInsets.only(left: 2.w),
+                  decoration: BoxDecoration(
+                    // color: AppColors.backgroundColor,
+                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
+                    border: Border.all(
+                      color: AppColor.borderColor,
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        child: Row(
+                          children: [
+                            Assets.icons.terms.svg(
+                              width: 22.w,
+                              height: 22.h,
+                            ),
+                            SizedBox(width: 5.w),
+                            CustomText(text: 'About Us',
+                              fontSize: 16.sp,
+                              color: AppColor.secondaryColor,
+                              fontWeight: FontWeight.w400,
+                            )
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        child:  Assets.icons.chevron.svg(),
                       ),
                     ],
                   ),
