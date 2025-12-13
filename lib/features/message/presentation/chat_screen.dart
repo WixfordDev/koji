@@ -21,6 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late TextEditingController messageController;
   Conversation? conversation;
   User? otherUser;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -70,12 +71,12 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          // leading: IconButton(
+          //   icon: Icon(Icons.arrow_back, color: Colors.black),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //   },
+          // ),
           title: CustomText(
             text: 'Invalid Conversation',
             fontSize: 16.sp,
@@ -93,7 +94,9 @@ class _ChatScreenState extends State<ChatScreen> {
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
         title: Row(
           children: [
@@ -148,7 +151,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 return const Center(child: Text('No messages yet'));
               }
 
+              // Scroll to bottom after messages update
+              if (filteredMessages.isNotEmpty) {
+                SchedulerBinding.instance.addPostFrameCallback((_) {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                });
+              }
+
               return ListView.builder(
+                controller: _scrollController,
                 reverse: false, // Show messages from top to bottom
                 itemCount: filteredMessages.length,
                 itemBuilder: (context, index) {
@@ -180,6 +195,9 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
+          width: message.text != null && message.text!.length > 20
+              ? 280.w
+              : null,
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: isMe ? AppColor.primaryColor : Colors.grey[200],
@@ -285,6 +303,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       conversationId: conversationId,
                       text: text,
                     );
+                    // After sending a message, scroll to the bottom
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    });
                     controller.clear();
                   }
                 },
