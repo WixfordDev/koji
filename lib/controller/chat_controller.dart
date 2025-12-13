@@ -114,10 +114,14 @@ class ChatController extends GetxController {
         print('📥 Received message: $data');
         try {
           Message newMessage = Message.fromJson(data);
-          print('Parsed message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
+          print(
+            'Parsed message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}',
+          );
 
           // Add to messages list if it's for the current conversation and not already present
-          final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
+          final existingMessage = messages.indexWhere(
+            (msg) => msg.id == newMessage.id,
+          );
           if (existingMessage == -1) {
             print('Adding new message to list');
             messages.add(newMessage);
@@ -133,54 +137,44 @@ class ChatController extends GetxController {
       }
     });
 
-    socket!.on('message-page', (data) {
+    socket!.on('message', (data) {
       // Handle incoming historical messages for a conversation
       if (data != null) {
-        print('📥 Received historical messages: $data');
+        print(
+          '📥 ================================Received historical messages: $data',
+        );
         try {
+          List<dynamic> messagesList = [];
+
           if (data is List) {
-            // Process list of messages
-            print('Processing ${data.length} historical messages');
-            for (var msgData in data) {
-              Message newMessage = Message.fromJson(msgData);
-              print('Parsed historical message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
-
-              // If the message doesn't have a conversationId, use the one that was requested
-              if (newMessage.conversationId == null) {
-                newMessage = Message(
-                  id: newMessage.id,
-                  text: newMessage.text,
-                  type: newMessage.type ?? 'text',
-                  msgByUserId: newMessage.msgByUserId,
-                  createdAt: newMessage.createdAt,
-                  conversationId: _currentConversationId,
-                  imageUrl: newMessage.imageUrl,
-                  videoUrl: newMessage.videoUrl,
-                  fileUrl: newMessage.fileUrl,
-                  linkUrl: newMessage.linkUrl,
-                );
-
-                print('Updated message with conversationId: $_currentConversationId');
-              }
-
-              // Add to messages list if not already present
-              final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
-              if (existingMessage == -1) {
-                print('Adding historical message to list');
-                messages.add(newMessage);
-              } else {
-                print('Historical message already exists in list, updating');
-                messages[existingMessage] = newMessage;
-              }
+            messagesList = data;
+          } else if (data is Map<String, dynamic>) {
+            // Handle single message or structured response that contains a list of messages
+            if (data.containsKey('messages') && data['messages'] is List) {
+              messagesList = data['messages'];
+            } else {
+              // Single message - convert to list for consistent processing
+              messagesList = [data];
             }
-            update();
-          } else {
-            // Single message - this shouldn't typically happen for historical messages
-            Message newMessage = Message.fromJson(data);
-            print('Parsed historical message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}');
+          }
 
-            // If the message doesn't have a conversationId, use the one that was requested
-            if (newMessage.conversationId == null) {
+          print(
+            'Processing ${messagesList.length} historical messages for conversation $_currentConversationId',
+          );
+
+          // Clear messages only when we receive a fresh set of historical messages
+          // for the specific conversation we requested
+          messages.clear();
+
+          for (var msgData in messagesList) {
+            Message newMessage = Message.fromJson(msgData);
+            print(
+              'Parsed historical message - ID: ${newMessage.id}, Text: ${newMessage.text}, ConversationId: ${newMessage.conversationId}',
+            );
+
+            // Ensure the message has the correct conversationId
+            if (newMessage.conversationId == null ||
+                newMessage.conversationId!.isEmpty) {
               newMessage = Message(
                 id: newMessage.id,
                 text: newMessage.text,
@@ -188,26 +182,43 @@ class ChatController extends GetxController {
                 msgByUserId: newMessage.msgByUserId,
                 createdAt: newMessage.createdAt,
                 conversationId: _currentConversationId,
+                seen: newMessage.seen,
                 imageUrl: newMessage.imageUrl,
                 videoUrl: newMessage.videoUrl,
                 fileUrl: newMessage.fileUrl,
                 linkUrl: newMessage.linkUrl,
               );
 
-              print('Updated single message with conversationId: $_currentConversationId');
+              print(
+                'Updated message with conversationId: $_currentConversationId',
+              );
             }
 
             // Add to messages list if not already present
-            final existingMessage = messages.indexWhere((msg) => msg.id == newMessage.id);
+            final existingMessage = messages.indexWhere(
+              (msg) => msg.id == newMessage.id,
+            );
             if (existingMessage == -1) {
-              print('Adding single historical message to list');
+              print('Adding historical message to list');
               messages.add(newMessage);
             } else {
-              print('Single historical message already exists in list, updating');
+              print('Historical message already exists in list, updating');
               messages[existingMessage] = newMessage;
             }
-            update();
           }
+
+          // Sort messages by creation time to ensure chronological order
+          messages.sort((a, b) {
+            DateTime dateA = DateTime.parse(
+              a.createdAt ?? DateTime.now().toIso8601String(),
+            );
+            DateTime dateB = DateTime.parse(
+              b.createdAt ?? DateTime.now().toIso8601String(),
+            );
+            return dateA.compareTo(dateB);
+          });
+
+          update();
         } catch (e) {
           print('❌ Error parsing historical message: $e');
         }
@@ -271,7 +282,9 @@ class ChatController extends GetxController {
 
   /// Request messages for a specific conversation
   void getMessagesForConversation(String conversationId) {
-    print('Requesting messages for conversation: $conversationId');
+    print(
+      '++++++++++++++++++++++Requesting messages for conversation: $conversationId',
+    );
 
     // Set the current conversation ID before requesting messages
     _currentConversationId = conversationId;
@@ -310,7 +323,7 @@ class ChatController extends GetxController {
         type: type,
         msgByUserId: currentUserId,
         createdAt: DateTime.now().toIso8601String(),
-        id: null,  // Will be assigned by server
+        id: null, // Will be assigned by server
         imageUrl: imageUrl,
         videoUrl: videoUrl,
         fileUrl: fileUrl,
@@ -321,7 +334,10 @@ class ChatController extends GetxController {
       print('Added temporary message to UI: ${tempMessage.text}');
 
       // Get receiver ID from conversation ID by checking the conversation
-      final conversation = conversations.firstWhere((conv) => conv.id == conversationId, orElse: () => conversations.first);
+      final conversation = conversations.firstWhere(
+        (conv) => conv.id == conversationId,
+        orElse: () => conversations.first,
+      );
       String? receiverId;
       if (conversation.sender?.id == currentUserId) {
         receiverId = conversation.receiver?.id;
@@ -361,7 +377,6 @@ class ChatController extends GetxController {
 
       socket?.emit('new-message', messagePayload);
       print('Emitted message via socket: $messagePayload');
-
     } catch (e) {
       print('Error sending message: $e');
       // Show error to user if needed
@@ -412,6 +427,95 @@ class ChatController extends GetxController {
     // Initialize socket again
     initializeSocket();
   }
+
+  // /// Fetch historical messages via API as a fallback
+  // Future<void> fetchHistoricalMessagesFromApi(String conversationId) async {
+  //   try {
+  //     print(
+  //       'Fetching historical messages from API for conversation: $conversationId',
+  //     );
+  //     final response = await ChatService.getHistoricalMessages(
+  //       conversationId: conversationId,
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = response.body;
+
+  //       // Handle response structure - might be direct list or object containing messages
+  //       List<dynamic> messagesList = [];
+  //       if (data is List) {
+  //         messagesList = data;
+  //       } else if (data is Map<String, dynamic> &&
+  //           data.containsKey('messages')) {
+  //         messagesList = data['messages'];
+  //       } else if (data is Map<String, dynamic> && data.containsKey('data')) {
+  //         // Some APIs return data within a 'data' field
+  //         if (data['data'] is List) {
+  //           messagesList = data['data'];
+  //         } else if (data['data'] is Map<String, dynamic> &&
+  //             data['data'].containsKey('messages')) {
+  //           messagesList = data['data']['messages'];
+  //         }
+  //       }
+
+  //       print(
+  //         'Received ${messagesList.length} historical messages from API for conversation $conversationId',
+  //       );
+
+  //       // Clear messages for the current conversation to avoid duplicates
+  //       messages.clear();
+
+  //       for (var msgData in messagesList) {
+  //         Message newMessage = Message.fromJson(msgData);
+
+  //         // Ensure the message has the correct conversationId
+  //         if (newMessage.conversationId == null ||
+  //             newMessage.conversationId!.isEmpty) {
+  //           newMessage = Message(
+  //             id: newMessage.id,
+  //             text: newMessage.text,
+  //             type: newMessage.type ?? 'text',
+  //             msgByUserId: newMessage.msgByUserId,
+  //             createdAt: newMessage.createdAt,
+  //             conversationId: conversationId,
+  //             seen: newMessage.seen,
+  //             imageUrl: newMessage.imageUrl,
+  //             videoUrl: newMessage.videoUrl,
+  //             fileUrl: newMessage.fileUrl,
+  //             linkUrl: newMessage.linkUrl,
+  //           );
+  //         }
+
+  //         // Add to messages list if not already present
+  //         final existingMessage = messages.indexWhere(
+  //           (msg) => msg.id == newMessage.id,
+  //         );
+  //         if (existingMessage == -1) {
+  //           messages.add(newMessage);
+  //         } else {
+  //           messages[existingMessage] = newMessage;
+  //         }
+  //       }
+
+  //       // Sort messages by creation time to ensure chronological order
+  //       messages.sort((a, b) {
+  //         DateTime dateA = DateTime.parse(
+  //           a.createdAt ?? DateTime.now().toIso8601String(),
+  //         );
+  //         DateTime dateB = DateTime.parse(
+  //           b.createdAt ?? DateTime.now().toIso8601String(),
+  //         );
+  //         return dateA.compareTo(dateB);
+  //       });
+
+  //       update();
+  //     } else {
+  //       print('Failed to fetch historical messages from API: ${response.body}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching historical messages from API: $e');
+  //   }
+  // }
 
   @override
   void onClose() {

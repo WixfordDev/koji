@@ -11,4 +11,14 @@ class ChatService {
 
     return await ApiClient.postData('/chats/conversations', body);
   }
+
+  // Fetch historical messages for a conversation
+  static Future<Response> getHistoricalMessages({
+    required String conversationId,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final endpoint = '/chats/conversations/$conversationId/messages?page=$page&limit=$limit';
+    return await ApiClient.getData(endpoint);
+  }
 }
