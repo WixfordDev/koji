@@ -276,7 +276,7 @@ class ChatController extends GetxController {
   }
 
   getChatUser() {
-    socket!.emit("conversation-list", {"currentUserId": currentUserId});
+    socket?.emit("conversation-list", {"currentUserId": currentUserId});
     print("=====================================> get chant user called");
   }
 
