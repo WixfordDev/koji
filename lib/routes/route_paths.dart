@@ -13,6 +13,7 @@ class RoutePaths {
   static const String employeeHistoryScreen = '/historyScreen';
   static const String employeeTaskReportScreen = '/taskReportScreen';
   static const String employeeCalendarScreen = '/calendarScreen';
+  static const String employeeScheduleScreen = '/employeeScheduleScreen';
   static const String employeeMyTaskScreen = '/myTaskScreen';
   static const String employeeSubmitTaskScreen = '/submitTaskScreen';
   static const String employeeBottomNavBar = '/bottomNavBar';

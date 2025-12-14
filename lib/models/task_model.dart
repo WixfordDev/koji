@@ -78,7 +78,8 @@ class TaskModel {
       customerAddress: json['customerAddress'] ?? '',
       assignDate: json['assignDate'] ?? '',
       deadline: json['deadline'] ?? '',
-      services: (json['services'] as List<dynamic>?)
+      services:
+          (json['services'] as List<dynamic>?)
               ?.map((e) => Service.fromJson(e))
               .toList() ??
           [],
@@ -156,12 +157,7 @@ class Service {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'price': price,
-      'quantity': quantity,
-      'id': id,
-    };
+    return {'name': name, 'price': price, 'quantity': quantity, 'id': id};
   }
 }
 
@@ -170,11 +166,7 @@ class TaskResponse {
   final String message;
   final TaskData data;
 
-  TaskResponse({
-    required this.code,
-    required this.message,
-    required this.data,
-  });
+  TaskResponse({required this.code, required this.message, required this.data});
 
   factory TaskResponse.fromJson(Map<String, dynamic> json) {
     return TaskResponse(
@@ -191,9 +183,7 @@ class TaskData {
   TaskData({required this.attributes});
 
   factory TaskData.fromJson(Map<String, dynamic> json) {
-    return TaskData(
-      attributes: Attributes.fromJson(json['attributes']),
-    );
+    return TaskData(attributes: Attributes.fromJson(json['attributes']));
   }
 }
 
@@ -214,7 +204,8 @@ class Attributes {
 
   factory Attributes.fromJson(Map<String, dynamic> json) {
     return Attributes(
-      results: (json['results'] as List<dynamic>?)
+      results:
+          (json['results'] as List<dynamic>?)
               ?.map((e) => TaskModel.fromJson(e))
               .toList() ??
           [],
