@@ -41,9 +41,45 @@ class EmployeeScheduleController extends GetxController {
   Future<void> fetchTaskById(String taskId) async {
     _isLoading.value = true;
     try {
-      // In a real implementation, this would call the API to get a single task
-      // For now, we'll just return the first task if needed anywhere else
-      print("Fetching task by ID: $taskId");
+      // Find the task from the loaded tasks list
+      final task = _tasks.firstWhere((element) => element.id == taskId, orElse: () => TaskModel(
+        id: '',
+        createdBy: '',
+        department: '',
+        serviceCategory: '',
+        customerName: '',
+        customerNumber: '',
+        customerAddress: '',
+        assignDate: '',
+        deadline: '',
+        services: [],
+        assignTo: '',
+        otherAmount: 0,
+        totalAmount: 0,
+        status: '',
+        attachments: [],
+        notes: '',
+        isDeleted: false,
+        createdAt: '',
+        updatedAt: '',
+        v: 0,
+        difficulty: '',
+        priority: '',
+        progressPercent: 0,
+        submitedDoc: [],
+        isSubmited: false,
+        paymentStatus: '',
+        paymentMethod: '',
+        customerEmail: null,
+      ));
+
+      if (task.id.isNotEmpty) {
+        _selectedTask.value = task;
+      } else {
+        // If task is not found locally, try to fetch it from API
+        // This would require an API endpoint to fetch individual task
+        print("Task with ID $taskId not found locally");
+      }
     } catch (e) {
       print('Error fetching task details: $e');
       Get.snackbar('Error', 'Failed to load task details: ${e.toString()}');

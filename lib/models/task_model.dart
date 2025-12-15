@@ -135,16 +135,16 @@ class TaskModel {
 }
 
 class Service {
-  final String name;
-  final int price;
-  final int quantity;
-  final String id;
+  final String? name;
+  final int? price;
+  final int? quantity;
+  final String? id;
 
   Service({
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.id,
+    this.name,
+    this.price,
+    this.quantity,
+    this.id,
   });
 
   factory Service.fromJson(Map<String, dynamic> json) {
@@ -157,7 +157,12 @@ class Service {
   }
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'price': price, 'quantity': quantity, 'id': id};
+    return {
+      'name': name,
+      'price': price,
+      'quantity': quantity,
+      '_id': id,
+    };
   }
 }
 

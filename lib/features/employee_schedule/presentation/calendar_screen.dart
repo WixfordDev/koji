@@ -298,8 +298,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to task details screen
-        Get.to(() => TaskDetailsScreen(taskId: taskId));
+        print('Tapped on task with ID: $taskId');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskDetailsScreen(taskId: taskId),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
@@ -435,15 +440,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Color statusColor = _getStatusColor(task.status);
         int progress = task.progressPercent ?? 0;
 
-        return _buildTaskCard(
-          taskId: task.id, // Pass the task ID
-          title: task.customerName,
-          status: task.status,
-          priority: task.priority,
-          progress: progress,
-          color: statusColor,
-          assignDate: task.assignDate,
-          services: task.services,
+        return GestureDetector(
+          onTap: () {
+            // Navigate to task details screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskDetailsScreen(taskId: task.id),
+              ),
+            );
+          },
+          child: _buildTaskCard(
+            taskId: task.id, // Pass the task ID
+            title: task.customerName,
+            status: task.status,
+            priority: task.priority,
+            progress: progress,
+            color: statusColor,
+            assignDate: task.assignDate,
+            services: task.services,
+          ),
         );
       },
     );
