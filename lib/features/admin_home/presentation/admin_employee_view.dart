@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:koji/features/admin_home/presentation/widget/custom_expenssion_list.dart';
+import 'package:get/get.dart';
+import 'package:koji/controller/admincontroller/admin_home_controller.dart';
 import 'package:koji/models/admin-model/all_employee_model.dart';
 import 'package:koji/shared_widgets/custom_network_image.dart';
-import 'package:koji/shared_widgets/custom_text.dart';
+import 'package:koji/helpers/toast_message_helper.dart';
 
 class AdminEmployeeView extends StatelessWidget {
   final Employee employee;
@@ -12,6 +13,7 @@ class AdminEmployeeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final adminHomeController = Get.find<AdminHomeController>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Employee Details'),
@@ -100,18 +102,24 @@ class AdminEmployeeView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              alignment: Alignment.center,
-              height: 50.h,
-              width: 100.h,
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(10.r),
+            GestureDetector(
+              onTap: () {
+                // For reject, just go back to the previous page
+                Navigator.pop(context);
+              },
+              child: Container(
+                alignment: Alignment.center,
+                height: 50.h,
+                width: 100.h,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Text("Reject", style: TextStyle(color: Colors.white)),
               ),
-              child: Text("Reject", style: TextStyle(color: Colors.white)),
             ),
             SizedBox(width: 10.h),
-            Container(
+            Obx(() => Container(
               alignment: Alignment.center,
               height: 50.h,
               width: 100.h,
@@ -119,8 +127,36 @@ class AdminEmployeeView extends StatelessWidget {
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Text("Accept", style: TextStyle(color: Colors.white)),
-            ),
+              child: adminHomeController.approveEmployeeLoading.value
+                  ? SizedBox(
+                      width: 20.r,
+                      height: 20.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: () async {
+                        bool result = await adminHomeController.approveEmployee(
+                          employeeId: employee.id ?? '',
+                        );
+                        if (result) {
+                          ToastMessageHelper.showToastMessage(
+                            "Employee approved successfully!",
+                          );
+                          // Navigate back to the previous screen
+                          Navigator.pop(context);
+                        } else {
+                          ToastMessageHelper.showToastMessage(
+                            "Failed to approve employee.",
+                            title: "Error",
+                          );
+                        }
+                      },
+                      child: Text("Accept", style: TextStyle(color: Colors.white)),
+                    ),
+            )),
           ],
         ),
       ),

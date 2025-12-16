@@ -256,32 +256,32 @@ class _AdminViewAttendanceScreenState extends State<AdminViewAttendanceScreen> {
             ),
             SizedBox(height: 24.h),
 
-            /// Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    title: "Reject",
-                    color: Colors.white,
-                    boderColor: Color(0xFFEB0000),
-                    onpress: () {
-                      // Handle reject action
-                    },
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: CustomButton(
-                    title: "Approved",
-                    color: Color(0xFFF77F6E),
-                    boderColor: Colors.transparent,
-                    onpress: () {
-                      // Handle approve action
-                    },
-                  ),
-                ),
-              ],
-            ),
+            // /// Action Buttons
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: CustomButton(
+            //         title: "Reject",
+            //         color: Colors.white,
+            //         boderColor: Color(0xFFEB0000),
+            //         onpress: () {
+            //           // Handle reject action
+            //         },
+            //       ),
+            //     ),
+            //     SizedBox(width: 10.w),
+            //     Expanded(
+            //       child: CustomButton(
+            //         title: "Approved",
+            //         color: Color(0xFFF77F6E),
+            //         boderColor: Colors.transparent,
+            //         onpress: () {
+            //           // Handle approve action
+            //         },
+            //       ),
+            //     ),
+            //   ],
+            // ),
             SizedBox(height: 20.h),
           ],
         ),

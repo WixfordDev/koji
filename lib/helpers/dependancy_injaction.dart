@@ -4,6 +4,7 @@ import 'package:koji/controller/auth_controller.dart';
 import 'package:koji/controller/chat_controller.dart';
 import 'package:koji/controller/admincontroller/admin_home_controller.dart';
 import 'package:koji/controller/admincontroller/department_controller.dart';
+import 'package:koji/controller/admincontroller/schedule_controller.dart';
 import 'package:koji/controller/profile_controller.dart';
 
 class DependencyInjection implements Bindings {
@@ -15,6 +16,7 @@ class DependencyInjection implements Bindings {
     Get.lazyPut(() => DepartmentController(), fenix: true);
     Get.lazyPut(() => ChatController(), fenix: true);
     Get.lazyPut(() => AdminHomeController(), fenix: true);
+    Get.lazyPut(() => ScheduleController(), fenix: true);
     Get.lazyPut(() => ProfileController(), fenix: true);
 
   }
