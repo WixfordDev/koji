@@ -60,7 +60,8 @@ class ApiConstants {
   static const String approveProfileEndPoint = "/users/approved/";
   static const String taskMonthEndPoint = "/tasks/monthly-summary";
   static const String allEmployeeTaskEndPoint = "/tasks/all-employee-task-status";
-  static const String allListTaskEndPoint = "/tasks/employ/list?date=2025-12-16&assignTo=693b03e0a9ee419f00665baa";
+  static const String allListTaskEndPointTemplate = "/tasks/employ/list?";
+  static const String taskDetailsEndPointTemplate = "/tasks/";
 
 
 

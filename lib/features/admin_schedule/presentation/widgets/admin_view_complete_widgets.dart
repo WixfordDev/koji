@@ -15,6 +15,7 @@ class TaskCard extends StatelessWidget {
   final String date;
   final String priority;
   final String difficulty;
+  final VoidCallback? onTap;
 
   const TaskCard({
     super.key,
@@ -27,20 +28,23 @@ class TaskCard extends StatelessWidget {
     required this.date,
     this.priority = 'N/A',
     this.difficulty = 'N/A',
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 356.w,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 356.w,
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Title Row
           Row(
             children: [
@@ -275,6 +279,6 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
+    ),
+  );
+}}

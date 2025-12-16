@@ -27,7 +27,6 @@ import 'admin_create_task_screen_widgets/service_list_widget.dart';
 import 'admin_create_task_screen_widgets/vehicle_selector_widget.dart';
 
 class AdminCreateTaskScreen extends StatefulWidget {
-
   const AdminCreateTaskScreen({super.key});
 
   @override
