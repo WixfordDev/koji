@@ -37,7 +37,7 @@ class TransactionModel {
 }
 
 class Result {
-  final String? employeeId;
+  final EmployeeId? employeeId;
   final String? taskId;
   final String? transactionId;
   final int? amount;
@@ -60,7 +60,7 @@ class Result {
   });
 
   factory Result.fromJson(Map<String, dynamic> json) => Result(
-    employeeId: json["employeeId"],
+    employeeId: json["employeeId"] == null ? null : EmployeeId.fromJson(json["employeeId"]),
     taskId: json["taskId"],
     transactionId: json["transactionId"],
     amount: json["amount"],
@@ -72,7 +72,7 @@ class Result {
   );
 
   Map<String, dynamic> toJson() => {
-    "employeeId": employeeId,
+    "employeeId": employeeId?.toJson(),
     "taskId": taskId,
     "transactionId": transactionId,
     "amount": amount,
@@ -80,6 +80,34 @@ class Result {
     "paymentMethod": paymentMethod,
     "paymentStatus": paymentStatus,
     "createdAt": createdAt?.toIso8601String(),
+    "id": id,
+  };
+}
+
+class EmployeeId {
+  final String? fullName;
+  final String? email;
+  final String? image;
+  final String? id;
+
+  EmployeeId({
+    this.fullName,
+    this.email,
+    this.image,
+    this.id,
+  });
+
+  factory EmployeeId.fromJson(Map<String, dynamic> json) => EmployeeId(
+    fullName: json["fullName"],
+    email: json["email"],
+    image: json["image"],
+    id: json["id"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "fullName": fullName,
+    "email": email,
+    "image": image,
     "id": id,
   };
 }

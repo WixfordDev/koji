@@ -17,6 +17,9 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/Vector.svg
+  SvgGenImage get vector => const SvgGenImage('assets/icons/Vector.svg');
+
   /// File path: assets/icons/arrowdown.svg
   SvgGenImage get arrowdown => const SvgGenImage('assets/icons/arrowdown.svg');
 
@@ -43,12 +46,24 @@ class $AssetsIconsGen {
   /// File path: assets/icons/chevron.svg
   SvgGenImage get chevron => const SvgGenImage('assets/icons/chevron.svg');
 
+  /// File path: assets/icons/completename.svg
+  SvgGenImage get completename =>
+      const SvgGenImage('assets/icons/completename.svg');
+
+  /// File path: assets/icons/createtask.svg
+  SvgGenImage get createtask =>
+      const SvgGenImage('assets/icons/createtask.svg');
+
   /// File path: assets/icons/employeerequest.svg
   SvgGenImage get employeerequest =>
       const SvgGenImage('assets/icons/employeerequest.svg');
 
   /// File path: assets/icons/hand.svg
   SvgGenImage get hand => const SvgGenImage('assets/icons/hand.svg');
+
+  /// File path: assets/icons/handpainting.svg
+  SvgGenImage get handpainting =>
+      const SvgGenImage('assets/icons/handpainting.svg');
 
   /// File path: assets/icons/help.svg
   SvgGenImage get help => const SvgGenImage('assets/icons/help.svg');
@@ -84,6 +99,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/schedule.svg
   SvgGenImage get schedule => const SvgGenImage('assets/icons/schedule.svg');
 
+  /// File path: assets/icons/search.svg
+  SvgGenImage get search => const SvgGenImage('assets/icons/search.svg');
+
   /// File path: assets/icons/select.svg
   SvgGenImage get select => const SvgGenImage('assets/icons/select.svg');
 
@@ -104,6 +122,12 @@ class $AssetsIconsGen {
   /// File path: assets/icons/tracking.svg
   SvgGenImage get tracking => const SvgGenImage('assets/icons/tracking.svg');
 
+  /// File path: assets/icons/trans.svg
+  SvgGenImage get trans => const SvgGenImage('assets/icons/trans.svg');
+
+  /// File path: assets/icons/trans1.svg
+  SvgGenImage get trans1 => const SvgGenImage('assets/icons/trans1.svg');
+
   /// File path: assets/icons/transaction.svg
   SvgGenImage get transaction =>
       const SvgGenImage('assets/icons/transaction.svg');
@@ -114,6 +138,7 @@ class $AssetsIconsGen {
 
   /// List of all assets
   List<SvgGenImage> get values => [
+    vector,
     arrowdown,
     attach,
     attendanceicon,
@@ -122,8 +147,11 @@ class $AssetsIconsGen {
     camera,
     changepass,
     chevron,
+    completename,
+    createtask,
     employeerequest,
     hand,
+    handpainting,
     help,
     history,
     home,
@@ -135,12 +163,15 @@ class $AssetsIconsGen {
     privacy,
     profile,
     schedule,
+    search,
     select,
     taskmanager,
     terms,
     time,
     totalemployee,
     tracking,
+    trans,
+    trans1,
     transaction,
     viewattendance,
   ];
@@ -148,6 +179,9 @@ class $AssetsIconsGen {
 
 class $AssetsImagesGen {
   const $AssetsImagesGen();
+
+  /// File path: assets/images/create.png
+  AssetGenImage get create => const AssetGenImage('assets/images/create.png');
 
   /// File path: assets/images/forgot.png
   AssetGenImage get forgot => const AssetGenImage('assets/images/forgot.png');
@@ -176,11 +210,15 @@ class $AssetsImagesGen {
   /// File path: assets/images/splash.png
   AssetGenImage get splash => const AssetGenImage('assets/images/splash.png');
 
+  /// File path: assets/images/success.png
+  AssetGenImage get success => const AssetGenImage('assets/images/success.png');
+
   /// File path: assets/images/task.png
   AssetGenImage get task => const AssetGenImage('assets/images/task.png');
 
   /// List of all assets
   List<AssetGenImage> get values => [
+    create,
     forgot,
     onboarding1,
     onboarding2,
@@ -189,6 +227,7 @@ class $AssetsImagesGen {
     profile,
     reset,
     splash,
+    success,
     task,
   ];
 }
