@@ -274,7 +274,10 @@ class AppRouter {
         GoRoute(
           path: RoutePaths.adminCompleteTaskScreen,
           name: RoutePaths.adminCompleteTaskScreen,
-          builder: (_, __) => AdminCompleteTaskScreen(),
+          builder: (context, state) {
+            final taskId = state.uri.queryParameters['taskId'];
+            return AdminCompleteTaskScreen(taskId: taskId);
+          },
         ),
         GoRoute(
           path: RoutePaths.adminAttendanceScreen,

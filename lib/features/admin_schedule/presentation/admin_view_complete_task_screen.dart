@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
+import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import 'package:koji/features/admin_schedule/presentation/widgets/admin_view_complete_widgets.dart';
 import '../../../constants/app_color.dart';
+import '../../../routes/route_paths.dart';
 import '../../../shared_widgets/custom_text.dart';
 import '../../../models/admin-model/get_alllist_task_model.dart';
 
@@ -78,9 +81,9 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                 final taskData = scheduleController.allTaskListData.value;
                 final tasks = taskData?.results ?? [];
 
-                int pendingCount = tasks.where((task) => task.status == Status.PENDING).length;
-                int progressCount = tasks.where((task) => task.status == Status.PROGRESS).length;
-                int completeCount = tasks.where((task) => task.status == Status.SUBMITED).length;
+                int pendingCount = tasks.where((task) => _getStatusString(task.status) == 'pending').length;
+                int progressCount = tasks.where((task) => _getStatusString(task.status) == 'progress').length;
+                int completeCount = tasks.where((task) => _getStatusString(task.status) == 'submited').length;
                 int allCount = tasks.length;
 
                 return Row(
@@ -102,7 +105,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
             Expanded(
               child: Obx(() {
                 if (scheduleController.allTaskListDataLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CustomLoader());
                 }
 
                 final taskData = scheduleController.allTaskListData.value;
@@ -115,13 +118,13 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                     filteredTasks = allTasks;
                     break;
                   case 'Pending':
-                    filteredTasks = allTasks.where((task) => task.status == Status.PENDING).toList();
+                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'pending').toList();
                     break;
                   case 'InProgress':
-                    filteredTasks = allTasks.where((task) => task.status == Status.PROGRESS).toList();
+                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'progress').toList();
                     break;
                   case 'Complete':
-                    filteredTasks = allTasks.where((task) => task.status == Status.SUBMITED).toList();
+                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'submited').toList();
                     break;
                   default:
                     filteredTasks = allTasks;
@@ -155,6 +158,19 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                           : 'N/A',
                       priority: task.priority?.toString() ?? 'N/A',
                       difficulty: task.difficulty?.toString() ?? 'N/A',
+                      onTap: () {
+                        // Navigate to AdminCompleteTaskScreen with task ID
+                        String taskId = task.id ?? '';
+                        if (taskId.isNotEmpty) {
+                          // Navigate to task details screen using GoRouter with query parameters
+                          context.pushNamed(
+                            RoutePaths.adminCompleteTaskScreen,
+                            pathParameters: {
+                              'taskId': taskId,
+                            },
+                          );
+                        }
+                      },
                     );
                   },
                 );
@@ -203,5 +219,10 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
         ),
       ),
     );
+  }
+
+  String _getStatusString(dynamic status) {
+    if (status == null) return 'pending';
+    return status.toString().split('.').last.toLowerCase();
   }
 }

@@ -3,11 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:koji/routes/app_routes.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
 
-import '../../../routes/route_paths.dart';
 
 
 class AdminScheduleScreen extends StatelessWidget {
@@ -91,8 +89,8 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
               {
                 'name': item.fullName ?? 'N/A',
                 'taskCount': '${item.totalPendingTask ?? 0} Pending Tasks',
-                'location': (item.location?.locationName == "Default Location") ? "Response" : item.location?.locationName ?? 'N/A',
-                'assignTo': item.assignTo ?? '', // Use the employee ID for assignTo
+                'location': item.location?.locationName ?? 'N/A',
+                'assignTo': item.assignTo ?? '',
                 'timeSlots': _formatTimeSlots(item.touches),
                 'stats': {
                   'completed': item.totalCompliteTask ?? 0,

@@ -5,6 +5,8 @@ import 'package:koji/models/admin-model/get_alllist_task_model.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
 
+import '../../models/admin-model/task_details_model.dart';
+
 class ScheduleController extends GetxController {
   // Variables to store API response data
   Rx<AllMonthModel?> allMonthData = Rx<AllMonthModel?>(null);
@@ -81,7 +83,7 @@ class ScheduleController extends GetxController {
   }) async {
     allTaskListDataLoading(true);
     try {
-      String endpoint = "${ApiConstants.allListTaskEndPoint}?date=$date&assignTo=$assignTo&page=$page&limit=$limit";
+      String endpoint = "${ApiConstants.allListTaskEndPointTemplate}date=$date&assignTo=$assignTo&page=$page&limit=$limit";
       var response = await ApiClient.getData(endpoint);
 
       if (response.statusCode == 200) {
@@ -96,6 +98,33 @@ class ScheduleController extends GetxController {
       return null;
     } finally {
       allTaskListDataLoading(false);
+    }
+  }
+
+  // Task details
+  Rx<TaskDetailsModel?> taskDetailsData = Rx<TaskDetailsModel?>(null);
+  RxBool taskDetailsLoading = false.obs;
+
+  /// Fetch details for a specific task
+  /// [taskId] - The ID of the task to get details for
+  Future<TaskDetailsModel?> getTaskDetails(String taskId) async {
+    taskDetailsLoading(true);
+    try {
+      String endpoint = "${ApiConstants.taskDetailsEndPointTemplate}$taskId";
+      var response = await ApiClient.getData(endpoint);
+
+      if (response.statusCode == 200) {
+        taskDetailsData.value = TaskDetailsModel.fromJson(response.body["data"]["attributes"]);
+        return taskDetailsData.value;
+      } else {
+        print("Error getting task details: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Exception in getTaskDetails: $e");
+      return null;
+    } finally {
+      taskDetailsLoading(false);
     }
   }
 }

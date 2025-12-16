@@ -1,3 +1,7 @@
+// To parse this JSON data, do
+//
+//     final getAllListTaskModel = getAllListTaskModelFromJson(jsonString);
+
 import 'dart:convert';
 
 GetAllListTaskModel getAllListTaskModelFromJson(String str) => GetAllListTaskModel.fromJson(json.decode(str));
@@ -37,41 +41,42 @@ class GetAllListTaskModel {
 }
 
 class Result {
+  final dynamic customerSignature;
   final String? id;
-  final CreatedBy? createdBy;
+  final String? createdBy;
   final Department? department;
-  final ServiceCategory? serviceCategory;
+  final Department? serviceCategory;
+  final String? vehicle;
   final String? customerName;
   final String? customerNumber;
-  final CustomerAddress? customerAddress;
+  final String? customerAddress;
   final DateTime? assignDate;
   final DateTime? deadline;
   final List<Service>? services;
-  final Priority? priority;
-  final Difficulty? difficulty;
+  final String? priority;
+  final String? difficulty;
   final String? assignTo;
   final int? otherAmount;
   final int? totalAmount;
   final Status? status;
   final List<String>? attachments;
-  final List<String>? submitedDoc;
+  final List<dynamic>? submitedDoc;
   final bool? isSubmited;
-  final Notes? notes;
+  final String? notes;
   final bool? isDeleted;
-  final String? invoicePath;
+  final dynamic invoicePath;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final int? v;
-  final String? customerEmail;
-  final String? paymentMethod;
-  final Status? paymentStatus;
   final int? progressPercent;
 
   Result({
+    this.customerSignature,
     this.id,
     this.createdBy,
     this.department,
     this.serviceCategory,
+    this.vehicle,
     this.customerName,
     this.customerNumber,
     this.customerAddress,
@@ -93,128 +98,71 @@ class Result {
     this.createdAt,
     this.updatedAt,
     this.v,
-    this.customerEmail,
-    this.paymentMethod,
-    this.paymentStatus,
     this.progressPercent,
   });
 
   factory Result.fromJson(Map<String, dynamic> json) => Result(
+    customerSignature: json["customerSignature"],
     id: json["_id"],
-    createdBy: createdByValues.map[json["createdBy"]]!,
-    department: departmentValues.map[json["department"]]!,
-    serviceCategory: serviceCategoryValues.map[json["serviceCategory"]]!,
+    createdBy: json["createdBy"],
+    department: json["department"] == null ? null : Department.fromJson(json["department"]),
+    serviceCategory: json["serviceCategory"] == null ? null : Department.fromJson(json["serviceCategory"]),
+    vehicle: json["vehicle"],
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
-    customerAddress: customerAddressValues.map[json["customerAddress"]]!,
+    customerAddress: json["customerAddress"],
     assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"]),
     deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"]),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
-    priority: priorityValues.map[json["priority"]]!,
-    difficulty: difficultyValues.map[json["difficulty"]]!,
+    priority: json["priority"],
+    difficulty: json["difficulty"],
     assignTo: json["assignTo"],
     otherAmount: json["otherAmount"],
     totalAmount: json["totalAmount"],
-    status: statusValues.map[json["status"]]!,
+    status: _parseStatus(json["status"]),
     attachments: json["attachments"] == null ? [] : List<String>.from(json["attachments"]!.map((x) => x)),
-    submitedDoc: json["submitedDoc"] == null ? [] : List<String>.from(json["submitedDoc"]!.map((x) => x)),
+    submitedDoc: json["submitedDoc"] == null ? [] : List<dynamic>.from(json["submitedDoc"]!.map((x) => x)),
     isSubmited: json["isSubmited"],
-    notes: notesValues.map[json["notes"]]!,
+    notes: json["notes"],
     isDeleted: json["isDeleted"],
     invoicePath: json["invoicePath"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
     v: json["__v"],
-    customerEmail: json["customerEmail"],
-    paymentMethod: json["paymentMethod"],
-    paymentStatus: statusValues.map[json["paymentStatus"]]!,
     progressPercent: json["progressPercent"],
   );
 
   Map<String, dynamic> toJson() => {
+    "customerSignature": customerSignature,
     "_id": id,
-    "createdBy": createdByValues.reverse[createdBy],
-    "department": departmentValues.reverse[department],
-    "serviceCategory": serviceCategoryValues.reverse[serviceCategory],
+    "createdBy": createdBy,
+    "department": department?.toJson(),
+    "serviceCategory": serviceCategory?.toJson(),
+    "vehicle": vehicle,
     "customerName": customerName,
     "customerNumber": customerNumber,
-    "customerAddress": customerAddressValues.reverse[customerAddress],
+    "customerAddress": customerAddress,
     "assignDate": assignDate?.toIso8601String(),
     "deadline": deadline?.toIso8601String(),
     "services": services == null ? [] : List<dynamic>.from(services!.map((x) => x.toJson())),
-    "priority": priorityValues.reverse[priority],
-    "difficulty": difficultyValues.reverse[difficulty],
+    "priority": priority,
+    "difficulty": difficulty,
     "assignTo": assignTo,
     "otherAmount": otherAmount,
     "totalAmount": totalAmount,
-    "status": statusValues.reverse[status],
+    "status": status?.toString().split('.').last.toLowerCase(),
     "attachments": attachments == null ? [] : List<dynamic>.from(attachments!.map((x) => x)),
     "submitedDoc": submitedDoc == null ? [] : List<dynamic>.from(submitedDoc!.map((x) => x)),
     "isSubmited": isSubmited,
-    "notes": notesValues.reverse[notes],
+    "notes": notes,
     "isDeleted": isDeleted,
     "invoicePath": invoicePath,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "__v": v,
-    "customerEmail": customerEmail,
-    "paymentMethod": paymentMethod,
-    "paymentStatus": statusValues.reverse[paymentStatus],
     "progressPercent": progressPercent,
   };
 }
-
-enum CreatedBy {
-  THE_68_FFB63_E25_EDFF0158577499
-}
-
-final createdByValues = EnumValues({
-  "68ffb63e25edff0158577499": CreatedBy.THE_68_FFB63_E25_EDFF0158577499
-});
-
-enum CustomerAddress {
-  DFSFD,
-  HOUSE_12_ROAD_7_DHANMONDI_DHAKA,
-  HOUSE_77_ROAD_7_DHANMONDI_DHAKA
-}
-
-final customerAddressValues = EnumValues({
-  "dfsfd": CustomerAddress.DFSFD,
-  "House 12, Road 7, Dhanmondi, Dhaka": CustomerAddress.HOUSE_12_ROAD_7_DHANMONDI_DHAKA,
-  "House 77, Road 7, Dhanmondi, Dhaka": CustomerAddress.HOUSE_77_ROAD_7_DHANMONDI_DHAKA
-});
-
-enum Department {
-  THE_690_A0_B65860_CE1617_D61862_C,
-  THE_6913678_ABFD403_C13215_C321,
-  THE_691_A2210_FB67_F0_B04_E2_D7_CA0
-}
-
-final departmentValues = EnumValues({
-  "690a0b65860ce1617d61862c": Department.THE_690_A0_B65860_CE1617_D61862_C,
-  "6913678abfd403c13215c321": Department.THE_6913678_ABFD403_C13215_C321,
-  "691a2210fb67f0b04e2d7ca0": Department.THE_691_A2210_FB67_F0_B04_E2_D7_CA0
-});
-
-enum Difficulty {
-  MODERATE,
-  VERY_EASY
-}
-
-final difficultyValues = EnumValues({
-  "moderate": Difficulty.MODERATE,
-  "very easy": Difficulty.VERY_EASY
-});
-
-enum Notes {
-  CUSTOMER_REQUESTED_INSTALLATION_BEFORE_NOON,
-  EMPTY
-}
-
-final notesValues = EnumValues({
-  "Customer requested installation before noon.": Notes.CUSTOMER_REQUESTED_INSTALLATION_BEFORE_NOON,
-  "": Notes.EMPTY
-});
 
 enum Status {
   PENDING,
@@ -222,32 +170,64 @@ enum Status {
   SUBMITED
 }
 
-final statusValues = EnumValues({
-  "pending": Status.PENDING,
-  "progress": Status.PROGRESS,
-  "submited": Status.SUBMITED
-});
-
-enum Priority {
-  MEDIUM
+Status _parseStatus(String? status) {
+  if (status == null) return Status.PENDING;
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return Status.PENDING;
+    case 'in_progress':
+    case 'progress':
+      return Status.PROGRESS;
+    case 'submitted':
+    case 'submited':
+      return Status.SUBMITED;
+    default:
+      return Status.PENDING;
+  }
 }
 
-final priorityValues = EnumValues({
-  "medium": Priority.MEDIUM
-});
+class Department {
+  final Id? id;
+  final DepartmentName? name;
 
-enum ServiceCategory {
-  THE_690_A1088223815_BCB3528_A5_B,
-  THE_691_A224_FFB67_F0_B04_E2_D7_CB7
+  Department({
+    this.id,
+    this.name,
+  });
+
+  factory Department.fromJson(Map<String, dynamic> json) => Department(
+    id: idValues.map[json["_id"]]!,
+    name: departmentNameValues.map[json["name"]]!,
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": idValues.reverse[id],
+    "name": departmentNameValues.reverse[name],
+  };
 }
 
-final serviceCategoryValues = EnumValues({
-  "690a1088223815bcb3528a5b": ServiceCategory.THE_690_A1088223815_BCB3528_A5_B,
-  "691a224ffb67f0b04e2d7cb7": ServiceCategory.THE_691_A224_FFB67_F0_B04_E2_D7_CB7
+enum Id {
+  THE_691_A2210_FB67_F0_B04_E2_D7_CA0,
+  THE_693_ECE9_F027_F6_F6_A151729_DE
+}
+
+final idValues = EnumValues({
+  "691a2210fb67f0b04e2d7ca0": Id.THE_691_A2210_FB67_F0_B04_E2_D7_CA0,
+  "693ece9f027f6f6a151729de": Id.THE_693_ECE9_F027_F6_F6_A151729_DE
+});
+
+enum DepartmentName {
+  DFDSFDSFD,
+  SAYED
+}
+
+final departmentNameValues = EnumValues({
+  "dfdsfdsfd": DepartmentName.DFDSFDSFD,
+  "sayed": DepartmentName.SAYED
 });
 
 class Service {
-  final String? name;
+  final ServiceName? name;
   final int? price;
   final int? quantity;
   final String? id;
@@ -260,19 +240,29 @@ class Service {
   });
 
   factory Service.fromJson(Map<String, dynamic> json) => Service(
-    name: json["name"],
+    name: serviceNameValues.map[json["name"]]!,
     price: json["price"],
     quantity: json["quantity"],
     id: json["_id"],
   );
 
   Map<String, dynamic> toJson() => {
-    "name": name,
+    "name": serviceNameValues.reverse[name],
     "price": price,
     "quantity": quantity,
     "_id": id,
   };
 }
+
+enum ServiceName {
+  A_SERVICE,
+  B_SERVICE
+}
+
+final serviceNameValues = EnumValues({
+  "A Service": ServiceName.A_SERVICE,
+  "B Service": ServiceName.B_SERVICE
+});
 
 class EnumValues<T> {
   Map<String, T> map;
