@@ -1,11 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:koji/controller/employee_schedule_controller.dart';
-import 'package:koji/models/admin-model/get_alllist_task_model.dart';
+import 'package:koji/features/employee_schedule/presentation/submit_task_screen.dart';
+import 'package:koji/services/api_constants.dart';
+import 'package:intl/intl.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
   final String taskId;
@@ -18,8 +17,6 @@ class TaskDetailsScreen extends StatefulWidget {
 
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   late final EmployeeScheduleController controller;
-  final List<File> _selectedImages = [];
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -27,21 +24,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     controller = Get.put(EmployeeScheduleController());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchTaskById(widget.taskId);
-    });
-  }
-
-  Future<void> _pickImages() async {
-    final List<XFile>? images = await _picker.pickMultiImage();
-    if (images != null) {
-      setState(() {
-        _selectedImages.addAll(images.map((image) => File(image.path)));
-      });
-    }
-  }
-
-  void _removeImage(int index) {
-    setState(() {
-      _selectedImages.removeAt(index);
     });
   }
 
@@ -88,40 +70,83 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Attachment Section with grey background
                 /// Attachments Section
                 _buildAttachmentSection(task),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 24.h),
 
                 /// Department Field
-                _buildTextField('Department', task.department ?? 'N/A'),
-
-                SizedBox(height: 12.h),
-
-                /// Handy Man Field
-                _buildTextField('Handy Man', task.assignTo ?? 'N/A'),
+                _buildTextField('Department', task.department?.name ?? 'N/A'),
 
                 SizedBox(height: 12.h),
 
                 /// Service Category Field
                 _buildTextField(
                   'Service Category',
-                  task.serviceCategory ?? 'N/A',
+                  task.serviceCategory?.name ?? 'N/A',
                 ),
 
                 SizedBox(height: 12.h),
 
-                /// Service List
-                // _buildServiceListSection(task.services ?? []),
-                SizedBox(height: 12.h),
+                // Service List Section
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Service List',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
 
-                /// GST Field
-                _buildPriceField('GST 9%', task.otherAmount ?? 0),
+                      // Service items
+                      _buildServiceItem('Plumbing Service', '\$90.0'),
+                      SizedBox(height: 8.h),
+                      _buildServiceItem('Cleaner Service', '\$10.0'),
+                      SizedBox(height: 8.h),
+                      _buildServiceItem('Cleaner Service', '\$40.0'),
+                      SizedBox(height: 8.h),
+                      _buildServiceItem('GST 5%', '\$20.0'),
 
-                SizedBox(height: 12.h),
+                      Divider(height: 24.h, color: Colors.grey[300]),
 
-                /// Total Price Field
-                _buildPriceField('Total Price', task.totalAmount ?? 0),
+                      // Total Price
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Price',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            '\$${task.totalAmount?.toStringAsFixed(1) ?? '0.0'}',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF4A90E2),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
 
                 SizedBox(height: 12.h),
 
@@ -156,95 +181,124 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
                 SizedBox(height: 12.h),
 
-                /// Assign Date Field
-                _buildDateField('Assign Date', task.assignDate),
+                Row(
+                  children: [
+                    /// Assign Date Field
+                    Expanded(
+                      flex: 1,
+                      child: _buildDateField(
+                        'Assign Date',
+                        task.assignDate.toString(),
+                      ),
+                    ),
+
+                    SizedBox(width: 12.h),
+
+                    /// Assign Time (You can extract time from assignDate if available)
+                    Expanded(
+                      flex: 1,
+                      child: _buildTimeField(
+                        'Assign Time',
+                        task.assignDate?.toIso8601String(),
+                      ),
+                    ),
+                  ],
+                ),
 
                 SizedBox(height: 12.h),
 
-                /// Assign Time (You can extract time from assignDate if available)
-                _buildTimeField('Assign Time', task.assignDate),
+                Row(
+                  children: [
+                    /// Assign Date Field
+                    Expanded(
+                      flex: 1,
+                      child: _buildDateField(
+                        'End Date',
+                        task.deadline.toString(),
+                      ),
+                    ),
+
+                    SizedBox(width: 12.h),
+
+                    /// Assign Time (You can extract time from assignDate if available)
+                    Expanded(
+                      flex: 1,
+                      child: _buildTimeField(
+                        'End Time',
+                        task.deadline.toString(),
+                      ),
+                    ),
+                  ],
+                ),
 
                 SizedBox(height: 12.h),
 
                 /// Priority Field
-                _buildDropdownField('Priority', task.priority ?? 'N/A'),
+                _buildTextField('Priority', task.priority ?? 'N/A'),
 
                 SizedBox(height: 12.h),
 
                 /// Difficulty Field
-                _buildDropdownField('Difficulty', task.difficulty ?? 'N/A'),
-
-                SizedBox(height: 12.h),
-
-                /// Payment Method Field
-                _buildDropdownField(
-                  'Payment Method',
-                  task.paymentMethod ?? 'N/A',
-                ),
-
-                SizedBox(height: 12.h),
-
-                /// Payment Status Field
-                _buildDropdownField(
-                  'Payment Status',
-                  task.paymentStatus ?? 'N/A',
-                ),
+                _buildTextField('Difficulty', task.difficulty ?? 'N/A'),
 
                 SizedBox(height: 24.h),
 
-                /// Action Buttons
-                if (task.isSubmited != true) ...[
-                  // Accept Button
-                  if (task.status?.toLowerCase() == 'pending')
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => controller.acceptTask(widget.taskId),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4A90E2),
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
+                // Accept Button
+                if (task.isSubmited != true &&
+                    task.status?.toLowerCase() == 'pending')
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _acceptTask(task),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF4A90E2),
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        child: Text(
-                          'Accept',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Accept',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ),
+                  ),
 
-                  SizedBox(height: 12.h),
+                SizedBox(height: 12.h),
 
-                  // Submit Task Button
-                  if (task.status?.toLowerCase() != 'pending')
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            _showSubmitDialog(context, task.customerName),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4A90E2),
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
+                // If already accepted, show "Go to Task Screen" button
+                if (task.isSubmited != true &&
+                    task.status?.toLowerCase() != 'pending')
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _goToTaskScreen(task),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        child: Text(
-                          'Submit Task',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Go to Task Screen',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                ] else
+                  ),
+
+                // If already submitted
+                if (task.isSubmited == true)
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16.w),
@@ -303,21 +357,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            'Format should be in .pdf, .jpeg, .png, less than 5MB',
-            style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-          ),
+          // SizedBox(height: 4.h),
+          // Text(
+          //   'Format should be in .pdf, .jpeg, .png, less than 5MB',
+          //   style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+          // ),
           SizedBox(height: 12.h),
           if (task.attachments != null && task.attachments!.isNotEmpty)
             SizedBox(
-              height: 80.h,
+              height: 100.h,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: task.attachments!.length,
                 itemBuilder: (context, index) {
                   return Container(
-                    width: 80.w,
+                    width: 100.w,
                     margin: EdgeInsets.only(right: 8.w),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.r),
@@ -326,7 +380,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.r),
                       child: Image.network(
-                        task.attachments![index],
+                        "${ApiConstants.imageBaseUrl}${task.attachments![index]}",
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
@@ -389,99 +443,121 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  Widget _buildPriceField(String label, num amount) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDetailCard(String title, String value, {IconData? icon}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 20.sp, color: Colors.grey[600]),
+            SizedBox(width: 12.w),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceItem(String service, String price) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
+          service,
+          style: TextStyle(fontSize: 14.sp, color: Colors.black87),
         ),
-        SizedBox(height: 6.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Text(
-            '৳${amount.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
+        Text(
+          price,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildServiceListSection(List<Service> services) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAssignItem(String text) {
+    return Row(
       children: [
-        Text(
-          'Service List',
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Column(
-            children: services.isEmpty
-                ? [
-                    Text(
-                      'No services',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                    ),
-                  ]
-                : services
-                      .map(
-                        (service) => Padding(
-                          padding: EdgeInsets.only(bottom: 8.h),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                service.name ?? 'N/A',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Text(
-                                '\$${(service.price ?? 0).toStringAsFixed(1)}',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
+        Icon(Icons.circle, size: 8.sp, color: Colors.grey[600]),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 14.sp, color: Colors.black87),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDropdownCard(String title, String value, List<String> options) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+          ),
+          SizedBox(height: 8.h),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -579,840 +655,43 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                value,
-                style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-              ),
-              Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
-            ],
-          ),
-        ),
-      ],
+  void _acceptTask(task) async {
+    // Call the accept task API
+    await controller.acceptTask(widget.taskId);
+
+    // Show success message
+    Get.snackbar(
+      'Success',
+      'Task accepted successfully',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
     );
+
+    // Navigate to Task Screen
+    _goToTaskScreen(task);
   }
 
-  void _showSubmitDialog(BuildContext context, String? customerName) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: StatefulBuilder(
-          builder: (context, setState) => Padding(
-            padding: EdgeInsets.all(20.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Customer Signature',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 20.h),
-
-                // Signature Area with Image Picker
-                GestureDetector(
-                  onTap: () async {
-                    final XFile? image = await _picker.pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (image != null) {
-                      setState(() {
-                        _selectedImages.clear();
-                        _selectedImages.add(File(image.path));
-                      });
-                    }
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 150.h,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8.r),
-                      color: Colors.grey[50],
-                    ),
-                    child: _selectedImages.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_photo_alternate,
-                                  size: 40.sp,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  'Tap to add signature',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12.sp,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.file(
-                              _selectedImages[0],
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                  ),
-                ),
-
-                SizedBox(height: 20.h),
-
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                      _showSuccessDialog(context);
-                      // Call the submit API here
-                      // controller.submitTask(
-                      //   widget.taskId,
-                      //   attachments: _selectedImages,
-                      // );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4A90E2),
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 10.h),
-
-                // Cancel Button
-                TextButton(
-                  onPressed: () {
-                    _selectedImages.clear();
-                    Navigator.pop(dialogContext);
-                  },
-                  child: Text(
-                    'No, Let Me Check',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(24.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Success Animation Icon
-              Container(
-                width: 80.w,
-                height: 80.h,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A90E2).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: const Color(0xFF4A90E2),
-                  size: 50.sp,
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-              Text(
-                'Success',
-                style: TextStyle(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-
-              SizedBox(height: 12.h),
-
-              Text(
-                'Your task has been submitted successfully.\nYou will be notified once it is reviewed by\nyour admin.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-              ),
-
-              SizedBox(height: 24.h),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Close success dialog
-                    Get.back(); // Go back to previous screen
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A90E2),
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                  child: Text(
-                    'View List',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+  void _goToTaskScreen(task) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskScreen(
+          taskId: widget.taskId,
+          taskData: {
+            'customerName': task.customerName,
+            'customerNumber': task.customerNumber,
+            'customerAddress': task.customerAddress,
+            'customerEmail': task.customerEmail,
+            'serviceCategory': task.serviceCategory,
+            'totalAmount': task.totalAmount,
+            'otherAmount': task.otherAmount,
+            'priority': task.priority,
+            'difficulty': task.difficulty,
+            'notes': task.notes,
+            "service": task.service ?? [],
+          },
         ),
       ),
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:get/get.dart';
-// import 'package:intl/intl.dart';
-// import 'package:koji/controller/employee_schedule_controller.dart';
-// import 'package:koji/models/admin-model/get_alllist_task_model.dart';
-
-// class TaskDetailsScreen extends StatefulWidget {
-//   final String taskId;
-
-//   const TaskDetailsScreen({super.key, required this.taskId});
-
-//   @override
-//   State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
-// }
-
-// class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
-//   late final EmployeeScheduleController controller;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     controller = Get.put(EmployeeScheduleController());
-//     // Fetch task details when screen initializes
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       controller.fetchTaskById(widget.taskId);
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.white,
-//       appBar: AppBar(
-//         backgroundColor: Colors.white,
-//         elevation: 0,
-//         leading: IconButton(
-//           icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
-//           onPressed: () => Get.back(),
-//         ),
-//         title: Text(
-//           'Task Details',
-//           style: TextStyle(
-//             fontSize: 18.sp,
-//             fontWeight: FontWeight.w600,
-//             color: Colors.black,
-//           ),
-//         ),
-//         centerTitle: true,
-//       ),
-//       body: Obx(() {
-//         if (controller.isLoading.value) {
-//           return const Center(child: CircularProgressIndicator());
-//         }
-
-//         final task = controller.selectedTask.value;
-
-//         if (task == null) {
-//           return Center(
-//             child: Text(
-//               'Failed to load task details',
-//               style: TextStyle(fontSize: 16.sp, color: Colors.grey),
-//             ),
-//           );
-//         }
-
-//         return SingleChildScrollView(
-//           child: Padding(
-//             padding: EdgeInsets.all(16.w),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 /// Customer Info Card
-//                 _buildInfoCard('Customer Information', [
-//                   _buildInfoRow(
-//                     Icons.person,
-//                     'Name',
-//                     task.customerName ?? 'N/A',
-//                   ),
-//                   _buildInfoRow(
-//                     Icons.phone,
-//                     'Phone',
-//                     task.customerNumber ?? 'N/A',
-//                   ),
-//                   _buildInfoRow(
-//                     Icons.location_on,
-//                     'Address',
-//                     task.customerAddress ?? 'N/A',
-//                   ),
-//                   if (task.customerEmail != null &&
-//                       task.customerEmail!.isNotEmpty)
-//                     _buildInfoRow(Icons.email, 'Email', task.customerEmail!),
-//                 ]),
-
-//                 SizedBox(height: 16.h),
-
-//                 /// Task Info Card
-//                 _buildInfoCard('Task Information', [
-//                   // _buildInfoRow(
-//                   //   Icons.calendar_today,
-//                   //   'Assign Date',
-//                   //   _formatDate(task.assignDate),
-//                   // ),
-//                   // _buildInfoRow(
-//                   //   Icons.event,
-//                   //   'Deadline',
-//                   //   _formatDate(task.deadline),
-//                   // ),
-//                   _buildStatusRow('Status', task.status ?? 'N/A'),
-//                   _buildInfoRow(Icons.flag, 'Priority', task.priority ?? 'N/A'),
-//                   _buildInfoRow(
-//                     Icons.speed,
-//                     'Difficulty',
-//                     task.difficulty ?? 'N/A',
-//                   ),
-//                 ]),
-
-//                 SizedBox(height: 16.h),
-
-//                 /// Services Card
-//                 if (task.services != null && task.services!.isNotEmpty)
-//                   //  _buildServicesCard(task.services!),
-//                   SizedBox(height: 16.h),
-
-//                 /// Payment Info Card
-//                 _buildInfoCard('Payment Information', [
-//                   _buildPriceRow(
-//                     'Services Total',
-//                     (task.totalAmount ?? 0) - (task.otherAmount ?? 0),
-//                   ),
-//                   _buildPriceRow('Other Amount', task.otherAmount ?? 0),
-//                   Divider(height: 20.h),
-//                   _buildPriceRow(
-//                     'Total Amount',
-//                     task.totalAmount ?? 0,
-//                     isTotal: true,
-//                   ),
-//                   if (task.paymentMethod != null &&
-//                       task.paymentMethod!.isNotEmpty)
-//                     _buildInfoRow(
-//                       Icons.payment,
-//                       'Payment Method',
-//                       task.paymentMethod!,
-//                     ),
-//                   if (task.paymentStatus != null &&
-//                       task.paymentStatus!.isNotEmpty)
-//                     _buildStatusRow('Payment Status', task.paymentStatus!),
-//                 ]),
-
-//                 SizedBox(height: 16.h),
-
-//                 /// Notes Card
-//                 if (task.notes != null && task.notes!.isNotEmpty)
-//                   _buildInfoCard('Notes', [
-//                     Text(
-//                       task.notes!,
-//                       style: TextStyle(
-//                         fontSize: 14.sp,
-//                         color: Colors.grey[700],
-//                         height: 1.5,
-//                       ),
-//                     ),
-//                   ]),
-
-//                 SizedBox(height: 16.h),
-
-//                 /// Attachments Card
-//                 if (task.attachments != null && task.attachments!.isNotEmpty)
-//                   //  _buildAttachmentsCard(task.attachments!),
-//                   SizedBox(height: 24.h),
-
-//                 /// Action Buttons
-//                 if (task.isSubmited != true) ...[
-//                   // Accept Button
-//                   if (task.status?.toLowerCase() == 'pending')
-//                     SizedBox(
-//                       width: double.infinity,
-//                       child: ElevatedButton(
-//                         onPressed: () => controller.acceptTask(widget.taskId),
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: Colors.green,
-//                           padding: EdgeInsets.symmetric(vertical: 14.h),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(12.r),
-//                           ),
-//                         ),
-//                         child: Text(
-//                           'Accept Task',
-//                           style: TextStyle(
-//                             fontSize: 16.sp,
-//                             fontWeight: FontWeight.w600,
-//                             color: Colors.white,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-
-//                   SizedBox(height: 12.h),
-
-//                   // Submit Task Button
-//                   if (task.status?.toLowerCase() != 'pending')
-//                     SizedBox(
-//                       width: double.infinity,
-//                       child: ElevatedButton(
-//                         onPressed: () => _showSubmitDialog(context),
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: Colors.blue,
-//                           padding: EdgeInsets.symmetric(vertical: 14.h),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(12.r),
-//                           ),
-//                         ),
-//                         child: Text(
-//                           'Submit Task',
-//                           style: TextStyle(
-//                             fontSize: 16.sp,
-//                             fontWeight: FontWeight.w600,
-//                             color: Colors.white,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                 ] else
-//                   Container(
-//                     width: double.infinity,
-//                     padding: EdgeInsets.all(16.w),
-//                     decoration: BoxDecoration(
-//                       color: Colors.green.withOpacity(0.1),
-//                       borderRadius: BorderRadius.circular(12.r),
-//                       border: Border.all(color: Colors.green),
-//                     ),
-//                     child: Row(
-//                       mainAxisAlignment: MainAxisAlignment.center,
-//                       children: [
-//                         Icon(
-//                           Icons.check_circle,
-//                           color: Colors.green,
-//                           size: 24.sp,
-//                         ),
-//                         SizedBox(width: 8.w),
-//                         Text(
-//                           'Task Already Submitted',
-//                           style: TextStyle(
-//                             fontSize: 16.sp,
-//                             fontWeight: FontWeight.w600,
-//                             color: Colors.green,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-
-//                 SizedBox(height: 24.h),
-//               ],
-//             ),
-//           ),
-//         );
-//       }),
-//     );
-//   }
-
-//   Widget _buildInfoCard(String title, List<Widget> children) {
-//     return Container(
-//       width: double.infinity,
-//       padding: EdgeInsets.all(16.w),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(12.r),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
-//             blurRadius: 5,
-//             offset: const Offset(0, 3),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             title,
-//             style: TextStyle(
-//               fontSize: 16.sp,
-//               fontWeight: FontWeight.w600,
-//               color: Colors.black,
-//             ),
-//           ),
-//           SizedBox(height: 12.h),
-//           ...children,
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildInfoRow(IconData icon, String label, String value) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 12.h),
-//       child: Row(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Icon(icon, size: 20.sp, color: Colors.grey[600]),
-//           SizedBox(width: 12.w),
-//           Expanded(
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   label,
-//                   style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-//                 ),
-//                 SizedBox(height: 2.h),
-//                 Text(
-//                   value,
-//                   style: TextStyle(
-//                     fontSize: 14.sp,
-//                     fontWeight: FontWeight.w500,
-//                     color: Colors.black,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildStatusRow(String label, String status) {
-//     Color statusColor = _getStatusColor(status);
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 12.h),
-//       child: Row(
-//         children: [
-//           Text(
-//             '$label: ',
-//             style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-//           ),
-//           Container(
-//             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-//             decoration: BoxDecoration(
-//               color: statusColor.withOpacity(0.2),
-//               borderRadius: BorderRadius.circular(20.r),
-//             ),
-//             child: Text(
-//               status,
-//               style: TextStyle(
-//                 color: statusColor,
-//                 fontSize: 12.sp,
-//                 fontWeight: FontWeight.w600,
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildPriceRow(String label, num amount, {bool isTotal = false}) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 8.h),
-//       child: Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//         children: [
-//           Text(
-//             label,
-//             style: TextStyle(
-//               fontSize: isTotal ? 16.sp : 14.sp,
-//               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
-//               color: Colors.black,
-//             ),
-//           ),
-//           Text(
-//             '৳${amount.toStringAsFixed(2)}',
-//             style: TextStyle(
-//               fontSize: isTotal ? 16.sp : 14.sp,
-//               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
-//               color: isTotal ? Colors.blue : Colors.black,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildServicesCard(List<Service> services) {
-//     return Container(
-//       width: double.infinity,
-//       padding: EdgeInsets.all(16.w),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(12.r),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
-//             blurRadius: 5,
-//             offset: const Offset(0, 3),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             'Services',
-//             style: TextStyle(
-//               fontSize: 16.sp,
-//               fontWeight: FontWeight.w600,
-//               color: Colors.black,
-//             ),
-//           ),
-//           SizedBox(height: 12.h),
-//           ...services.map((service) => _buildServiceItem(service)).toList(),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildServiceItem(Service service) {
-//     return Container(
-//       margin: EdgeInsets.only(bottom: 8.h),
-//       padding: EdgeInsets.all(12.w),
-//       decoration: BoxDecoration(
-//         color: Colors.blue.withOpacity(0.05),
-//         borderRadius: BorderRadius.circular(8.r),
-//         border: Border.all(color: Colors.blue.withOpacity(0.2)),
-//       ),
-//       child: Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//         children: [
-//           Expanded(
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   service.name ?? 'N/A',
-//                   style: TextStyle(
-//                     fontSize: 14.sp,
-//                     fontWeight: FontWeight.w500,
-//                     color: Colors.black,
-//                   ),
-//                 ),
-//                 SizedBox(height: 4.h),
-//                 Text(
-//                   'Qty: ${service.quantity ?? 0}',
-//                   style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           Text(
-//             '৳${((service.price ?? 0) * (service.quantity ?? 0)).toStringAsFixed(2)}',
-//             style: TextStyle(
-//               fontSize: 14.sp,
-//               fontWeight: FontWeight.w600,
-//               color: Colors.blue,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildAttachmentsCard(List<String> attachments) {
-//     return Container(
-//       width: double.infinity,
-//       padding: EdgeInsets.all(16.w),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(12.r),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
-//             blurRadius: 5,
-//             offset: const Offset(0, 3),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             'Attachments',
-//             style: TextStyle(
-//               fontSize: 16.sp,
-//               fontWeight: FontWeight.w600,
-//               color: Colors.black,
-//             ),
-//           ),
-//           SizedBox(height: 12.h),
-//           Wrap(
-//             spacing: 8.w,
-//             runSpacing: 8.h,
-//             children: attachments.map((attachment) {
-//               return Container(
-//                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-//                 decoration: BoxDecoration(
-//                   color: Colors.grey[200],
-//                   borderRadius: BorderRadius.circular(8.r),
-//                 ),
-//                 child: Row(
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: [
-//                     Icon(
-//                       Icons.attach_file,
-//                       size: 16.sp,
-//                       color: Colors.grey[700],
-//                     ),
-//                     SizedBox(width: 4.w),
-//                     Text(
-//                       attachment.split('/').last,
-//                       style: TextStyle(
-//                         fontSize: 12.sp,
-//                         color: Colors.grey[700],
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               );
-//             }).toList(),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   void _showSubmitDialog(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(16.r),
-//         ),
-//         title: Text(
-//           'Submit Task',
-//           style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
-//         ),
-//         content: Text(
-//           'Are you sure you want to submit this task? This action cannot be undone.',
-//           style: TextStyle(fontSize: 14.sp),
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-//           ),
-//           ElevatedButton(
-//             onPressed: () {
-//               Navigator.pop(context);
-//               controller.submitTask(widget.taskId);
-//             },
-//             style: ElevatedButton.styleFrom(
-//               backgroundColor: Colors.blue,
-//               shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(8.r),
-//               ),
-//             ),
-//             child: const Text('Submit'),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   String _formatDate(DateTime? date) {
-//     if (date == null) return 'N/A';
-//     try {
-//       return DateFormat('dd MMM yyyy').format(date);
-//     } catch (e) {
-//       return 'N/A';
-//     }
-//   }
-
-//   Color _getStatusColor(String status) {
-//     switch (status.toLowerCase()) {
-//       case 'completed':
-//       case 'complete':
-//       case 'done':
-//         return Colors.green;
-//       case 'inprogress':
-//       case 'in progress':
-//         return Colors.blue;
-//       case 'pending':
-//         return Colors.orange;
-//       default:
-//         return Colors.grey;
-//     }
-//   }
-// }

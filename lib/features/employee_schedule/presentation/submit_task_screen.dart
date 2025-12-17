@@ -1,477 +1,1043 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:flutter_svg/svg.dart';
-// import 'package:go_router/go_router.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:koji/models/task_model.dart';
+import 'package:koji/services/api_client.dart';
 
-// import '../../../constants/app_color.dart';
-// import '../../../shared_widgets/custom_button.dart';
-// import '../../../shared_widgets/custom_text.dart';
+class TaskScreen extends StatefulWidget {
+  final String taskId;
+  final Map<String, dynamic> taskData;
 
-// class SubmitTaskScreen extends StatefulWidget {
-//   const SubmitTaskScreen({super.key});
+  const TaskScreen({super.key, required this.taskId, required this.taskData});
 
-//   @override
-//   State<SubmitTaskScreen> createState() => _SubmitTaskScreenState();
-// }
+  @override
+  State<TaskScreen> createState() => _TaskScreenState();
+}
 
-// class _SubmitTaskScreenState extends State<SubmitTaskScreen> {
-//   DateTime? startDate;
-//   DateTime? endDate;
-//   TimeOfDay? startTime;
-//   TimeOfDay? endTime;
+class _TaskScreenState extends State<TaskScreen> {
+  bool _isSubmitting = false;
+  String _selectedPaymentMethod = 'Cash';
+  String _selectedPaymentStatus = 'Payment Paid';
+  final List<File> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
 
-//   @override
-//   void dispose() {
-//     super.dispose();
-//   }
+  // Original services
+  final List<Map<String, dynamic>> _originalServices = [];
 
-//   void _showSignaturePopup() {
-//     showDialog(
-//       context: context,
-//       barrierDismissible: false,
-//       builder: (_) => Center(
-//         child: Material(
-//           color: Colors.white,
-//           borderRadius: BorderRadius.circular(12.r),
-//           child: Padding(
-//             padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 30.h),
-//             child: SizedBox(
-//               width: 358.w,
-//               height: 382.h,
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(
-//                     "Customer Signature",
-//                     style: TextStyle(
-//                       fontSize: 16.sp,
-//                       fontWeight: FontWeight.w600,
-//                       color: Colors.black87,
-//                     ),
-//                   ),
-//                   SizedBox(height: 10.h),
-//                   Container(
-//                     height: 150.h,
-//                     decoration: BoxDecoration(
-//                       color: Colors.white,
-//                       borderRadius: BorderRadius.circular(8.r),
-//                       border: Border.all(color: Colors.grey.shade300),
-//                       boxShadow: [
-//                         BoxShadow(
-//                           color: Colors.black12,
-//                           blurRadius: 4,
-//                           offset: const Offset(0, 2),
-//                         ),
-//                       ],
-//                     ),
-//                     // child: Signature(
-//                     //   controller: _signatureController,
-//                     //   backgroundColor: Colors.white,
-//                     // ),
-//                   ),
-//                   SizedBox(height: 30.h),
-//                   // Submit Button
-//                   SizedBox(
-//                     width: double.infinity,
-//                     height: 48.h,
-//                     child: ElevatedButton(
-//                       onPressed: () async {
+  // Extra services that can be added
+  final List<Map<String, dynamic>> _extraServices = [];
 
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(10.r),
-//                         ),
-//                         padding: EdgeInsets.zero,
-//                         elevation: 0,
-//                         backgroundColor: Colors.transparent,
-//                       ),
-//                       child: Ink(
-//                         decoration: const BoxDecoration(
-//                           gradient: LinearGradient(
-//                             begin: Alignment(0.1, -0.9),
-//                             end: Alignment(0.8, 1.0),
-//                             colors: [Color(0xFF4082FB), Color(0xFF4082FB)],
-//                           ),
-//                           borderRadius: BorderRadius.all(Radius.circular(10)),
-//                         ),
-//                         child: Center(
-//                           child: Text(
-//                             "Submit",
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 15.sp,
-//                               fontWeight: FontWeight.w600,
-//                             ),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(height: 10.h),
-//                   // Cancel Button
-//                   SizedBox(
-//                     width: double.infinity,
-//                     height: 48.h,
-//                     child: OutlinedButton(
-//                       onPressed: () => Navigator.pop(context),
-//                       style: OutlinedButton.styleFrom(
-//                         side: const BorderSide(color: Color(0xFF4082FB)),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(10.r),
-//                         ),
-//                         padding: EdgeInsets.symmetric(vertical: 14.h),
-//                       ),
-//                       child: Text(
-//                         "No, Let Me Check",
-//                         style: TextStyle(
-//                           fontSize: 15.sp,
-//                           fontWeight: FontWeight.w500,
-//                           color: const Color(0xFF4082FB),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
+  // GST percentage
+  final double _gstPercentage = 9.0;
 
-//   // ----------------------------------------------------
-//   // ------------------ MAIN UI -------------------------
-//   // ----------------------------------------------------
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         forceMaterialTransparency: true,
-//         backgroundColor: Colors.transparent,
-//         elevation: 0,
-//         automaticallyImplyLeading: false,
-//         titleSpacing: 0,
-//         title: Row(
-//           children: [
-//             IconButton(
-//               padding: EdgeInsets.zero,
-//               icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
-//               onPressed: () => Navigator.pop(context),
-//             ),
-//             SizedBox(width: 12.w),
-//             CustomText(
-//               text: "Submit Task",
-//               color: AppColor.secondaryColor,
-//               fontSize: 20.sp,
-//               fontWeight: FontWeight.w500,
-//             ),
-//           ],
-//         ),
-//       ),
-//       backgroundColor: Colors.white,
-//       body: SafeArea(
-//         child: SingleChildScrollView(
-//           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               SizedBox(height: 20.h),
+  double get _subtotal {
+    double subtotal = 0;
+    // Add original service
+    var servicesData = widget.taskData['service'];
+    if (servicesData is List<Service>) {
+      // Handle Service objects
+      for (var service in servicesData) {
+        subtotal += service.price?.toDouble() ?? 0.0;
+      }
+    } else {
+      // Handle Maps (existing format) for backward compatibility
+      for (var service in servicesData) {
+        subtotal += service['price'];
+      }
+    }
+    // Add extra services
+    for (var service in _extraServices) {
+      subtotal += service['price'];
+    }
+    return subtotal;
+  }
 
-//               Text(
-//                 "Attachment",
-//                 style: TextStyle(
-//                   fontSize: 14.sp,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//               SizedBox(height: 4.h),
-//               Text(
-//                 "Format should be in .pdf .jpeg .png less than 5MB",
-//                 style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-//               ),
-//               SizedBox(height: 12.h),
+  double get _gstAmount {
+    return (_subtotal * _gstPercentage) / 100;
+  }
 
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                 children: List.generate(
-//                   3,
-//                       (index) => Container(
-//                     width: 100.w,
-//                     height: 100.w,
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(8.r),
-//                       border: Border.all(
-//                         color: Colors.grey.shade400,
-//                         width: 1,
-//                       ),
-//                     ),
-//                     child: Center(
-//                       child: Icon(
-//                         Icons.upload_rounded,
-//                         size: 28.sp,
-//                         color: Colors.grey.shade400,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(height: 24.h),
+  double get _totalPrice {
+    return _subtotal + _gstAmount;
+  }
 
-//               _buildTextField(label: "Department", hint: "Handy Man"),
-//               _buildTextField(label: "Service Category", hint: "Plumbing Service"),
-//               _buildTextField(label: "Service Description", hint: "Plumbing Service", maxLines: 3),
-//               _buildTextField(label: "Customer Name", hint: "Najibur Rahman"),
-//               _buildTextField(label: "Customer Number", hint: "+650554955114"),
-//               _buildTextField(label: "Customer Address", hint: "Dhaka, Bangladesh"),
-//               _buildTextField(label: "Assign To", hint: "Koji Tech 123"),
+  // JSON data structure
+  Map<String, String> get _taskJson {
+    // Convert Service objects to Maps if needed
+    var serviceData = widget.taskData['service'];
+    List<Map<String, dynamic>> convertedServices = [];
 
-//               _buildDateTimeRow(
-//                 label: "Assign Date",
-//                 startHint: startDate == null
-//                     ? "Start Date"
-//                     : "${startDate!.day}/${startDate!.month}/${startDate!.year}",
-//                 endHint: endDate == null
-//                     ? "End Date"
-//                     : "${endDate!.day}/${endDate!.month}/${endDate!.year}",
-//                 startOnTap: () => _pickDate(true),
-//                 endOnTap: () => _pickDate(false),
-//                 iconPath: "assets/icons/calendar.svg",
-//               ),
+    if (serviceData is List<Service>) {
+      // Convert Service objects to Maps
+      convertedServices = serviceData.map((service) => {
+        'name': service.name ?? 'N/A',
+        'price': service.price?.toString() ?? '0',
+        'quantity': service.quantity?.toString() ?? '1',
+        'id': service.id,
+      }).toList();
+    } else if (serviceData is List<Map<String, dynamic>>) {
+      // Already in the correct format
+      convertedServices = serviceData;
+    } else {
+      // Fallback to empty list
+      convertedServices = [];
+    }
 
-//               _buildDateTimeRow(
-//                 label: "Assign Time",
-//                 startHint: startTime == null ? "Start Time" : startTime!.format(context),
-//                 endHint: endTime == null ? "End Time" : endTime!.format(context),
-//                 startOnTap: () => _pickTime(true),
-//                 endOnTap: () => _pickTime(false),
-//                 iconPath: "assets/icons/time.svg",
-//               ),
+    return {
+      "customerName": widget.taskData['customerName'] ?? 'N/A',
+      "customerNumber": widget.taskData['customerNumber'] ?? 'N/A',
+      "customerAddress": widget.taskData['customerAddress'] ?? 'N/A',
+      "customerEmail": widget.taskData['customerEmail'] ?? 'N/A',
+      "service": json.encode(convertedServices), // Encode to JSON string
+      // "originalServices": "$_originalServices",
+      // "extraServices": "$_extraServices",
+      // "subtotal": "$_subtotal",
+      // "gstPercentage": "$_gstPercentage",
+      // "gstAmount": "$_gstAmount",
+      "totalAmount": "$_totalPrice",
+      "paymentMethod": _selectedPaymentMethod,
+      "paymentStatus": _selectedPaymentStatus,
+      "notes": widget.taskData['notes'] ?? '',
+    };
+  }
 
-//               _buildTextField(label: "Priority", hint: "Important"),
-//               _buildTextField(label: "Difficulty", hint: "Medium"),
-//               _buildDropdown(label: "Payment Method", hint: "Select Method"),
-//               _buildDropdown(label: "Payment Status", hint: "Select Status"),
+  Future<void> _pickImages() async {
+    if (_selectedImages.length >= 3) {
+      Get.snackbar(
+        'Maximum Limit',
+        'You can only select up to 3 images',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
-//               SizedBox(height: 30.h),
+    final List<XFile>? images = await _picker.pickMultiImage(
+      maxWidth: 1080,
+      maxHeight: 1080,
+      imageQuality: 85,
+    );
 
-//               // 🔹 Popup Trigger Button
-//               SizedBox(
-//                 width: double.infinity,
-//                 child: OutlinedButton(
-//                   onPressed: _showSignaturePopup,
-//                   style: OutlinedButton.styleFrom(
-//                     side: BorderSide(color: Colors.grey.shade300, width: 1),
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(12.r),
-//                     ),
-//                     padding: EdgeInsets.symmetric(vertical: 14.h),
-//                   ),
-//                   child: Text(
-//                     "Add Extra Service",
-//                     style: TextStyle(
-//                       fontSize: 15.sp,
-//                       fontWeight: FontWeight.w500,
-//                       color: Colors.black87,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(height: 16.h),
+    if (images != null) {
+      int remainingSlots = 3 - _selectedImages.length;
+      if (images.length > remainingSlots) {
+        Get.snackbar(
+          'Limit Exceeded',
+          'Only $remainingSlots more images allowed',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
 
-//               CustomButton(
-//                 title: 'Confirm and Submit Task',
-//                 onpress: () {},
-//               ),
+      final allowedImages = images.take(remainingSlots).toList();
 
-//               SizedBox(height: 40.h),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
+      setState(() {
+        _selectedImages.addAll(allowedImages.map((image) => File(image.path)));
+      });
+    }
+  }
 
-//   // ---------------- Helper Widgets ----------------
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
 
-//   Widget _buildTextField({
-//     required String label,
-//     required String hint,
-//     int maxLines = 1,
-//   }) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 16.h),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
-//           SizedBox(height: 6.h),
-//           TextField(
-//             maxLines: maxLines,
-//             decoration: InputDecoration(
-//               hintText: hint,
-//               hintStyle: TextStyle(color: Colors.grey.shade600),
-//               border: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(8.r),
-//                 borderSide: BorderSide(color: Colors.grey.shade400),
-//               ),
-//               contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
+  Future<void> _submitTask() async {
+    if (_selectedImages.isEmpty) {
+      Get.snackbar(
+        'Signature Required',
+        'Please add customer signature before submitting',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
-//   Widget _buildDateTimeRow({
-//     required String label,
-//     required String startHint,
-//     required String endHint,
-//     required VoidCallback startOnTap,
-//     required VoidCallback endOnTap,
-//     required String iconPath,
-//   }) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 16.h),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
-//           SizedBox(height: 6.h),
-//           Row(
-//             children: [
-//               Expanded(
-//                 child: GestureDetector(
-//                   onTap: startOnTap,
-//                   child: AbsorbPointer(
-//                     child: TextField(
-//                       decoration: InputDecoration(
-//                         prefixIcon: Padding(
-//                           padding: EdgeInsets.symmetric(horizontal: 10.w),
-//                           child: SvgPicture.asset(
-//                             iconPath,
-//                             width: 17.w,
-//                             height: 17.h,
-//                             colorFilter: ColorFilter.mode(
-//                               Colors.grey.shade600,
-//                               BlendMode.srcIn,
-//                             ),
-//                           ),
-//                         ),
-//                         hintText: startHint,
-//                         border: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(8.r),
-//                           borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
-//                         ),
-//                         contentPadding:
-//                         EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(width: 12.w),
-//               Expanded(
-//                 child: GestureDetector(
-//                   onTap: endOnTap,
-//                   child: AbsorbPointer(
-//                     child: TextField(
-//                       decoration: InputDecoration(
-//                         prefixIcon: Padding(
-//                           padding: EdgeInsets.symmetric(horizontal: 10.w),
-//                           child: SvgPicture.asset(
-//                             iconPath,
-//                             width: 17.w,
-//                             height: 17.h,
-//                             colorFilter: ColorFilter.mode(
-//                               Colors.grey.shade600,
-//                               BlendMode.srcIn,
-//                             ),
-//                           ),),
-//                         hintText: endHint,
-//                         border: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(8.r),
-//                           borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
-//                         ),
-//                         contentPadding:
-//                         EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
+    setState(() {
+      _isSubmitting = true;
+    });
 
-//   Widget _buildDropdown({required String label, required String hint}) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: 16.h),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
-//           SizedBox(height: 6.h),
-//           DropdownButtonFormField<String>(
-//             icon: SvgPicture.asset(
-//               "assets/icons/arrowdown.svg",
-//             ),
-//             decoration: InputDecoration(
-//               border: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(8.r),
-//                 borderSide: BorderSide(color: Colors.grey.shade400),
-//               ),
-//               contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-//             ),
-//             hint: Text(hint, style: TextStyle(color: Colors.grey.shade600)),
-//             items: const [
-//               DropdownMenuItem(value: 'option1', child: Text('Option 1')),
-//               DropdownMenuItem(value: 'option2', child: Text('Option 2')),
-//             ],
-//             onChanged: (value) {},
-//           ),
-//         ],
-//       ),
-//     );
-//   }
+    try {
+      // Here you would typically upload images to server first
+      // Then send the task data with image URLs
 
-//   // ---------------- Date & Time Pickers ----------------
+      // Simulate API call
+      await Future.delayed(Duration(seconds: 2));
 
-//   Future<void> _pickDate(bool isStart) async {
-//     final picked = await showDatePicker(
-//       context: context,
-//       initialDate: DateTime.now(),
-//       firstDate: DateTime(2020),
-//       lastDate: DateTime(2030),
-//     );
-//     if (picked != null) {
-//       setState(() {
-//         if (isStart) {
-//           startDate = picked;
-//         } else {
-//           endDate = picked;
-//         }
-//       });
-//     }
-//   }
+      List<MultipartBody> photoList = [];
+      for (var photos in _selectedImages) {
+        photoList.add(MultipartBody("attachments", photos));
+      }
+      List<MultipartBody> multipartBody = photoList ?? [];
 
-//   Future<void> _pickTime(bool isStart) async {
-//     final picked = await showTimePicker(
-//       context: context,
-//       initialTime: TimeOfDay.now(),
-//     );
-//     if (picked != null) {
-//       setState(() {
-//         if (isStart) {
-//           startTime = picked;
-//         } else {
-//           endTime = picked;
-//         }
-//       });
-//     }
-//   }
-// }
+      // Call the API with the JSON data
+      final response = await ApiClient.postMultipartData(
+        '/tasks/${widget.taskId}/submit', // Replace with your actual API endpoint
+        _taskJson,
+        multipartBody: photoList,
+      );
+
+      if (response.statusCode == 200) {
+        // Show success dialog
+        _showSuccessDialog();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to submit task. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to submit task: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success Icon
+              Container(
+                width: 80.w,
+                height: 80.h,
+                decoration: BoxDecoration(
+                  color: Color(0xFF4A90E2).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: Color(0xFF4A90E2),
+                  size: 50.sp,
+                ),
+              ),
+
+              SizedBox(height: 20.h),
+
+              // Success Title
+              Text(
+                'Success',
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Success Message
+              Text(
+                'Your task has been submitted successfully.\nYou will be notified once it is reviewed by\nyour admin.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // View List Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Get.back(); // Go back to previous screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF4A90E2),
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  child: Text(
+                    'View List',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddServiceDialog() {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add Extra Service',
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 20.h),
+
+              // Service Name
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Service Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 12.h,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 16.h),
+
+              // Service Price
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Price (\$)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 12.h,
+                  ),
+                  prefixText: '\$',
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final name = nameController.text.trim();
+                        final price =
+                            double.tryParse(priceController.text) ?? 0.0;
+
+                        if (name.isNotEmpty && price > 0) {
+                          setState(() {
+                            _extraServices.add({
+                              'name': name,
+                              'price': price,
+                              "quantity": "1",
+                            });
+                          });
+                          Navigator.pop(context);
+                        } else {
+                          Get.snackbar(
+                            'Error',
+                            'Please enter valid service name and price',
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4A90E2),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _removeExtraService(int index) {
+    setState(() {
+      _extraServices.removeAt(index);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'My Task',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Customer Information
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCustomerInfo(
+                      'Customer Number',
+                      widget.taskData['customerNumber'] ?? '+880 1757054846',
+                    ),
+                    SizedBox(height: 12.h),
+                    _buildCustomerInfo(
+                      'Customer Address',
+                      widget.taskData['customerAddress'] ?? 'Dhaka, Bangladesh',
+                    ),
+                    SizedBox(height: 12.h),
+                    _buildCustomerInfo(
+                      'Assign To',
+                      widget.taskData['assignTo'] ?? 'Koji Tech 123',
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Attachment & Signature Section
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Attachment',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Format should be in .pdf .jpeg .png less than 5MB',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+
+                    // Customer Signature Title
+                    Text(
+                      'Customer Signature',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+
+                    // Image Grid
+                    if (_selectedImages.isNotEmpty)
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8.w,
+                          mainAxisSpacing: 8.h,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: _selectedImages.length,
+                        itemBuilder: (context, index) {
+                          return Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  image: DecorationImage(
+                                    image: FileImage(_selectedImages[index]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 4.w,
+                                right: 4.w,
+                                child: GestureDetector(
+                                  onTap: () => _removeImage(index),
+                                  child: Container(
+                                    padding: EdgeInsets.all(4.w),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 14.sp,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+
+                    SizedBox(height: 16.h),
+
+                    // Add Signature Button
+                    GestureDetector(
+                      onTap: _pickImages,
+                      child: Container(
+                        width: double.infinity,
+                        height: 120.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.r),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate,
+                              size: 32.sp,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              _selectedImages.isEmpty
+                                  ? 'Tap to add signature'
+                                  : 'Tap to add more (${3 - _selectedImages.length} remaining)',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            if (_selectedImages.isNotEmpty)
+                              Padding(
+                                padding: EdgeInsets.only(top: 4.h),
+                                child: Text(
+                                  '${_selectedImages.length}/3 images selected',
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Service List Section
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Service List',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+
+                    // Original services (non-editable)
+                    for (var service in _originalServices)
+                      _buildServiceItem(
+                        service['name'],
+                        service['price'],
+                        service['quantity'],
+                      ),
+
+                    // Extra services (with delete option)
+                    for (int i = 0; i < _extraServices.length; i++)
+                      Column(
+                        children: [
+                          SizedBox(height: 12.h),
+                          _buildServiceItem(
+                            _extraServices[i]['name'],
+                            _extraServices[i]['price'],
+                            _extraServices[i]['quantity'],
+                            showDelete: true,
+                            onDelete: () => _removeExtraService(i),
+                          ),
+                        ],
+                      ),
+
+                    SizedBox(height: 20.h),
+
+                    // GST Row
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Colors.grey[300]!, width: 1),
+                          bottom: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'GST $_gstPercentage%',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          Text(
+                            '\$${_gstAmount.toStringAsFixed(1)}',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    // Total Price
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Price',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          '\$${_totalPrice.toStringAsFixed(1)}',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Payment Method Section
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPaymentOption(
+                            'Cash',
+                            _selectedPaymentMethod == 'Cash',
+                            () {
+                              setState(() {
+                                _selectedPaymentMethod = 'Cash';
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _buildPaymentOption(
+                            'Online Banking',
+                            _selectedPaymentMethod == 'Online Banking',
+                            () {
+                              setState(() {
+                                _selectedPaymentMethod = 'Online Banking';
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Payment Status Section
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Status',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPaymentOption(
+                            'Payment Paid',
+                            _selectedPaymentStatus == 'Payment Paid',
+                            () {
+                              setState(() {
+                                _selectedPaymentStatus = 'Payment Paid';
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _buildPaymentOption(
+                            'Payment Unpaid',
+                            _selectedPaymentStatus == 'Payment Unpaid',
+                            () {
+                              setState(() {
+                                _selectedPaymentStatus = 'Payment Unpaid';
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 16.h),
+
+              // Add Extra Service Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _showAddServiceDialog,
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    side: BorderSide(color: Color(0xFF4A90E2), width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, size: 20.sp, color: Color(0xFF4A90E2)),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Add Extra Service',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF4A90E2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitTask,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF4A90E2),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isSubmitting
+                      ? SizedBox(
+                          height: 24.h,
+                          width: 24.h,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Confirm & Submit Task',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Cancel Button
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Get.back(),
+                  child: Text(
+                    'No, Let Me Check',
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceItem(
+    String name,
+    double price,
+    String? quantity, {
+    bool showDelete = false,
+    VoidCallback? onDelete,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                if (showDelete)
+                  GestureDetector(
+                    onTap: onDelete,
+                    child: Container(
+                      padding: EdgeInsets.all(4.w),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.red.withOpacity(0.1),
+                      ),
+                      child: Icon(Icons.close, size: 16.sp, color: Colors.red),
+                    ),
+                  ),
+                if (showDelete) SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '\$${price.toStringAsFixed(1)}',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentOption(String title, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        decoration: BoxDecoration(
+          color: selected ? Color(0xFF4A90E2) : Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? Color(0xFF4A90E2) : Colors.grey[300]!,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : Colors.grey[700],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

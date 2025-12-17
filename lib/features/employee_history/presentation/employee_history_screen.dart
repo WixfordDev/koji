@@ -71,7 +71,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: "Today, ${DateTime.now().day} ${DateTime.now().month.toString()}",
+                      text:
+                          "Today, ${DateTime.now().day} ${DateTime.now().month.toString()}",
                       color: AppColor.secondaryColor,
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w500,
@@ -82,27 +83,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           _showFilterDialog();
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 8.h,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(color: AppColor.primaryColor.withValues(alpha: 0.3), width: 1),
+                            border: Border.all(
+                              color: AppColor.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.filter_alt_outlined,
-                                  size: 18.sp,
-                                  color: AppColor.primaryColor),
+                              Icon(
+                                Icons.filter_alt_outlined,
+                                size: 18.sp,
+                                color: AppColor.primaryColor,
+                              ),
                               SizedBox(width: 6.w),
                               CustomText(
-                                text: _getDisplayTextForStatus(controller.selectedStatus.value),
+                                text: _getDisplayTextForStatus(
+                                  controller.selectedStatus.value,
+                                ),
                                 color: AppColor.primaryColor,
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w500,
                               ),
                               SizedBox(width: 4.w),
-                              Icon(Icons.keyboard_arrow_down_rounded,
-                                  color: AppColor.primaryColor, size: 16.sp),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: AppColor.primaryColor,
+                                size: 16.sp,
+                              ),
                             ],
                           ),
                         ),
@@ -152,10 +168,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           SizedBox(height: 4.h),
                           CustomText(
-                            text: controller.taskList.where((task) =>
-                              task.status.toLowerCase() == 'completed' ||
-                              task.status.toLowerCase() == 'done'
-                            ).length.toString(),
+                            text: controller.taskList
+                                .where(
+                                  (task) =>
+                                      task.status?.toLowerCase() ==
+                                          'completed' ||
+                                      task.status?.toLowerCase() == 'done',
+                                )
+                                .length
+                                .toString(),
                             color: Colors.green,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
@@ -174,9 +195,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           SizedBox(height: 4.h),
                           CustomText(
-                            text: controller.taskList.where((task) =>
-                              task.status.toLowerCase() == 'pending'
-                            ).length.toString(),
+                            text: controller.taskList
+                                .where(
+                                  (task) =>
+                                      task.status?.toLowerCase() == 'pending',
+                                )
+                                .length
+                                .toString(),
                             color: Colors.orange,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
@@ -192,9 +217,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (controller.taskList.isEmpty) {
@@ -202,9 +225,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.history_outlined,
-                              size: 64.sp,
-                              color: Colors.grey.shade400),
+                          Icon(
+                            Icons.history_outlined,
+                            size: 64.sp,
+                            color: Colors.grey.shade400,
+                          ),
                           SizedBox(height: 16.h),
                           CustomText(
                             text: "No tasks found",
@@ -233,22 +258,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         final task = controller.taskList[index];
 
                         // Map task status to completed flag
-                        bool isCompleted = task.status.toLowerCase() == 'completed' ||
-                                           task.status.toLowerCase() == 'done';
+                        bool isCompleted =
+                            task.status?.toLowerCase() == 'completed' ||
+                            task.status?.toLowerCase() == 'done';
 
                         return Container(
                           margin: EdgeInsets.only(bottom: 12.h),
                           child: HistoryCardWidget(
-                            title: task.customerName,
-                            category: task.serviceCategory,
-                            time: "${task.assignDate.split('T')[0]} - ${task.deadline.split('T')[0]}",
-                            breakTime: task.notes, // Using notes as break time placeholder
+                            title: task.customerName ?? "",
+                            category: task.serviceCategory?.name ?? "",
+                            // time: "${task.assignDate?.split('T')[0]} - ${task.deadline.split('T')[0]}",
+                            time: "2:00 AM - 3:00 AM",
+                            breakTime:
+                                task.notes ??
+                                "", // Using notes as break time placeholder
                             completed: isCompleted,
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => TaskReportScreen(taskId: task.id),
+                                  builder: (context) =>
+                                      TaskReportScreen(taskId: task.id),
                                 ),
                               );
                             },
@@ -278,9 +308,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Row(
           children: [
             _buildStatusTab("All", "", controller.selectedStatus.value == ""),
-            _buildStatusTab("Pending", "pending", controller.selectedStatus.value == "pending"),
-            _buildStatusTab("Done", "completed", controller.selectedStatus.value == "completed"),
-            _buildStatusTab("In Progress", "in_progress", controller.selectedStatus.value == "in_progress"),
+            _buildStatusTab(
+              "Pending",
+              "pending",
+              controller.selectedStatus.value == "pending",
+            ),
+            _buildStatusTab(
+              "Done",
+              "completed",
+              controller.selectedStatus.value == "completed",
+            ),
+            _buildStatusTab(
+              "In Progress",
+              "in_progress",
+              controller.selectedStatus.value == "in_progress",
+            ),
           ],
         ),
       );
@@ -297,13 +339,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(10.r),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ] : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: CustomText(
             text: label,
@@ -335,9 +379,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         padding: EdgeInsets.all(16.w),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -376,7 +418,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       bool isSelected = controller.selectedStatus.value == value;
       return ListTile(
         title: Text(label),
-        trailing: isSelected ? Icon(Icons.check, color: AppColor.primaryColor) : null,
+        trailing: isSelected
+            ? Icon(Icons.check, color: AppColor.primaryColor)
+            : null,
         selected: isSelected,
         selectedColor: AppColor.primaryColor,
         onTap: () {

@@ -412,7 +412,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (statusFilter == 'inprogress') statusFilter = 'inprogress';
 
       tasks = tasks
-          .where((task) => task.status.toLowerCase() == statusFilter)
+          .where((task) => task.status?.toLowerCase() == statusFilter)
           .toList();
     }
 
@@ -437,7 +437,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        Color statusColor = _getStatusColor(task.status);
+        Color statusColor = _getStatusColor(task.status ?? '');
         int progress = task.progressPercent ?? 0;
 
         return GestureDetector(
@@ -446,18 +446,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => TaskDetailsScreen(taskId: task.id),
+                builder: (context) => TaskDetailsScreen(taskId: task.id ?? ""),
               ),
             );
           },
           child: _buildTaskCard(
-            taskId: task.id, // Pass the task ID
-            title: task.customerName,
-            status: task.status,
-            priority: task.priority,
+            taskId: task.id ?? "", // Pass the task ID
+            title: task.customerName ?? "",
+            status: task.status ?? "",
+            priority: task.priority ?? "",
             progress: progress,
             color: statusColor,
-            assignDate: task.assignDate,
+            assignDate: task.assignDate?.toIso8601String(),
             services: task.services,
           ),
         );

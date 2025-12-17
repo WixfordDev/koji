@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:koji/models/task_model.dart';
+import 'package:koji/services/api_client.dart';
 import 'package:koji/services/employee_task_service.dart';
 
 class EmployeeScheduleController extends GetxController {
@@ -23,15 +25,37 @@ class EmployeeScheduleController extends GetxController {
   Future<void> fetchTasksForDate(String date) async {
     _isLoading.value = true;
     try {
-      final response = await EmployeeTaskService.getEmployeeTaskList(date: date);
-      if (response.code == 200) {
-        _tasks.assignAll(response.data.attributes.results);
+      final response = await ApiClient.getData(
+        "/tasks/employ/list?date=${date}",
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var data = List<TaskModel>.from(
+          response.body["data"]['attributes']["results"].map(
+            (x) => TaskModel.fromJson(x),
+          ),
+        );
+
+        _tasks.assignAll(data);
       } else {
-        Get.snackbar('Error', 'Failed to load tasks for date: $date');
+        Get.snackbar(
+          'Error',
+          'Failed to load tasks for date: $date',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
       }
     } catch (e) {
       print('Error fetching tasks for date $date: $e');
-      Get.snackbar('Error', 'Failed to load tasks: ${e.toString()}');
+      Get.snackbar(
+        'Error',
+        'Failed to load tasks: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
     } finally {
       _isLoading.value = false;
     }
@@ -42,38 +66,36 @@ class EmployeeScheduleController extends GetxController {
     _isLoading.value = true;
     try {
       // Find the task from the loaded tasks list
-      final task = _tasks.firstWhere((element) => element.id == taskId, orElse: () => TaskModel(
-        id: '',
-        createdBy: '',
-        department: '',
-        serviceCategory: '',
-        customerName: '',
-        customerNumber: '',
-        customerAddress: '',
-        assignDate: '',
-        deadline: '',
-        services: [],
-        assignTo: '',
-        otherAmount: 0,
-        totalAmount: 0,
-        status: '',
-        attachments: [],
-        notes: '',
-        isDeleted: false,
-        createdAt: '',
-        updatedAt: '',
-        v: 0,
-        difficulty: '',
-        priority: '',
-        progressPercent: 0,
-        submitedDoc: [],
-        isSubmited: false,
-        paymentStatus: '',
-        paymentMethod: '',
-        customerEmail: null,
-      ));
+      final task = _tasks.firstWhere(
+        (element) => element.id == taskId,
+        orElse: () => TaskModel(
+          id: '',
+          createdBy: '',
+          department: Department(name: ''),
+          serviceCategory: Department(name: ''),
+          customerName: '',
+          customerNumber: '',
+          customerAddress: '',
+          assignDate: DateTime.now(),
+          deadline: DateTime.now(),
+          services: [],
+          assignTo: '',
+          otherAmount: 0,
+          totalAmount: 0,
+          status: '',
+          attachments: [],
+          notes: '',
+          isDeleted: false,
+          v: 0,
+          difficulty: '',
+          priority: '',
+          progressPercent: 0,
+          submitedDoc: [],
+          isSubmited: false,
+        ),
+      );
 
-      if (task.id.isNotEmpty) {
+      if (task.id!.isNotEmpty) {
         _selectedTask.value = task;
       } else {
         // If task is not found locally, try to fetch it from API
@@ -82,7 +104,14 @@ class EmployeeScheduleController extends GetxController {
       }
     } catch (e) {
       print('Error fetching task details: $e');
-      Get.snackbar('Error', 'Failed to load task details: ${e.toString()}');
+      Get.snackbar(
+        'Error',
+        'Failed to load task details: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
     } finally {
       _isLoading.value = false;
     }
@@ -95,7 +124,14 @@ class EmployeeScheduleController extends GetxController {
       print('Accepting task: $taskId');
     } catch (e) {
       print('Error accepting task: $e');
-      Get.snackbar('Error', 'Failed to accept task: ${e.toString()}');
+      Get.snackbar(
+        'Error',
+        'Failed to accept task: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
     }
   }
 
@@ -106,7 +142,14 @@ class EmployeeScheduleController extends GetxController {
       print('Submitting task: $taskId');
     } catch (e) {
       print('Error submitting task: $e');
-      Get.snackbar('Error', 'Failed to submit task: ${e.toString()}');
+      Get.snackbar(
+        'Error',
+        'Failed to submit task: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
     }
   }
 
@@ -116,7 +159,7 @@ class EmployeeScheduleController extends GetxController {
       return _tasks.toList();
     }
     return _tasks
-        .where((task) => task.status.toLowerCase() == status.toLowerCase())
+        .where((task) => task.status?.toLowerCase() == status.toLowerCase())
         .toList();
   }
 
@@ -126,7 +169,7 @@ class EmployeeScheduleController extends GetxController {
       return _tasks.length;
     }
     return _tasks
-        .where((task) => task.status.toLowerCase() == status.toLowerCase())
+        .where((task) => task.status?.toLowerCase() == status.toLowerCase())
         .length;
   }
 

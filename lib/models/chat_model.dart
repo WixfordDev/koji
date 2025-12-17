@@ -140,9 +140,7 @@ class Location {
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       type: json['type'],
-      coordinates: json['coordinates'] != null 
-          ? List<double>.from(json['coordinates'].map((x) => x?.toDouble())) 
-          : null,
+      coordinates: _parseCoordinates(json['coordinates']),
       locationName: json['locationName'],
     );
   }
@@ -152,6 +150,27 @@ class Location {
     'coordinates': coordinates,
     'locationName': locationName,
   };
+}
+
+// Helper function to parse coordinates which might contain int or double values
+List<double>? _parseCoordinates(dynamic coordinatesData) {
+  if (coordinatesData == null) {
+    return null;
+  } else if (coordinatesData is List) {
+    List<double> result = [];
+    for (var item in coordinatesData) {
+      if (item is int) {
+        result.add(item.toDouble());
+      } else if (item is double) {
+        result.add(item);
+      } else {
+        result.add(0.0); // fallback for unexpected types
+      }
+    }
+    return result;
+  } else {
+    return null;
+  }
 }
 
 class Message {
