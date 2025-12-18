@@ -688,7 +688,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             'priority': task.priority,
             'difficulty': task.difficulty,
             'notes': task.notes,
-            "service": task.service ?? [],
+            "service": task.service ?? {},
           },
         ),
       ),

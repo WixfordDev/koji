@@ -27,6 +27,11 @@ class _TaskScreenState extends State<TaskScreen> {
   // Original services
   final List<Map<String, dynamic>> _originalServices = [];
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   // Extra services that can be added
   final List<Map<String, dynamic>> _extraServices = [];
 
@@ -71,12 +76,15 @@ class _TaskScreenState extends State<TaskScreen> {
 
     if (serviceData is List<Service>) {
       // Convert Service objects to Maps
-      convertedServices = serviceData.map((service) => {
-        'name': service.name ?? 'N/A',
-        'price': service.price?.toString() ?? '0',
-        'quantity': service.quantity?.toString() ?? '1',
-        'id': service.id,
-      }).toList();
+      convertedServices = serviceData
+          .map(
+            (service) => {
+              'name': service.name ?? 'N/A',
+              'price': service.price?.toString() ?? '0',
+              'quantity': service.quantity?.toString() ?? '1',
+            },
+          )
+          .toList();
     } else if (serviceData is List<Map<String, dynamic>>) {
       // Already in the correct format
       convertedServices = serviceData;
@@ -457,35 +465,6 @@ class _TaskScreenState extends State<TaskScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Customer Information
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCustomerInfo(
-                      'Customer Number',
-                      widget.taskData['customerNumber'] ?? '+880 1757054846',
-                    ),
-                    SizedBox(height: 12.h),
-                    _buildCustomerInfo(
-                      'Customer Address',
-                      widget.taskData['customerAddress'] ?? 'Dhaka, Bangladesh',
-                    ),
-                    SizedBox(height: 12.h),
-                    _buildCustomerInfo(
-                      'Assign To',
-                      widget.taskData['assignTo'] ?? 'Koji Tech 123',
-                    ),
-                  ],
-                ),
-              ),
-
               SizedBox(height: 24.h),
 
               // Attachment & Signature Section
@@ -515,18 +494,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         color: Colors.grey[600],
                       ),
                     ),
-                    SizedBox(height: 20.h),
-
-                    // Customer Signature Title
-                    Text(
-                      'Customer Signature',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 10.h),
 
                     // Image Grid
                     if (_selectedImages.isNotEmpty)
@@ -600,7 +568,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             SizedBox(height: 8.h),
                             Text(
                               _selectedImages.isEmpty
-                                  ? 'Tap to add signature'
+                                  ? 'Browse Files from device'
                                   : 'Tap to add more (${3 - _selectedImages.length} remaining)',
                               style: TextStyle(
                                 fontSize: 14.sp,
