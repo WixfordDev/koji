@@ -26,13 +26,8 @@ class SocketServices {
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableReconnection()
-          .setReconnectionAttempts(10)
-          .setReconnectionDelay(3000)
-          .setReconnectionDelayMax(30000)
           .setTimeout(45000)
           .enableForceNew()
-          .setPingTimeout(60000)
-          .setPingInterval(25000)
           .build(),
     );
 
@@ -52,10 +47,6 @@ class SocketServices {
 
     socket.onConnectError((err) {
       print('========> Socket connect error: $err');
-    });
-
-    socket.onConnectTimeout((err) {
-      print('========> Socket connect timeout: $err');
     });
 
     socket.onDisconnect((reason) {
