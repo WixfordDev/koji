@@ -95,6 +95,15 @@ class AdminHomeController extends GetxController {
     }
   }
 
+  /// ============================ Approve Employee  =====================================
+
+
+
+
+
+
+
+
 
 
   /// ============================ Get All Attendance Individual Records =====================================
@@ -182,5 +191,33 @@ class AdminHomeController extends GetxController {
 
 
 
+  /// ============================ Approve Employee  =====================================
+
+  RxBool approveEmployeeLoading = false.obs;
+
+  Future<bool> approveEmployee({required String employeeId}) async {
+    approveEmployeeLoading(true);
+    try {
+      var response = await ApiClient.postData(
+        "${ApiConstants.approveProfileEndPoint}$employeeId",
+        {}, // Empty body for the post request
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        approveEmployeeLoading(false);
+        // Refresh the employee request list after successful approval
+        getEmployeeRequest();
+        return true;
+      } else {
+        approveEmployeeLoading(false);
+        print("Error approving employee: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      approveEmployeeLoading(false);
+      print("Exception in approveEmployee: $e");
+      return false;
+    }
+  }
 }
 

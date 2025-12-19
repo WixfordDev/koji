@@ -24,6 +24,7 @@ import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_map/admin_map_screen.dart';
 
 // Employee Screens
+import '../features/admin_schedule/presentation/admin_view_complete_task_screen.dart';
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
 import '../features/employee_home/presentation/employee_home_screen.dart';
 import '../features/employee_history/presentation/employee_history_screen.dart';
@@ -273,7 +274,10 @@ class AppRouter {
         GoRoute(
           path: RoutePaths.adminCompleteTaskScreen,
           name: RoutePaths.adminCompleteTaskScreen,
-          builder: (_, __) => AdminCompleteTaskScreen(),
+          builder: (context, state) {
+            final taskId = state.uri.queryParameters['taskId'];
+            return AdminCompleteTaskScreen(taskId: taskId);
+          },
         ),
         GoRoute(
           path: RoutePaths.adminAttendanceScreen,
@@ -324,6 +328,19 @@ class AppRouter {
           name: RoutePaths.messageListScreen,
           builder: (_, __) => MessageListScreen(),
         ),
+
+
+        GoRoute(
+          path: '${RoutePaths.adminCompleteViewTaskScreen}/:date/:assignTo',
+          name: 'adminCompleteViewTaskScreenWithParams',
+          builder: (context, state) {
+            final date = state.pathParameters['date'] ?? '';
+            final assignTo = state.pathParameters['assignTo'] ?? '';
+            return AdminCompleteViewTaskScreen(date: date, assignTo: assignTo);
+          },
+        ),
+
+
         GoRoute(
           path: RoutePaths.notificationScreen,
 

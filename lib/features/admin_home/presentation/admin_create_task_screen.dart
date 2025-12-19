@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import 'dart:io';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/department_controller.dart';
 import '../../../helpers/toast_message_helper.dart';
 import '../../../models/admin-model/all_serviceList_model.dart';
+import '../../../models/admin-model/vechicle_model.dart';
+import '../../../models/admin-model/all_department_model.dart';
+import '../../../models/admin-model/all_categories_model.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 import 'admin_create_task_screen_widgets/attachment_picker_widget.dart';
@@ -20,6 +24,7 @@ import 'admin_create_task_screen_widgets/priority_selector_widget.dart';
 import 'admin_create_task_screen_widgets/assign_to_selector_widget.dart';
 import 'admin_create_task_screen_widgets/service_category_selector_widget.dart';
 import 'admin_create_task_screen_widgets/service_list_widget.dart';
+import 'admin_create_task_screen_widgets/vehicle_selector_widget.dart';
 
 class AdminCreateTaskScreen extends StatefulWidget {
   const AdminCreateTaskScreen({super.key});
@@ -44,6 +49,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   // Selected values
   String? selectedDepartment;
   String? selectedCategory;
+  String? selectedVehicle;  // New vehicle selection variable
   List<String> selectedRoles = [];
   String? selectedPriority;
   String? selectedDifficulty;
@@ -63,6 +69,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       departmentController.getAllCategories();
       departmentController.getAllEmployee();
       departmentController.getAllServiceList();
+      departmentController.getAllVehicles();  // Add vehicle API call
 
       // Initialize local variables from controller (excluding date/time since we use reactive approach now)
       _initializeLocalVariablesFromController();
@@ -73,6 +80,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     selectedImages = List.from(departmentController.selectedImages);
     selectedDepartment = departmentController.selectedDepartment.value;
     selectedCategory = departmentController.selectedCategory.value;
+    selectedVehicle = departmentController.selectedVehicle.value;  // Initialize vehicle from controller
     selectedRoles = List.from(departmentController.selectedRoles);
     selectedPriority = departmentController.selectedPriority.value;
     selectedDifficulty = departmentController.selectedDifficulty.value;
@@ -137,10 +145,18 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                 onTap: _showCategoryBottomSheet,
               ),
 
-              ServiceListWidget(
+              VehicleSelectorWidget(
+                selectedVehicle: selectedVehicle,
+                onTap: _showVehicleBottomSheet,  // New vehicle bottom sheet method
+              ),
+
+              ServiceListDropdownWidget(
                 selectedServiceList: selectedServiceList,
+                availableServices: departmentController.serviceList.value.results ?? [],
                 onAddPressed: _showServicePickerBottomSheet,
                 onRemovePressed: _removeSelectedService,
+                onEditPressed: _editSelectedService,
+                onAddServiceToList: _addServiceToList,
               ),
 
 
@@ -314,7 +330,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                                       ),
                                       SizedBox(height: 4.h),
                                       Text(
-                                        "₦$servicePrice",
+                                        "\$$servicePrice",
                                         style: TextStyle(
                                           fontSize: 12.sp,
                                           color: Colors.grey.shade600,
@@ -323,22 +339,34 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                                     ],
                                   ),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    _showQuantitySelector(service, setModalState);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColor.primaryColor,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6.r),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        _showUpdateServiceDialog(service, setModalState);
+                                      },
+                                      icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
                                     ),
-                                  ),
-                                  child: Text(
-                                    "Add",
-                                    style: TextStyle(fontSize: 12.sp),
-                                  ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _showServiceFormDialog(service, setModalState);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColor.primaryColor,
+                                        foregroundColor: Colors.white,
+                                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(6.r),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        "Add",
+                                        style: TextStyle(fontSize: 12.sp),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -357,55 +385,219 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     );
   }
 
-  void _showQuantitySelector(ServiceItem service, StateSetter setModalState) {
-    int quantity = 1;
+  void _showServiceFormDialog(ServiceItem service, StateSetter setModalState) {
+    TextEditingController nameController = TextEditingController(text: service.name);
+    TextEditingController quantityController = TextEditingController(text: "1");
+    TextEditingController priceController = TextEditingController(text: service.price);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              title: Text(
+                "Add Service",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Service Name",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        hintText: "Enter service name",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
+                        ),
+                      ),
+                      readOnly: true,
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      "Quantity",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextField(
+                      controller: quantityController,
+                      decoration: InputDecoration(
+                        hintText: "Enter quantity",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        setDialogState(() {});
+                      },
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      "Price",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextField(
+                      controller: priceController,
+                      decoration: InputDecoration(
+                        hintText: "Enter price",
+                        prefixText: "₦",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        setDialogState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    int quantity = int.tryParse(quantityController.text.trim()) ?? 1;
+                    String price = priceController.text.trim();
+
+                    if (quantity < 1) {
+                      ToastMessageHelper.showToastMessage("Quantity must be at least 1");
+                      return;
+                    }
+
+                    if (price.isEmpty || double.tryParse(price) == null) {
+                      ToastMessageHelper.showToastMessage("Please enter a valid price");
+                      return;
+                    }
+
+                    setState(() {
+                      selectedServiceList.add(ServiceItemWithQuantity(
+                        serviceItem: ServiceItem(
+                          id: service.id,
+                          name: nameController.text.trim(),
+                          price: price,
+                        ),
+                        quantity: quantity,
+                      ));
+                    });
+                    departmentController.addServiceItemWithQuantity(ServiceItemWithQuantity(
+                      serviceItem: ServiceItem(
+                        id: service.id,
+                        name: nameController.text.trim(),
+                        price: price,
+                      ),
+                      quantity: quantity,
+                    ));
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    ToastMessageHelper.showToastMessage("Service added successfully!");
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  ),
+                  child: Text(
+                    "Add Service",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showUpdateServiceDialog(ServiceItem service, StateSetter setModalState) {
+    // Create controllers with the current values
+    TextEditingController nameController = TextEditingController(text: service.name);
+    TextEditingController quantityController = TextEditingController(text: "1");  // Default quantity
+    TextEditingController priceController = TextEditingController(text: service.price);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Select Quantity"),
+          title: Text("Update Service"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Service: ${service.name}"),
-              SizedBox(height: 16.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      if (quantity > 1) {
-                        setModalState(() {
-                          quantity--;
-                        });
-                      }
-                    },
-                    icon: Icon(Icons.remove),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
-                  Container(
-                    width: 50.w,
-                    height: 40.h,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Center(
-                      child: Text(
-                        quantity.toString(),
-                        style: TextStyle(fontSize: 16.sp),
-                      ),
-                    ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: quantityController,
+                decoration: InputDecoration(
+                  labelText: "Quantity",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      setModalState(() {
-                        quantity++;
-                      });
-                    },
-                    icon: Icon(Icons.add),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(
+                  labelText: "Price",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
-                ],
+                ),
+                keyboardType: TextInputType.number,
               ),
             ],
           ),
@@ -414,19 +606,53 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
               onPressed: () => Navigator.pop(context),
               child: Text("Cancel"),
             ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  selectedServiceList.add(ServiceItemWithQuantity(
-                    serviceItem: service,
-                    quantity: quantity,
-                  ));
-                });
-                Navigator.pop(context);
-                Navigator.pop(context); // Close the bottom sheet as well
-              },
-              child: Text("Add Service"),
-            ),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.updateServiceLoading.value
+                      ? null
+                      : () async {
+                          final success = await departmentController.updateService(
+                            serviceId: service.id ?? '',
+                            name: nameController.text.trim(),
+                            quantity: int.tryParse(quantityController.text.trim()) ?? 1,
+                            price: priceController.text.trim(),
+                          );
+                          if (success) {
+                            Navigator.pop(context);
+                            // Refresh the service list in the bottom sheet
+                            setModalState(() {});
+                          }
+                        },
+                  child: departmentController.updateServiceLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Update"),
+                )),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.deleteServiceLoading.value
+                      ? null
+                      : () async {
+                          _showDeleteConfirmationDialog(service, setModalState);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: departmentController.deleteServiceLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Delete"),
+                )),
           ],
         );
       },
@@ -438,6 +664,99 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       selectedServiceList.removeAt(index);
     });
     departmentController.removeServiceItemAt(index);
+  }
+
+  void _editSelectedService(int index) {
+    final serviceItemWithQuantity = selectedServiceList[index];
+
+    // Create controllers with the current values
+    TextEditingController nameController = TextEditingController(text: serviceItemWithQuantity.serviceItem.name);
+    TextEditingController quantityController = TextEditingController(text: serviceItemWithQuantity.quantity.toString());
+    TextEditingController priceController = TextEditingController(text: serviceItemWithQuantity.serviceItem.price);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit Service"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: quantityController,
+                decoration: InputDecoration(
+                  labelText: "Quantity",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(
+                  labelText: "Price",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  // Update the service item with new values
+                  selectedServiceList[index] = ServiceItemWithQuantity(
+                    serviceItem: ServiceItem(
+                      id: serviceItemWithQuantity.serviceItem.id,
+                      name: nameController.text.trim(),
+                      quantity: int.tryParse(quantityController.text.trim()),
+                      price: priceController.text.trim(),
+                      createdBy: serviceItemWithQuantity.serviceItem.createdBy,
+                      createdAt: serviceItemWithQuantity.serviceItem.createdAt,
+                    ),
+                    quantity: int.tryParse(quantityController.text.trim()) ?? serviceItemWithQuantity.quantity,
+                  );
+                });
+
+                // Update the controller's selected service list
+                departmentController.updateSelectedServiceList(selectedServiceList);
+
+                Navigator.pop(context);
+              },
+              child: Text("Update"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addServiceToList(ServiceItemWithQuantity serviceItemWithQuantity) {
+    setState(() {
+      selectedServiceList.add(serviceItemWithQuantity);
+    });
+
+    // Update the controller's selected service list
+    departmentController.updateSelectedServiceList(selectedServiceList);
   }
 
   // ---------------- Bottom Sheets ----------------
@@ -455,7 +774,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
           if (departmentController.getAllDepartmentModelLoading.value) {
             return Container(
               height: 300.h,
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: CustomLoader()),
             );
           }
 
@@ -539,24 +858,36 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                                 ),
                             ],
                           ),
-                          if (isSelected)
-                            Container(
-                              padding: EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  _showUpdateDepartmentDialog(dept);
+                                },
+                                icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
                               ),
-                              child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
-                            )
-                          else
-                            Container(
-                              width: 20.r,
-                              height: 20.r,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey.shade300, width: 2),
-                              ),
-                            ),
+                              if (isSelected)
+                                Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
+                                )
+                              else
+                                Container(
+                                  width: 20.r,
+                                  height: 20.r,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -668,24 +999,36 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                                 ),
                             ],
                           ),
-                          if (isSelected)
-                            Container(
-                              padding: EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  _showUpdateCategoryDialog(cat);
+                                },
+                                icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
                               ),
-                              child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
-                            )
-                          else
-                            Container(
-                              width: 20.r,
-                              height: 20.r,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey.shade300, width: 2),
-                              ),
-                            ),
+                              if (isSelected)
+                                Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
+                                )
+                              else
+                                Container(
+                                  width: 20.r,
+                                  height: 20.r,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -703,6 +1046,149 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
 
 
+
+
+  void _showVehicleBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Obx(() {
+          if (departmentController.getAllVehiclesModelLoading.value) {
+            return Container(
+              height: 300.h,
+              child: Center(child: CustomLoader()),
+            );
+          }
+
+          final vehicles = departmentController.allVehicles.value.attributes?.results ?? [];
+
+          if (vehicles.isEmpty) {
+            return Container(
+              height: 300.h,
+              child: Center(child: Text("No vehicles found")),
+            );
+          }
+
+          return Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Vehicle",
+                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.edit_outlined, size: 20.r),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: "Search here...",
+                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                ...vehicles.map((vehicle) {
+                  bool isSelected = selectedVehicle == vehicle.name;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedVehicle = vehicle.name;
+                      });
+                      departmentController.updateSelectedVehicle(vehicle.name ?? '');
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 8.h),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Color(0xFFFF7D7D) : Colors.white,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                vehicle.name ?? "",
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                  color: isSelected ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              if (vehicle.description != null)
+                                Text(
+                                  vehicle.description!,
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: isSelected ? Colors.white70 : Colors.grey,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  _showUpdateVehicleDialog(vehicle);
+                                },
+                                icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
+                              ),
+                              if (isSelected)
+                                Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
+                                )
+                              else
+                                Container(
+                                  width: 20.r,
+                                  height: 20.r,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+                SizedBox(height: 20.h),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
 
 
 
@@ -880,6 +1366,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
               ),
               SizedBox(height: 16.h),
               ...priorities.map((priority) {
+                String displayText = priorityDisplayMap[priority] ?? priority;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -899,7 +1386,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          priority,
+                          displayText,
                           style: TextStyle(
                             fontSize: 15.sp,
                             color: selectedPriority == priority ? Colors.white : Colors.black,
@@ -939,6 +1426,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
               ),
               SizedBox(height: 16.h),
               ...difficulties.map((difficulty) {
+                String displayText = difficultyDisplayMap[difficulty] ?? difficulty;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -958,7 +1446,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          difficulty,
+                          displayText,
                           style: TextStyle(
                             fontSize: 15.sp,
                             color: selectedDifficulty == difficulty ? Colors.white : Colors.black,
@@ -1041,8 +1529,25 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     }
   }
 
-  final List<String> priorities = ['Low', 'Medium', 'Important', 'Urgent'];
-  final List<String> difficulties = ['Easy', 'Medium', 'Hard'];
+  // Backend value to display value mapping
+  final Map<String, String> priorityDisplayMap = {
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
+    'urgent': 'Urgent',
+  };
+
+  final Map<String, String> difficultyDisplayMap = {
+    'very easy': 'Very Easy',
+    'easy': 'Easy',
+    'moderate': 'Moderate',
+    'hard': 'Hard',
+    'very hard': 'Very Hard',
+  };
+
+  // Backend values for API
+  List<String> get priorities => priorityDisplayMap.keys.toList();
+  List<String> get difficulties => difficultyDisplayMap.keys.toList();
 
   @override
   void dispose() {
@@ -1096,9 +1601,13 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     String assignDate = _formatDateToISO(departmentController.startDate.value, departmentController.startTime.value);
     String deadlineDate = _formatDateToISO(departmentController.endDate.value, departmentController.endTime.value);
 
-    // Prepare services list
-    List<String> services = selectedServiceList
-        .map((item) => '${item.serviceItem.name} (Qty: ${item.quantity})')
+    // Prepare services list as array of objects
+    List<Map<String, dynamic>> services = selectedServiceList
+        .map((item) => {
+      'name': item.serviceItem.name,
+      'price': double.tryParse(item.serviceItem.price ?? '0') ?? 0.0,
+      'quantity': item.quantity,
+    })
         .toList();
 
     // Calculate amounts using local values
@@ -1116,6 +1625,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     String? result = await departmentController.createNewTask(
       department: selectedDepartment!,
       serviceCategory: selectedCategory!,
+      vehicle: selectedVehicle!,  // Pass the selected vehicle
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
       customerAddress: _customerAddressController.text.trim(),
@@ -1149,6 +1659,213 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     }
   }
 
+  void _showUpdateVehicleDialog(VehicleResult vehicle) {
+    // Create controllers with the current values
+    TextEditingController nameController = TextEditingController(text: vehicle.name);
+    TextEditingController descriptionController = TextEditingController(text: vehicle.description);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Update Vehicle"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.updateVehicleLoading.value
+                      ? null
+                      : () async {
+                          final success = await departmentController.updateVehicle(
+                            vehicleId: vehicle.id ?? '',
+                            name: nameController.text.trim(),
+                            description: descriptionController.text.trim(),
+                          );
+                          if (success) {
+                            Navigator.pop(context);
+                          }
+                        },
+                  child: departmentController.updateVehicleLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Update"),
+                )),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showUpdateDepartmentDialog(Department dept) {
+    // Create controllers with the current values
+    TextEditingController nameController = TextEditingController(text: dept.name);
+    TextEditingController descriptionController = TextEditingController(text: dept.description);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Update Department"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.updateDepartmentLoading.value
+                      ? null
+                      : () async {
+                          final success = await departmentController.updateDepartment(
+                            departmentId: dept.id ?? '',
+                            name: nameController.text.trim(),
+                            description: descriptionController.text.trim(),
+                          );
+                          if (success) {
+                            Navigator.pop(context);
+                          }
+                        },
+                  child: departmentController.updateDepartmentLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Update"),
+                )),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showUpdateCategoryDialog(Category cat) {
+    // Create controllers with the current values
+    TextEditingController nameController = TextEditingController(text: cat.name);
+    TextEditingController descriptionController = TextEditingController(text: cat.description);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Update Service Category"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.updateCategoryLoading.value
+                      ? null
+                      : () async {
+                          final success = await departmentController.updateCategory(
+                            categoryId: cat.id ?? '',
+                            name: nameController.text.trim(),
+                            description: descriptionController.text.trim(),
+                          );
+                          if (success) {
+                            Navigator.pop(context);
+                          }
+                        },
+                  child: departmentController.updateCategoryLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Update"),
+                )),
+          ],
+        );
+      },
+    );
+  }
+
   void _showToast(String message) {
     ToastMessageHelper.showToastMessage(message);
   }
@@ -1179,5 +1896,50 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     // return "$hour12:$minute $period";
   }
 
+  void _showDeleteConfirmationDialog(ServiceItem service, StateSetter setModalState) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Confirm Delete"),
+          content: Text("Are you sure you want to delete the service '${service.name}'? This action cannot be undone."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            Obx(() => ElevatedButton(
+                  onPressed: departmentController.deleteServiceLoading.value
+                      ? null
+                      : () async {
+                          final success = await departmentController.deleteService(
+                            serviceId: service.id ?? '',
+                          );
+                          if (success) {
+                            Navigator.pop(context); // Close confirmation dialog
+                            Navigator.pop(context); // Close update dialog if it was open
+                            // Refresh the service list in the bottom sheet
+                            setModalState(() {});
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: departmentController.deleteServiceLoading.value
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("Delete"),
+                )),
+          ],
+        );
+      },
+    );
+  }
 
 }

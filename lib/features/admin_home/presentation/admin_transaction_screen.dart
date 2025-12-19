@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:koji/features/admin_home/presentation/widget/transaction_widget.dart';
-
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../models/admin-model/transaction_model.dart';
 
@@ -55,18 +54,19 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
         children: [
           Container(
             color: Colors.white,
-            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 16.h),
+            padding: EdgeInsets.fromLTRB(25.w, 16.h, 25.w, 16.h),
             child: Container(
+              width: 357.w,
               height: 48.h,
               decoration: BoxDecoration(
                 color: Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(8.r),
               ),
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
               child: Row(
                 children: [
-                  SizedBox(width: 12.w),
                   Icon(Icons.search, color: Color(0xFF9E9E9E), size: 20.sp),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 3.w),
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
@@ -77,20 +77,16 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
+                        isDense: true,
                       ),
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.all(8.w),
-                    child: Icon(Icons.tune, color: Colors.black, size: 20.sp),
-                  ),
-                  SizedBox(width: 4.w),
                 ],
               ),
             ),
           ),
 
-          // Transaction List
+
           Expanded(
             child: Obx(() {
               if (adminHomeController.getTransactionLoading.value) {
@@ -118,6 +114,45 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                 },
               );
             }),
+          ),
+
+          Padding(
+            padding: EdgeInsets.all(17.w),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Download invoice logic
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFF7D7D),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.r),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Download Invoice",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Icon(
+                      Icons.download,
+                      color: Colors.white,
+                      size: 20.r,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

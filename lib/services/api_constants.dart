@@ -50,6 +50,19 @@ class ApiConstants {
   static const String termsConditionsEndPoint = "/info/terms-condition";
   static const String aboutUsEndPoint = "/info/about-us";
 
+  static const String updateDepartmentEndPoint = "/departments/";
+  static const String vehicleListEndPoint = "/vehicles/list?sortBy=createdAt:desc";
+  static const String updateVehicleEndPoint = "/vehicles/";
+  static const String updateDepartmentsEndPoint = "/departments/";
+  static const String updateServiceEndPoint = "/services/";
+  static const String deleteServiceEndPoint = "/services/";
+  static const String updateCategoryEndPoint = "/categories/";
+  static const String approveProfileEndPoint = "/users/approved/";
+  static const String taskMonthEndPoint = "/tasks/monthly-summary";
+  static const String allEmployeeTaskEndPoint = "/tasks/all-employee-task-status";
+  static const String allListTaskEndPointTemplate = "/tasks/employ/list?";
+  static const String taskDetailsEndPointTemplate = "/tasks/";
+
 
 
 }

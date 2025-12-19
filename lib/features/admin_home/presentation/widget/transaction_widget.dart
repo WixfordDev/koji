@@ -52,7 +52,7 @@ class TransactionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Employee ID: ${transaction.employeeId ?? 'N/A'}",
+                  "Name: ${transaction.employeeId?.fullName ?? 'N/A'}",
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -75,12 +75,16 @@ class TransactionCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Status: ${transaction.paymentStatus ?? 'N/A'}",
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: _getStatusColor(transaction.paymentStatus),
-                  ),
+                  "Invoice: ${_extractFileName(transaction.invoice) ?? 'N/A'}",
                 ),
+
+                // Text(
+                //   "Status: ${transaction.paymentStatus ?? 'N/A'}",
+                //   style: TextStyle(
+                //     fontSize: 11.sp,
+                //     color: _getStatusColor(transaction.paymentStatus),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -127,6 +131,38 @@ class TransactionCard extends StatelessWidget {
         return Color(0xFFE53935);
       default:
         return Color(0xFF9E9E9E);
+    }
+  }
+
+  String? _extractFileName(String? path) {
+    if (path == null) return null;
+
+    // Extract the filename from the path
+    // For example: "/uploads/invoices/invoice-692b34375185606abeddaa4a-1764483195577.pdf"
+    // should become "invoice.pdf"
+    try {
+      // Get the last part after the last '/'
+      String fileName = path.split('/').last;
+
+      // If it's a file with a timestamp in the name like "invoice-692b34375185606abeddaa4a-1764483195577.pdf",
+      // extract the meaningful part before the random ID
+      if (fileName.contains('-')) {
+        List<String> parts = fileName.split('-');
+        if (parts.length > 0) {
+          String namePart = parts[0]; // Get the first part before the ID
+          // Add the extension back
+          if (fileName.contains('.')) {
+            String extension = fileName.substring(fileName.lastIndexOf('.'));
+            return "$namePart$extension";
+          } else {
+            return namePart;
+          }
+        }
+      }
+
+      return fileName;
+    } catch (e) {
+      return path; // Return original if extraction fails
     }
   }
 }
