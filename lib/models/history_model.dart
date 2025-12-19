@@ -1,14 +1,15 @@
 // To parse this JSON data, do
 //
-//     final taskModel = taskModelFromJson(jsonString);
+//     final historyModel = historyModelFromJson(jsonString);
 
 import 'dart:convert';
 
-TaskModel taskModelFromJson(String str) => TaskModel.fromJson(json.decode(str));
+HistoryModel historyModelFromJson(String str) =>
+    HistoryModel.fromJson(json.decode(str));
 
-String taskModelToJson(TaskModel data) => json.encode(data.toJson());
+String historyModelToJson(HistoryModel data) => json.encode(data.toJson());
 
-class TaskModel {
+class HistoryModel {
   final dynamic customerSignature;
   final String? id;
   final String? createdBy;
@@ -18,7 +19,6 @@ class TaskModel {
   final String? customerName;
   final String? customerNumber;
   final String? customerAddress;
-  final String? customerEmail;
   final DateTime? assignDate;
   final DateTime? deadline;
   final List<Service>? services;
@@ -39,7 +39,7 @@ class TaskModel {
   final int? v;
   final int? progressPercent;
 
-  TaskModel({
+  HistoryModel({
     this.customerSignature,
     this.id,
     this.createdBy,
@@ -49,7 +49,6 @@ class TaskModel {
     this.customerName,
     this.customerNumber,
     this.customerAddress,
-    this.customerEmail,
     this.assignDate,
     this.deadline,
     this.services,
@@ -71,7 +70,7 @@ class TaskModel {
     this.progressPercent,
   });
 
-  factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
+  factory HistoryModel.fromJson(Map<String, dynamic> json) => HistoryModel(
     customerSignature: json["customerSignature"],
     id: json["_id"],
     createdBy: json["createdBy"],
@@ -81,16 +80,15 @@ class TaskModel {
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
     customerAddress: json["customerAddress"],
-    customerEmail: json["customerEmail"],
     assignDate: json["assignDate"] == null
         ? null
         : DateTime.parse(json["assignDate"]),
     deadline: json["deadline"] == null
         ? null
         : DateTime.parse(json["deadline"]),
-    services: (json["services"] ?? json["service"]) == null
+    services: json["services"] == null
         ? []
-        : List<Service>.from((json["services"] ?? json["service"])!.map((x) => Service.fromJson(x))),
+        : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
     priority: json["priority"],
     difficulty: json["difficulty"],
     assignTo: json["assignTo"],
@@ -127,15 +125,11 @@ class TaskModel {
     "customerName": customerName,
     "customerNumber": customerNumber,
     "customerAddress": customerAddress,
-    "customerEmail": customerEmail,
     "assignDate": assignDate?.toIso8601String(),
     "deadline": deadline?.toIso8601String(),
     "services": services == null
         ? []
         : List<dynamic>.from(services!.map((x) => x.toJson())),
-    "service": services == null
-        ? []
-        : List<dynamic>.from(services!.map((x) => x.toJson())), // Alias for backward compatibility
     "priority": priority,
     "difficulty": difficulty,
     "assignTo": assignTo,
@@ -157,9 +151,6 @@ class TaskModel {
     "__v": v,
     "progressPercent": progressPercent,
   };
-
-  // Getter to provide backward compatibility for 'service' field
-  List<Service>? get service => services;
 }
 
 class Department {

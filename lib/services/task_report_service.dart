@@ -16,8 +16,8 @@ class TaskReportService {
       } else {
         throw Exception(response.statusText ?? 'Failed to load task report');
       }
-    } catch (e) {
-      throw Exception('Error fetching task report: $e');
+    } catch (e, s) {
+      throw Exception('Error fetching task report: $e' + s.toString());
     }
   }
 }

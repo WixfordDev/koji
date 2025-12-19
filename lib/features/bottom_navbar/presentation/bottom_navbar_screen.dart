@@ -53,12 +53,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
         items: [
           BottomNavigationBarItem(
             icon: Assets.icons.home.svg(
-              color: AppColor.selectedColor,
+              color: currentIndex == 0
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 24.w,
               height: 24.h,
             ),
             activeIcon: Assets.icons.home.svg(
-              color: AppColor.unSelectedColor,
+              color: currentIndex == 0
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -66,12 +70,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.schedule.svg(
-              color: AppColor.selectedColor,
+              color: currentIndex == 1
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.schedule.svg(
-              color: AppColor.unSelectedColor,
+              color: currentIndex == 1
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -79,12 +87,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.message.svg(
-              color: AppColor.selectedColor,
+              color: currentIndex == 2
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.message.svg(
-              color: AppColor.unSelectedColor,
+              color: currentIndex == 2
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -92,12 +104,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.history.svg(
-              color: AppColor.selectedColor,
+              color: currentIndex == 3
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.history.svg(
-              color: AppColor.unSelectedColor,
+              color: currentIndex == 3
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
@@ -105,12 +121,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
           ),
           BottomNavigationBarItem(
             icon: Assets.icons.profile.svg(
-              color: AppColor.selectedColor,
+              color: currentIndex == 4
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),
             activeIcon: Assets.icons.profile.svg(
-              color: AppColor.unSelectedColor,
+              color: currentIndex == 4
+                  ? Colors.black
+                  : AppColor.unSelectedColor,
               width: 22.w,
               height: 22.h,
             ),

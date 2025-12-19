@@ -40,6 +40,10 @@ class RouteHelper {
     context.pushReplacement(RoutePaths.employeeBottomNavBar);
   }
 
+  static void goToEmployeeSchedule(BuildContext context) {
+    context.pushNamed(RoutePaths.employeeScheduleScreen);
+  }
+
   static void goToEmployeeCalendar(BuildContext context) {
     context.pushNamed(RoutePaths.employeeCalendarScreen);
   }

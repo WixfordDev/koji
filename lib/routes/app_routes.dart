@@ -107,14 +107,14 @@ class AppRouter {
       path: RoutePaths.employeeCalendarScreen,
       builder: (_, __) => CalendarScreen(),
     ),
-    GoRoute(
-      path: RoutePaths.employeeMyTaskScreen,
-      builder: (_, __) => MyTaskScreen(),
-    ),
-    GoRoute(
-      path: RoutePaths.employeeSubmitTaskScreen,
-      builder: (_, __) => SubmitTaskScreen(),
-    ),
+    // GoRoute(
+    //   path: RoutePaths.employeeMyTaskScreen,
+    //   builder: (_, __) => MyTaskScreen(),
+    // ),
+    // GoRoute(
+    //   path: RoutePaths.employeeSubmitTaskScreen,
+    //   builder: (_, __) => SubmitTaskScreen(),
+    // ),
     GoRoute(
       path: RoutePaths.employeeBottomNavBar,
       builder: (_, __) => BottomNavBar(),
@@ -244,16 +244,16 @@ class AppRouter {
           name: RoutePaths.employeeCalendarScreen,
           builder: (_, __) => CalendarScreen(),
         ),
-        GoRoute(
-          path: RoutePaths.employeeMyTaskScreen,
-          name: RoutePaths.employeeMyTaskScreen,
-          builder: (_, __) => MyTaskScreen(),
-        ),
-        GoRoute(
-          path: RoutePaths.employeeSubmitTaskScreen,
-          name: RoutePaths.employeeSubmitTaskScreen,
-          builder: (_, __) => SubmitTaskScreen(),
-        ),
+        // GoRoute(
+        //   path: RoutePaths.employeeMyTaskScreen,
+        //   name: RoutePaths.employeeMyTaskScreen,
+        //   builder: (_, __) => MyTaskScreen(),
+        // ),
+        // GoRoute(
+        //   path: RoutePaths.employeeSubmitTaskScreen,
+        //   name: RoutePaths.employeeSubmitTaskScreen,
+        //   builder: (_, __) => SubmitTaskScreen(),
+        // ),
         GoRoute(
           path: RoutePaths.employeeBottomNavBar,
           name: RoutePaths.employeeBottomNavBar,
@@ -408,7 +408,6 @@ class AppRouter {
         ),
 
         GoRoute(
-
           path: '/adminMyTaskScreen',
           name: 'adminMyTaskScreen',
           builder: (_, _) => AdminMyTaskScreen(),
@@ -425,14 +424,11 @@ class AppRouter {
           builder: (_, _) => AdminEmployeeRequestScreen(),
         ),
 
-
         GoRoute(
           path: '/adminTransactionScreen',
           name: 'adminTransactionScreen',
           builder: (_, _) => AdminTransactionScreen(),
         ),
-
-
       ],
     );
   }

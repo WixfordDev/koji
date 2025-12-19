@@ -18,11 +18,7 @@ class TaskReportModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'code': code,
-      'message': message,
-      'data': data.toJson(),
-    };
+    return {'code': code, 'message': message, 'data': data.toJson()};
   }
 }
 
@@ -38,9 +34,7 @@ class TaskReportData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'attributes': attributes.toJson(),
-    };
+    return {'attributes': attributes.toJson()};
   }
 }
 
@@ -57,8 +51,8 @@ class TaskReportAttributes {
   final String priority;
   final String difficulty;
   final User assignTo;
-  final int otherAmount;
-  final int totalAmount;
+  final dynamic otherAmount;
+  final dynamic totalAmount;
   final String status;
   final List<String> attachments;
   final List<String> submitedDoc;
@@ -101,21 +95,22 @@ class TaskReportAttributes {
 
   factory TaskReportAttributes.fromJson(Map<String, dynamic> json) {
     return TaskReportAttributes(
-      createdBy: User.fromJson(json['createdBy']),
-      department: Department.fromJson(json['department']),
-      serviceCategory: ServiceCategory.fromJson(json['serviceCategory']),
+      createdBy: _parseUser(json['createdBy']),
+      department: _parseDepartment(json['department']),
+      serviceCategory: _parseServiceCategory(json['serviceCategory']),
       customerName: json['customerName'] ?? '',
       customerNumber: json['customerNumber'] ?? '',
       customerAddress: json['customerAddress'] ?? '',
       assignDate: json['assignDate'] ?? '',
       deadline: json['deadline'] ?? '',
-      services: (json['services'] as List<dynamic>?)
+      services:
+          (json['services'] as List<dynamic>?)
               ?.map((e) => Service.fromJson(e))
               .toList() ??
           [],
       priority: json['priority'] ?? '',
       difficulty: json['difficulty'] ?? '',
-      assignTo: User.fromJson(json['assignTo']),
+      assignTo: _parseUser(json['assignTo']),
       otherAmount: json['otherAmount'] ?? 0,
       totalAmount: json['totalAmount'] ?? 0,
       status: json['status'] ?? '',
@@ -206,7 +201,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      location: Location.fromJson(json['location']),
+      location: _parseLocation(json['location']),
       officeStartTime: json['officeStartTime'],
       officeEndTime: json['officeEndTime'],
       firstName: json['firstName'] ?? '',
@@ -263,9 +258,24 @@ class Location {
   });
 
   factory Location.fromJson(Map<String, dynamic> json) {
+    final coords = json['coordinates'] as List<dynamic>?;
+    final convertedCoords = <double>[];
+
+    if (coords != null) {
+      for (var coord in coords) {
+        if (coord is int) {
+          convertedCoords.add(coord.toDouble());
+        } else if (coord is double) {
+          convertedCoords.add(coord);
+        } else {
+          convertedCoords.add(0.0); // fallback for unexpected types
+        }
+      }
+    }
+
     return Location(
       type: json['type'] ?? '',
-      coordinates: List<double>.from(json['coordinates'] ?? []),
+      coordinates: convertedCoords,
       locationName: json['locationName'] ?? '',
     );
   }
@@ -357,8 +367,8 @@ class ServiceCategory {
 
 class Service {
   final String name;
-  final int price;
-  final int quantity;
+  final dynamic price;
+  final dynamic quantity;
   final String id;
 
   Service({
@@ -378,11 +388,126 @@ class Service {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'price': price,
-      'quantity': quantity,
-      'id': id,
-    };
+    return {'name': name, 'price': price, 'quantity': quantity, 'id': id};
+  }
+}
+
+// Helper function to parse user field which might be a string ID or a full object
+User _parseUser(dynamic userData) {
+  if (userData == null) {
+    return User(
+      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      firstName: '',
+      fullName: '',
+      email: '',
+      image: '',
+      role: '',
+      callingCode: '',
+      phoneNumber: '',
+      createdAt: '',
+      id: '',
+      officeStartTime: null,
+      officeEndTime: null,
+      lastName: null,
+      dateOfBirth: null,
+      address: null,
+      isProfileCompleted: false,
+      isAdminApproved: false,
+      isAcceptPolicyTerms: false,
+    );
+  } else if (userData is String) {
+    // If it's a string (ID), create a minimal User object
+    return User(
+      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      firstName: '',
+      fullName: '',
+      email: '',
+      image: '',
+      role: '',
+      callingCode: '',
+      phoneNumber: '',
+      createdAt: '',
+      id: userData,
+      officeStartTime: null,
+      officeEndTime: null,
+      lastName: null,
+      dateOfBirth: null,
+      address: null,
+      isProfileCompleted: false,
+      isAdminApproved: false,
+      isAcceptPolicyTerms: false,
+    );
+  } else if (userData is Map<String, dynamic>) {
+    // If it's a map (full object), parse normally
+    return User.fromJson(userData);
+  } else {
+    // Fallback case
+    return User(
+      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      firstName: '',
+      fullName: '',
+      email: '',
+      image: '',
+      role: '',
+      callingCode: '',
+      phoneNumber: '',
+      createdAt: '',
+      id: userData.toString(),
+      officeStartTime: null,
+      officeEndTime: null,
+      lastName: null,
+      dateOfBirth: null,
+      address: null,
+      isProfileCompleted: false,
+      isAdminApproved: false,
+      isAcceptPolicyTerms: false,
+    );
+  }
+}
+
+// Helper function to parse location field which might be a string ID or a full object
+Location _parseLocation(dynamic locationData) {
+  if (locationData == null) {
+    return Location(type: '', coordinates: <double>[], locationName: '');
+  } else if (locationData is String) {
+    // If it's a string (ID), create a minimal Location object
+    return Location(type: '', coordinates: <double>[], locationName: locationData);
+  } else if (locationData is Map<String, dynamic>) {
+    // If it's a map (full object), parse normally
+    return Location.fromJson(locationData);
+  } else {
+    // Fallback case
+    return Location(type: '', coordinates: <double>[], locationName: locationData.toString());
+  }
+}
+
+// Helper functions to parse department and serviceCategory fields which might be a string ID or a full object
+Department _parseDepartment(dynamic departmentData) {
+  if (departmentData == null) {
+    return Department(createdBy: '', name: '', description: null, createdAt: '', id: '');
+  } else if (departmentData is String) {
+    // If it's a string (ID), create a minimal Department object
+    return Department(createdBy: '', name: '', description: null, createdAt: '', id: departmentData);
+  } else if (departmentData is Map<String, dynamic>) {
+    // If it's a map (full object), parse normally
+    return Department.fromJson(departmentData);
+  } else {
+    // Fallback case
+    return Department(createdBy: '', name: '', description: null, createdAt: '', id: departmentData.toString());
+  }
+}
+
+ServiceCategory _parseServiceCategory(dynamic serviceCategoryData) {
+  if (serviceCategoryData == null) {
+    return ServiceCategory(createdBy: '', type: '', name: '', description: null, createdAt: '', id: '');
+  } else if (serviceCategoryData is String) {
+    // If it's a string (ID), create a minimal ServiceCategory object
+    return ServiceCategory(createdBy: '', type: '', name: '', description: null, createdAt: '', id: serviceCategoryData);
+  } else if (serviceCategoryData is Map<String, dynamic>) {
+    // If it's a map (full object), parse normally
+    return ServiceCategory.fromJson(serviceCategoryData);
+  } else {
+    // Fallback case
+    return ServiceCategory(createdBy: '', type: '', name: '', description: null, createdAt: '', id: serviceCategoryData.toString());
   }
 }

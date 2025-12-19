@@ -21,6 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late TextEditingController messageController;
   Conversation? conversation;
   User? otherUser;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -39,7 +40,17 @@ class _ChatScreenState extends State<ChatScreen> {
       // Request historical messages for this conversation after a short delay
       // to ensure the socket is properly connected
       Future.delayed(Duration.zero, () {
-        chatController.getMessagesForConversation(conversation!.id!);
+        chatController.getMessagesForConversation(
+          conversation!.receiver?.id ?? "",
+        );
+
+        // Add a fallback timer to fetch via API if socket messages haven't loaded
+        Future.delayed(const Duration(seconds: 3), () {
+          if (chatController.messages.isEmpty) {
+            // print('Socket did not load messages, attempting API fallback');
+            // chatController.fetchHistoricalMessagesFromApi(conversation!.id!);
+          }
+        });
       });
     } else {
       otherUser = null;
@@ -60,19 +71,19 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Get.back(),
-          ),
+          // leading: IconButton(
+          //   icon: Icon(Icons.arrow_back, color: Colors.black),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //   },
+          // ),
           title: CustomText(
             text: 'Invalid Conversation',
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,
           ),
         ),
-        body: const Center(
-          child: Text('No conversation data available'),
-        ),
+        body: const Center(child: Text('No conversation data available')),
       );
     }
 
@@ -83,7 +94,9 @@ class _ChatScreenState extends State<ChatScreen> {
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
         title: Row(
           children: [
@@ -113,30 +126,54 @@ class _ChatScreenState extends State<ChatScreen> {
           // Messages list
           Expanded(
             child: Obx(() {
-              print('Messages list rebuild - Count: ${chatController.messages.length}');
+              print(
+                'Messages list rebuild - Count: ${chatController.messages.length}',
+              );
 
               // Filter messages for current conversation
               final filteredMessages = chatController.messages
-                  .where((message) => message.conversationId == conversation!.id)
+                  .where(
+                    (message) => message.conversationId == conversation!.id,
+                  )
                   .toList();
 
-              print('Filtered messages for conversation ${conversation!.id}: ${filteredMessages.length}');
+              print(
+                'Filtered messages for conversation ${conversation!.id}: ${filteredMessages.length}',
+              );
 
-              if (filteredMessages.isEmpty) {
-                // If no messages in filtered list, check if we're still loading data
-                // Since we're listening for the "message-page" event in the controller,
-                // we just need to wait for the messages to arrive
+              if (filteredMessages.isEmpty &&
+                  chatController.messages.isNotEmpty) {
+                // If no messages match the current conversation but we have messages for other conversations,
+                // that means the messages haven't loaded yet for this conversation
+                return const Center(child: CircularProgressIndicator());
+              } else if (filteredMessages.isEmpty) {
+                // No messages at all, either for this conversation or any other
                 return const Center(child: Text('No messages yet'));
               }
 
+              // Scroll to bottom after messages update
+              if (filteredMessages.isNotEmpty) {
+                SchedulerBinding.instance.addPostFrameCallback((_) {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                });
+              }
+
               return ListView.builder(
+                controller: _scrollController,
                 reverse: false, // Show messages from top to bottom
                 itemCount: filteredMessages.length,
                 itemBuilder: (context, index) {
                   Message message = filteredMessages[index];
-                  bool isMe = message.msgByUserId == chatController.currentUserId;
+                  bool isMe =
+                      message.msgByUserId == chatController.currentUserId;
 
-                  print('Building message bubble for: ${message.text} - isMe: $isMe');
+                  print(
+                    'Building message bubble for: ${message.text} - isMe: $isMe',
+                  );
 
                   return _buildMessageBubble(message, isMe);
                 },
@@ -158,6 +195,9 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
+          width: message.text != null && message.text!.length > 20
+              ? 280.w
+              : null,
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: isMe ? AppColor.primaryColor : Colors.grey[200],
@@ -263,6 +303,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       conversationId: conversationId,
                       text: text,
                     );
+                    // After sending a message, scroll to the bottom
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    });
                     controller.clear();
                   }
                 },

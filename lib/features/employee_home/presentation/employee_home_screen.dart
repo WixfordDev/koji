@@ -423,14 +423,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
                   fontSize: 12.sp,
                   textAlign: TextAlign.start,
                 ),
-                SizedBox(height: 16.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _timeBox("Today", "08:00:00 Hrs"),
-                    _timeBox("Overtime", "00:00:00 Hrs"),
-                  ],
-                ),
+
                 SizedBox(height: 20.h),
 
                 CustomButton(
@@ -519,7 +512,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
                   title: "Skip",
                   onpress: () async {
                     Navigator.pop(context);
-                    await _performCheckOut(null);
+                    await _performCheckOut("");
                   },
                 ),
               ],
