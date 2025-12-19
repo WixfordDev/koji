@@ -6,10 +6,10 @@ class VehicleSelectorWidget extends StatelessWidget {
   final VoidCallback onTap;
 
   const VehicleSelectorWidget({
-    Key? key,
+    super.key,
     required this.selectedVehicle,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
