@@ -13,6 +13,8 @@ import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:koji/models/attendance.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/core/app_constants.dart';
+import 'package:koji/controller/employee_location_controller.dart';
+import 'package:get/get.dart';
 
 class EmployeeHomeScreen extends StatefulWidget {
   const EmployeeHomeScreen({super.key});
@@ -38,8 +40,9 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // fetch current month attendances in background
+    // Initialize location tracking when the app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLocationTracking();
       _fetchAttendanceList();
       _loadUserName();
     });
@@ -47,6 +50,15 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _now = DateTime.now());
     });
+  }
+
+  /// Initialize location tracking for the employee
+  void _initializeLocationTracking() {
+    // Get the location controller to start location updates
+    final locationController = Get.put(EmployeeLocationController());
+
+    // Start location tracking
+    locationController.startLocationTracking();
   }
 
   Future<void> _loadUserName() async {
