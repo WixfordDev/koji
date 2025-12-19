@@ -35,6 +35,7 @@ class AdminCreateTaskScreen extends StatefulWidget {
 
 
 class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with WidgetsBindingObserver {
+
   final DepartmentController departmentController = Get.find();
 
   final TextEditingController _customerNameController = TextEditingController();
@@ -147,8 +148,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
               VehicleSelectorWidget(
                 selectedVehicle: selectedVehicle,
-                onTap: _showVehicleBottomSheet,  // New vehicle bottom sheet method
-              ),
+                onTap: _showVehicleBottomSheet),
 
               ServiceListDropdownWidget(
                 selectedServiceList: selectedServiceList,
@@ -225,8 +225,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                     _createTask();
                   },
                   loading: departmentController.createNewLoading.value,
-                ),
-              ),
+                ),),
 
               SizedBox(height: 40.h),
             ],
