@@ -33,22 +33,10 @@ class LocationService {
       throw Exception('Location permissions are permanently denied');
     }
 
-    // Initialize socket connection
-    await _initializeSocketConnection();
-
     // Start location updates
     _startLocationUpdates();
 
     _isActive = true;
-  }
-
-  /// Initialize socket connection
-  Future<void> _initializeSocketConnection() async {
-    final token = await PrefsHelper.getString(AppConstants.bearerToken);
-    final userId = await PrefsHelper.getString(AppConstants.userId);
-    final fcmToken = await PrefsHelper.getString(AppConstants.fcmToken);
-
-    await SocketServices().init(userId: userId, fcmToken: fcmToken);
   }
 
   Timer? _locationUpdateTimer;

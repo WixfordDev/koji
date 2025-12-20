@@ -1,9 +1,14 @@
 class ApiConstants {
   // static const String baseUrl = "http://192.168.10.80:8080/api/v1";
   // static const String imageBaseUrl = "http://192.168.10.80:8080";
+
+  // static const String baseUrl = "https://koji.sobhoy.com/api/v1/";
+  // static const String imageBaseUrl = "https://koji.sobhoy.com";
+  // static const String socketUrl = "https://wskogi.sobhoy.com";
+
   static const String baseUrl = "https://koji.sobhoy.com/api/v1/";
   static const String imageBaseUrl = "https://koji.sobhoy.com";
-  static const String socketUrl = "https://wskogi.sobhoy.com";
+  static const String socketUrl = "https://koji.sobhoy.com";
 
   static const String signUpEndPoint = "/auth/register";
   static const String loginUpEndPoint = "/auth/login";
@@ -51,7 +56,8 @@ class ApiConstants {
   static const String aboutUsEndPoint = "/info/about-us";
 
   static const String updateDepartmentEndPoint = "/departments/";
-  static const String vehicleListEndPoint = "/vehicles/list?sortBy=createdAt:desc";
+  static const String vehicleListEndPoint =
+      "/vehicles/list?sortBy=createdAt:desc";
   static const String updateVehicleEndPoint = "/vehicles/";
   static const String updateDepartmentsEndPoint = "/departments/";
   static const String updateServiceEndPoint = "/services/";
@@ -59,10 +65,8 @@ class ApiConstants {
   static const String updateCategoryEndPoint = "/categories/";
   static const String approveProfileEndPoint = "/users/approved/";
   static const String taskMonthEndPoint = "/tasks/monthly-summary";
-  static const String allEmployeeTaskEndPoint = "/tasks/all-employee-task-status";
+  static const String allEmployeeTaskEndPoint =
+      "/tasks/all-employee-task-status";
   static const String allListTaskEndPointTemplate = "/tasks/employ/list?";
   static const String taskDetailsEndPointTemplate = "/tasks/";
-
-
-
 }

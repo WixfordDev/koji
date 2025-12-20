@@ -40,32 +40,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               children: [
                 SizedBox(height: 30.h),
 
-                // Profile Image
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50.r,
-                      backgroundColor: Colors.grey[300],
-                      child: Icon(
-                        Icons.person,
-                        size: 50.sp,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        radius: 16.r,
-                        backgroundColor: Colors.blue,
-                        child: Icon(
-                          Icons.edit,
-                          size: 16.sp,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                // Logo
+                Center(
+                  child: Image.asset('assets/images/splash.png', height: 100.h),
                 ),
 
                 SizedBox(height: 20.h),
@@ -142,40 +119,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       return 'Please confirm your password';
                     } else if (value != passwordCtrl.text) {
                       return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
-
-                SizedBox(height: 16.h),
-
-                // Role Dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedRole,
-                  hint: const Text("Select Role"),
-                  items: roles
-                      .map(
-                        (role) =>
-                            DropdownMenuItem(value: role, child: Text(role)),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRole = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 14.h,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Please select a role';
                     }
                     return null;
                   },
