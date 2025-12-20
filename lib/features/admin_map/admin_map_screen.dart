@@ -4,6 +4,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
+import 'package:koji/services/socket_services.dart';
+import 'dart:convert';
 
 class TrackingScreen extends StatefulWidget {
   @override
@@ -16,21 +18,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
   double _radius = 2.0; // miles
 
   LatLng _currentLocation = LatLng(23.8103, 90.4125); // default Dhaka
-  final List<Employee> _employees = [
-    Employee(name: "Alice", location: LatLng(23.8120, 90.4110)),
-    Employee(name: "Bob", location: LatLng(23.8150, 90.4180)),
-    Employee(name: "Charlie", location: LatLng(23.8070, 90.4200)),
-    Employee(name: "David", location: LatLng(23.8050, 90.4100)),
-    Employee(name: "Eve", location: LatLng(23.8110, 90.4220)),
-  ];
-
+  List<Employee> _employees = [];
   List<Employee> _filteredEmployees = [];
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _filteredEmployees = _employees;
+    _connectToSocket();
+  }
+
+  @override
+  void dispose() {
+    SocketServices().socket.off('employee-live-location::snapshot');
+    super.dispose();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -38,12 +39,23 @@ class _TrackingScreenState extends State<TrackingScreen> {
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    if (!serviceEnabled) {
+      _showLocationServiceDisabledDialog();
+      return;
+    }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      if (permission == LocationPermission.denied) {
+        _showPermissionDeniedDialog();
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showPermissionDeniedForeverDialog();
+      return;
     }
 
     Position position = await Geolocator.getCurrentPosition(
@@ -54,8 +66,66 @@ class _TrackingScreenState extends State<TrackingScreen> {
       _currentLocation = LatLng(position.latitude, position.longitude);
     });
 
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newLatLngZoom(_currentLocation, 14));
+    // Update map position if controller is available
+    if (_controller.isCompleted) {
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newLatLngZoom(_currentLocation, 14));
+    }
+  }
+
+  void _connectToSocket() {
+    // Listen for employee location updates
+    SocketServices().socket.on('employee-live-location::snapshot', (data) {
+      if (data != null) {
+        _updateEmployeeLocations(data);
+      }
+    });
+  }
+
+  void _updateEmployeeLocations(dynamic data) {
+    if (data is List) {
+      List<Employee> newEmployees = [];
+
+      for (var item in data) {
+        if (item is Map<String, dynamic>) {
+          // Extract coordinates from the location object
+          var locationData = item['location'] as Map<String, dynamic>?;
+          var coordinates = locationData?['coordinates'] as List<dynamic>?;
+
+          if (coordinates != null && coordinates.length >= 2) {
+            double lat = coordinates[1].toDouble(); // Latitude is the second element
+            double lng = coordinates[0].toDouble(); // Longitude is the first element
+            String fullName = item['fullName'] ?? 'Unknown Employee';
+
+            // Only add employees with valid coordinates (not 0,0 which indicates default location)
+            if (lat != 0.0 || lng != 0.0) {
+              newEmployees.add(
+                Employee(
+                  id: item['id'] ?? '',
+                  name: fullName,
+                  location: LatLng(lat, lng),
+                  image: item['image'],
+                ),
+              );
+            }
+          }
+        }
+      }
+
+      setState(() {
+        _employees = newEmployees;
+        _filteredEmployees = _employees.where((employee) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _currentLocation.latitude,
+            _currentLocation.longitude,
+            employee.location.latitude,
+            employee.location.longitude,
+          );
+          double distanceInMiles = distanceInMeters / 1609.34;
+          return distanceInMiles <= _radius;
+        }).toList();
+      });
+    }
   }
 
   void _filterEmployees() {
@@ -97,6 +167,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 onChanged: (value) {
                   setState(() {
                     _radius = value;
+                    _filterEmployees(); // Update filter when slider changes
                   });
                 },
               ),
@@ -121,19 +192,68 @@ class _TrackingScreenState extends State<TrackingScreen> {
     );
   }
 
+  void _showLocationServiceDisabledDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Location Services Disabled"),
+        content: Text("Please enable location services to use this feature."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Location Permission Denied"),
+        content: Text("Location permission is needed to show your location on the map."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDeniedForeverDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Location Permission Permanently Denied"),
+        content: Text("Location permission is permanently denied. Please enable it in app settings."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Set<Marker> markers = _filteredEmployees
         .map(
           (e) => Marker(
-            markerId: MarkerId(e.name),
+            markerId: MarkerId(e.id.isNotEmpty ? e.id : e.name),
             position: e.location,
             infoWindow: InfoWindow(title: e.name),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           ),
         )
         .toSet();
 
-    // ✅ Add current location marker
+    // Add current location marker
     markers.add(
       Marker(
         markerId: MarkerId("current_location"),
@@ -143,7 +263,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
       ),
     );
 
-    // ✅ Add radius circle around user’s location
+    // Add radius circle around user's location
     Set<Circle> circles = {
       Circle(
         circleId: CircleId("radius_circle"),
@@ -158,7 +278,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: SizedBox(),
-        title: Text("Tracking"),
+        title: Text("Employee Tracking"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -170,28 +290,26 @@ class _TrackingScreenState extends State<TrackingScreen> {
       body: Stack(
         clipBehavior: Clip.none,
         children: [
-          // ✅ Google Map with radius circle
-          SizedBox(
-            height: 730.h,
-            child: GoogleMap(
-              mapType: MapType.normal,
-              initialCameraPosition: CameraPosition(
-                target: _currentLocation,
-                zoom: 14,
-              ),
-              markers: markers,
-              circles: circles,
-              myLocationEnabled: true,
-              onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
-              },
+          // Google Map with radius circle
+          GoogleMap(
+            mapType: MapType.normal,
+            initialCameraPosition: CameraPosition(
+              target: _currentLocation,
+              zoom: 14,
             ),
+            markers: markers,
+            circles: circles,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
           ),
 
-          // ✅ Search Field (Floating Style)
+          // Search Field (Floating Style)
           SafeArea(
             child: Positioned(
-              top: 400.h,
+              top: 100.h,
               left: 16,
               right: 16,
               child: Container(
@@ -233,6 +351,26 @@ class _TrackingScreenState extends State<TrackingScreen> {
               ),
             ),
           ),
+
+          // Status indicator
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                "Live",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -240,8 +378,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
 }
 
 class Employee {
+  final String id;
   final String name;
   final LatLng location;
+  final String? image;
 
-  Employee({required this.name, required this.location});
+  Employee({
+    required this.id,
+    required this.name,
+    required this.location,
+    this.image,
+  });
 }
