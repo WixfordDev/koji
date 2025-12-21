@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "145844906394",
+    "project_id": "kojiwixford",
+    "storage_bucket": "kojiwixford.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145844906394:android:0353cfd3a74a0c0888b223",
+        "android_client_info": {
+          "package_name": "com.example.koji"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOiRp0n79u9a0rKkfvZMvlZly1da06wYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

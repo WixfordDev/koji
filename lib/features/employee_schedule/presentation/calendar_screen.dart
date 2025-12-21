@@ -387,7 +387,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     SizedBox(width: 4.w),
                     Text(
                       displayDate,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                      style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                     ),
                   ],
                 ),

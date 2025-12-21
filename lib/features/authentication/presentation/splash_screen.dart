@@ -22,9 +22,16 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     Future.delayed(Duration(seconds: 3), () async {
       var token = await PrefsHelper.getString(AppConstants.bearerToken);
+      var role = await PrefsHelper.getString(AppConstants.role);
 
       if (token != null && token.isNotEmpty) {
-        RouteHelper.goToEmployeeBottomNav(context);
+        if (role == 'admin') {
+          RouteHelper.goToAdminBottomNav(context);
+          return;
+        } else if (role == 'employee') {
+          RouteHelper.goToEmployeeBottomNav(context);
+          return;
+        }
       } else {
         context.push('/onboarding');
       }
