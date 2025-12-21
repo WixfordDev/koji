@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:koji/services/socket_services.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 import 'dart:convert';
 
 class TrackingScreen extends StatefulWidget {
@@ -25,12 +26,19 @@ class _TrackingScreenState extends State<TrackingScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _connectToSocket();
   }
 
   @override
   void dispose() {
-    SocketServices().socket.off('employee-live-location::snapshot');
+    try {
+      // Check if socket is initialized before trying to disconnect
+      if (SocketServices().socket != null &&
+          SocketServices().socket.connected) {
+        SocketServices().socket.off('employee-live-location::snapshot');
+      }
+    } catch (e) {
+      print('Error disconnecting from socket: $e');
+    }
     super.dispose();
   }
 
@@ -69,17 +77,30 @@ class _TrackingScreenState extends State<TrackingScreen> {
     // Update map position if controller is available
     if (_controller.isCompleted) {
       final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newLatLngZoom(_currentLocation, 14));
+      controller.animateCamera(
+        CameraUpdate.newLatLngZoom(_currentLocation, 14),
+      );
     }
   }
 
-  void _connectToSocket() {
-    // Listen for employee location updates
-    SocketServices().socket.on('employee-live-location::snapshot', (data) {
-      if (data != null) {
-        _updateEmployeeLocations(data);
-      }
-    });
+  // Helper method to get user ID from preferences
+  Future<String?> _getUserId() async {
+    try {
+      return await PrefsHelper.getString('userId');
+    } catch (e) {
+      print('Error getting user ID: $e');
+      return null;
+    }
+  }
+
+  // Helper method to get FCM token
+  Future<String?> _getFcmToken() async {
+    try {
+      return await PrefsHelper.getString('fcmToken');
+    } catch (e) {
+      print('Error getting FCM token: $e');
+      return null;
+    }
   }
 
   void _updateEmployeeLocations(dynamic data) {
@@ -93,8 +114,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
           var coordinates = locationData?['coordinates'] as List<dynamic>?;
 
           if (coordinates != null && coordinates.length >= 2) {
-            double lat = coordinates[1].toDouble(); // Latitude is the second element
-            double lng = coordinates[0].toDouble(); // Longitude is the first element
+            double lat = coordinates[1]
+                .toDouble(); // Latitude is the second element
+            double lng = coordinates[0]
+                .toDouble(); // Longitude is the first element
             String fullName = item['fullName'] ?? 'Unknown Employee';
 
             // Only add employees with valid coordinates (not 0,0 which indicates default location)
@@ -213,7 +236,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Location Permission Denied"),
-        content: Text("Location permission is needed to show your location on the map."),
+        content: Text(
+          "Location permission is needed to show your location on the map.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -229,7 +254,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Location Permission Permanently Denied"),
-        content: Text("Location permission is permanently denied. Please enable it in app settings."),
+        content: Text(
+          "Location permission is permanently denied. Please enable it in app settings.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -248,7 +275,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
             markerId: MarkerId(e.id.isNotEmpty ? e.id : e.name),
             position: e.location,
             infoWindow: InfoWindow(title: e.name),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueGreen,
+            ),
           ),
         )
         .toSet();

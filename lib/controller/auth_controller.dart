@@ -9,6 +9,7 @@ import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:koji/routes/route_helper.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
+import 'package:koji/services/firebase_notification_service.dart';
 
 class AuthController extends GetxController {
   RxBool signUpLoading = false.obs;
@@ -151,8 +152,15 @@ class AuthController extends GetxController {
   }) async {
     logInLoading.value = true;
 
+    await FirebaseNotificationService.printFCMToken();
+    String fcmToken = await PrefsHelper.getString(AppConstants.fcmToken);
+
     var headers = {'Content-Type': 'application/json'};
-    var body = {"email": "$email", "password": "$password", "fcmToken": "n/a"};
+    var body = {
+      "email": "$email",
+      "password": "$password",
+      "fcmToken": fcmToken,
+    };
 
     var response = await ApiClient.postData(
       ApiConstants.loginUpEndPoint,

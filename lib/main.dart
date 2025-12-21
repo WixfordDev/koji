@@ -4,8 +4,11 @@ import 'package:koji/helpers/dependancy_injaction.dart';
 import 'package:koji/routes/app_routes.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:koji/services/firebase_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +23,11 @@ void main() async {
   di.dependencies();
 
   di.lockDevicePortrait();
+
+  await Firebase.initializeApp();
+  await FirebaseMessaging.instance;
+  // Print FCM Token
+  await FirebaseNotificationService.initialize();
   runApp(const MyApp());
 }
 
