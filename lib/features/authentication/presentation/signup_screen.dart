@@ -95,6 +95,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   controller: passwordCtrl,
                   hintText: 'Password',
                   obscureText: true,
+                  isPasswordField: true,
                   suffixIcon: const Icon(Icons.visibility_off),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -113,6 +114,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   controller: confirmPasswordCtrl,
                   hintText: 'Confirm Password',
                   obscureText: true,
+                  isPasswordField: true,
                   suffixIcon: const Icon(Icons.visibility_off),
                   validator: (value) {
                     if (value == null || value.isEmpty) {

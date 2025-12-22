@@ -69,4 +69,5 @@ class ApiConstants {
       "/tasks/all-employee-task-status";
   static const String allListTaskEndPointTemplate = "/tasks/employ/list?";
   static const String taskDetailsEndPointTemplate = "/tasks/";
+  static const String notificationsEndPoint = "/info/notifications";
 }
