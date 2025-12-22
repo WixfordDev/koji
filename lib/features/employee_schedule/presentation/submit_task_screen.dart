@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:koji/models/task_model.dart';
 import 'package:koji/services/api_client.dart';
+import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:typed_data';
 
 class TaskScreen extends StatefulWidget {
   final String taskId;
@@ -187,8 +191,8 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   void _showCustomerSignatureDialog() {
-    File? signatureFile;
     bool isUploading = false;
+    final GlobalKey<SfSignaturePadState> _signatureKey = GlobalKey();
 
     showDialog(
       context: context,
@@ -215,63 +219,49 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                   SizedBox(height: 20.h),
 
-                  // Signature preview
-                  GestureDetector(
-                    onTap: isUploading
-                        ? null
-                        : () async {
-                            final ImagePicker picker = ImagePicker();
-                            final XFile? image = await picker.pickImage(
-                              source: ImageSource.gallery,
-                              maxWidth: 1080,
-                              maxHeight: 1080,
-                              imageQuality: 85,
-                            );
-
-                            if (image != null) {
-                              setDialogState(() {
-                                signatureFile = File(image.path);
-                              });
-                            }
-                          },
-                    child: Container(
-                      width: double.infinity,
-                      height: 200.h,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: signatureFile != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12.r),
-                              child: Image.file(
-                                signatureFile!,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  size: 48.sp,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: 12.h),
-                                Text(
-                                  'Tap to add signature',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
+                  // Signature pad
+                  Container(
+                    width: double.infinity,
+                    height: 200.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: SfSignaturePad(
+                      key: _signatureKey,
+                      backgroundColor: Colors.white,
+                      strokeColor: Colors.black,
                     ),
                   ),
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 20.h),
+
+                  // Clear signature button
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () {
+                        _signatureKey.currentState?.clear();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.clear, size: 16.sp, color: Colors.red),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'Clear Signature',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 10.h),
 
                   // Submit Button
                   SizedBox(
@@ -280,7 +270,12 @@ class _TaskScreenState extends State<TaskScreen> {
                       onPressed: isUploading
                           ? null
                           : () async {
-                              if (signatureFile == null) {
+                              // Get the signature as an image
+                              final signatureImage = await _signatureKey
+                                  .currentState
+                                  ?.toImage();
+
+                              if (signatureImage == null) {
                                 Get.snackbar(
                                   'Required',
                                   'Please add customer signature',
@@ -295,10 +290,30 @@ class _TaskScreenState extends State<TaskScreen> {
                               });
 
                               try {
-                                // Call accept API with signature
+                                // Convert the signature image to a file
+                                final ByteData? byteData = await signatureImage
+                                    .toByteData(format: ImageByteFormat.png);
+                                if (byteData == null) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Failed to process signature',
+                                    backgroundColor: Colors.red,
+                                    colorText: Colors.white,
+                                  );
+                                  return;
+                                }
 
+                                final Uint8List pngBytes = byteData.buffer
+                                    .asUint8List();
+                                final tempDir = await getTemporaryDirectory();
+                                final file = await File(
+                                  '${tempDir.path}/signature.png',
+                                ).create();
+                                await file.writeAsBytes(pngBytes);
+
+                                // Call accept API with signature
                                 List<MultipartBody> signatureBody = [
-                                  MultipartBody("signature", signatureFile!),
+                                  MultipartBody("signature", file),
                                 ];
 
                                 final acceptResponse =
