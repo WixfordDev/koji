@@ -203,46 +203,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               SizedBox(height: 16.h),
-
-              /// ==================================> My Documents =============================>
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.mydoc.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 5.w),
-                            CustomText(
-                              text: 'My Documents',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-
               /// ==================================> Terms =============================>
               GestureDetector(
                 onTap: () {

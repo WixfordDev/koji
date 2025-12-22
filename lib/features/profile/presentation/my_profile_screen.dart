@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -12,10 +11,6 @@ import '../../../global/custom_assets/assets.gen.dart';
 import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
-
-
-
-
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});

@@ -212,7 +212,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         // Clear form after successful submission
         issueCtrl.clear();
         desCtrl.clear();
-        attachedFile = null;
+        setState(() {
+          attachedFile = null;
+        });
       }
     });
   }

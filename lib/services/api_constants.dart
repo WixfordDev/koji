@@ -12,7 +12,6 @@ class ApiConstants {
 
   static const String signUpEndPoint = "/auth/register";
   static const String loginUpEndPoint = "/auth/login";
-  static const String changePassword = "/auth/change-password";
   static const String verifyEmailEndPoint = "/auth/verify-email";
   static const String forgotPasswordEndPoint = "/auth/forgot-password";
   static const String resetPasswordEndPoint = "/auth/reset-password";
@@ -70,4 +69,5 @@ class ApiConstants {
   static const String allListTaskEndPointTemplate = "/tasks/employ/list?";
   static const String taskDetailsEndPointTemplate = "/tasks/";
   static const String notificationsEndPoint = "/info/notifications";
+  static const String changePasswordEndPoint = "/auth/change-password";
 }
