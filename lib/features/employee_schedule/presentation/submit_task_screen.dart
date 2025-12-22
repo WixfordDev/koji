@@ -70,17 +70,17 @@ class _TaskScreenState extends State<TaskScreen> {
   final List<Map<String, dynamic>> _extraServices = [];
 
   // GST percentage
-  final double _gstPercentage = 9.0;
+  final double _gstPercentage = 0;
 
   double get _subtotal {
     double subtotal = 0;
     // Add original services
     for (var service in _originalServices) {
-      subtotal += service['price'];
+      subtotal += service['price'] * int.parse(service['quantity']);
     }
     // Add extra services
     for (var service in _extraServices) {
-      subtotal += service['price'];
+      subtotal += service['price'] * int.parse(service['quantity']);
     }
     return subtotal;
   }
@@ -659,10 +659,7 @@ class _TaskScreenState extends State<TaskScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
+
         title: Text(
           'My Task',
           style: TextStyle(
@@ -761,49 +758,51 @@ class _TaskScreenState extends State<TaskScreen> {
                     SizedBox(height: 16.h),
 
                     // Add Signature Button
-                    GestureDetector(
-                      onTap: _pickImages,
-                      child: Container(
-                        width: double.infinity,
-                        height: 120.h,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate,
-                              size: 32.sp,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 8.h),
-                            Text(
-                              _selectedImages.isEmpty
-                                  ? 'Browse Files from device'
-                                  : 'Tap to add more (${3 - _selectedImages.length} remaining)',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.grey[600],
+                    _selectedImages.length < 3
+                        ? GestureDetector(
+                            onTap: _pickImages,
+                            child: Container(
+                              width: double.infinity,
+                              height: 120.h,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.r),
+                                border: Border.all(color: Colors.grey[300]!),
                               ),
-                            ),
-                            if (_selectedImages.isNotEmpty)
-                              Padding(
-                                padding: EdgeInsets.only(top: 4.h),
-                                child: Text(
-                                  '${_selectedImages.length}/3 images selected',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: Colors.grey[500],
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 32.sp,
+                                    color: Colors.grey[400],
                                   ),
-                                ),
+                                  SizedBox(height: 8.h),
+                                  Text(
+                                    _selectedImages.isEmpty
+                                        ? 'Browse Files from device'
+                                        : 'Tap to add more (${3 - _selectedImages.length} remaining)',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  if (_selectedImages.isNotEmpty)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 4.h),
+                                      child: Text(
+                                        '${_selectedImages.length}/3 images selected',
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          color: Colors.grey[500],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ),
-                    ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
                   ],
                 ),
               ),
@@ -836,12 +835,14 @@ class _TaskScreenState extends State<TaskScreen> {
                     if (_originalServices.isNotEmpty)
                       ...List.generate(_originalServices.length, (index) {
                         final service = _originalServices[index];
+                        final price = service['price'] ?? 0.0;
+                        final quantity = service['quantity'] ?? '1';
                         return Padding(
                           padding: EdgeInsets.only(bottom: 12.h),
                           child: _buildServiceItem(
-                            service['name'],
-                            service['price'],
-                            service['quantity'],
+                            '${service['name']} (x$quantity)',
+                            price,
+                            quantity,
                           ),
                         );
                       }),
@@ -862,12 +863,14 @@ class _TaskScreenState extends State<TaskScreen> {
                     // Extra services (with delete option)
                     ...List.generate(_extraServices.length, (index) {
                       final service = _extraServices[index];
+                      final price = service['price'] ?? 0.0;
+                      final quantity = service['quantity'] ?? '1';
                       return Padding(
                         padding: EdgeInsets.only(bottom: 12.h),
                         child: _buildServiceItem(
-                          service['name'],
-                          service['price'],
-                          service['quantity'],
+                          '${service['name']} (x$quantity)',
+                          price,
+                          quantity,
                           showDelete: true,
                           onDelete: () => _removeExtraService(index),
                         ),
@@ -883,20 +886,20 @@ class _TaskScreenState extends State<TaskScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'GST $_gstPercentage%',
+                            'GST \$9%',
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.grey[700],
                             ),
                           ),
-                          Text(
-                            '\$${_gstAmount.toStringAsFixed(1)}',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
-                          ),
+                          // Text(
+                          //   '\$${_gstAmount.toStringAsFixed(1)}',
+                          //   style: TextStyle(
+                          //     fontSize: 14.sp,
+                          //     fontWeight: FontWeight.w600,
+                          //     color: Colors.grey[700],
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
@@ -947,17 +950,37 @@ class _TaskScreenState extends State<TaskScreen> {
                         ),
                       ),
                     ),
+
                     Row(
                       children: [
-                        _radioItem(
-                          title: 'Cash',
-                          value: 'Cash',
-                          groupValue: _selectedPaymentMethod,
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedPaymentStatus = val!;
-                            });
-                          },
+                        Row(
+                          children: [
+                            _radioItem(
+                              title: 'Cash',
+                              value: 'Cash',
+                              groupValue: _selectedPaymentMethod,
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedPaymentMethod = val!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+
+                        Row(
+                          children: [
+                            _radioItem(
+                              title: 'Online Banking',
+                              value: 'Online Banking',
+                              groupValue: _selectedPaymentMethod,
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedPaymentMethod = val!;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -976,7 +999,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     Padding(
                       padding: const EdgeInsets.only(left: 6),
                       child: Text(
-                        'Payment Method',
+                        'Payment Status',
                         style: TextStyle(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.w600,
@@ -987,23 +1010,23 @@ class _TaskScreenState extends State<TaskScreen> {
                     Row(
                       children: [
                         _radioItem(
-                          title: 'Cash',
-                          value: 'Cash',
-                          groupValue: _selectedPaymentMethod,
+                          title: 'Payment Paid',
+                          value: 'Payment Paid',
+                          groupValue: _selectedPaymentStatus,
                           onChanged: (val) {
                             setState(() {
-                              _selectedPaymentMethod = val!;
+                              _selectedPaymentStatus = val!;
                             });
                           },
                         ),
                         SizedBox(width: 20.w),
                         _radioItem(
-                          title: 'Online Banking',
-                          value: 'Online Banking',
-                          groupValue: _selectedPaymentMethod,
+                          title: 'Payment Unpaid',
+                          value: 'Payment Unpaid',
+                          groupValue: _selectedPaymentStatus,
                           onChanged: (val) {
                             setState(() {
-                              _selectedPaymentMethod = val!;
+                              _selectedPaymentStatus = val!;
                             });
                           },
                         ),
@@ -1081,18 +1104,17 @@ class _TaskScreenState extends State<TaskScreen> {
 
               SizedBox(height: 12.h),
 
-              // Cancel Button
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Get.back(),
-                  child: Text(
-                    'No, Let Me Check',
-                    style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
-                  ),
-                ),
-              ),
-
+              // // Cancel Button
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: TextButton(
+              //     onPressed: () => Get.back(),
+              //     child: Text(
+              //       'No, Let Me Check',
+              //       style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+              //     ),
+              //   ),
+              // ),
               SizedBox(height: 24.h),
             ],
           ),
@@ -1128,6 +1150,9 @@ class _TaskScreenState extends State<TaskScreen> {
     bool showDelete = false,
     VoidCallback? onDelete,
   }) {
+    int qty = int.tryParse(quantity ?? '1') ?? 1;
+    double total = price * qty;
+
     return Container(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1162,7 +1187,7 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
           ),
           Text(
-            '\$${price.toStringAsFixed(1)}',
+            '\$${total.toStringAsFixed(1)}',
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,

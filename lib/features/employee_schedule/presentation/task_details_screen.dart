@@ -34,10 +34,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
         title: Text(
           'Task Details',
           style: TextStyle(
