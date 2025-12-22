@@ -7,6 +7,8 @@ import 'package:koji/controller/admincontroller/department_controller.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
 import 'package:koji/controller/profile_controller.dart';
 
+import '../controller/notifications_controller.dart';
+
 class DependencyInjection implements Bindings {
   DependencyInjection();
 
@@ -18,6 +20,7 @@ class DependencyInjection implements Bindings {
     Get.lazyPut(() => AdminHomeController(), fenix: true);
     Get.lazyPut(() => ScheduleController(), fenix: true);
     Get.lazyPut(() => ProfileController(), fenix: true);
+    Get.lazyPut(() => NotificationController(), fenix: true);
 
   }
 

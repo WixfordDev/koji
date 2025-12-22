@@ -57,6 +57,7 @@ class LoginScreen extends StatelessWidget {
                     controller: emailCtrl,
                     hintText: 'Enter Email',
                     keyboardType: TextInputType.emailAddress,
+
                   ),
 
                   SizedBox(height: 16.h),
@@ -66,7 +67,7 @@ class LoginScreen extends StatelessWidget {
                     controller: passwordCtrl,
                     hintText: "Enter Password",
                     obscureText: true,
-                    suffixIcon: Icon(Icons.visibility_off),
+                    isPasswordField: true,
                   ),
 
                   SizedBox(height: 10.h),

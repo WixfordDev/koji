@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -66,7 +67,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ],
               ),
               const Spacer(),
-              const Icon(Icons.notifications_none_rounded, color: Colors.black),
+              GestureDetector(
+                onTap: () {
+                  context.push('/notificationScreen');
+                },
+                child: Icon(
+                  Icons.notifications_none_outlined,
+                  color: const Color(0xff8F8F8F),
+                  size: 22.sp,
+                ),
+              ),
             ],
           ),
         ),
