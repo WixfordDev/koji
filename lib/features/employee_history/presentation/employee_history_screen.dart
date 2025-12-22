@@ -77,53 +77,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w500,
                     ),
-                    Obx(() {
-                      return GestureDetector(
-                        onTap: () {
-                          _showFilterDialog();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 8.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(
-                              color: AppColor.primaryColor.withValues(
-                                alpha: 0.3,
-                              ),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.filter_alt_outlined,
-                                size: 18.sp,
-                                color: AppColor.primaryColor,
-                              ),
-                              SizedBox(width: 6.w),
-                              CustomText(
-                                text: _getDisplayTextForStatus(
-                                  controller.selectedStatus.value,
-                                ),
-                                color: AppColor.primaryColor,
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              SizedBox(width: 4.w),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: AppColor.primaryColor,
-                                size: 16.sp,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
                   ],
                 ),
               ),

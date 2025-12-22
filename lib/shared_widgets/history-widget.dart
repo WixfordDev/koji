@@ -7,8 +7,9 @@ class HistoryCardWidget extends StatelessWidget {
   final String title;
   final String category;
   final String time;
+  final bool? completed;
   final String breakTime;
-  final bool completed;
+  final String status; // Changed from bool completed to String status
   final VoidCallback? onTap;
 
   const HistoryCardWidget({
@@ -16,13 +17,55 @@ class HistoryCardWidget extends StatelessWidget {
     required this.title,
     required this.category,
     required this.time,
+    this.completed,
     required this.breakTime,
-    this.completed = true,
+    this.status = 'pending', // Default to pending
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine status and colors based on the status string
+    bool isCompleted = _isCompletedStatus(status);
+    bool isInProgress = _isInProgressStatus(status);
+    bool isPending = _isPendingStatus(status);
+
+    Color statusColor = isCompleted
+        ? Colors.green
+        : isInProgress
+        ? Colors.blue
+        : Colors.orange;
+
+    Color statusLightColor = isCompleted
+        ? Colors.green.shade50
+        : isInProgress
+        ? Colors.blue.shade50
+        : Colors.orange.shade50;
+
+    Color statusLightBorderColor = isCompleted
+        ? Colors.green.shade200
+        : isInProgress
+        ? Colors.blue.shade200
+        : Colors.orange.shade200;
+
+    Color statusDarkColor = isCompleted
+        ? Colors.green.shade700
+        : isInProgress
+        ? Colors.blue.shade700
+        : Colors.orange.shade700;
+
+    String statusText = isCompleted
+        ? "Completed"
+        : isInProgress
+        ? "In Progress"
+        : "Pending";
+
+    String progressText = isCompleted
+        ? "100%"
+        : isInProgress
+        ? "50%"
+        : "0%";
+
     return InkWell(
       borderRadius: BorderRadius.circular(14.r),
       onTap: onTap,
@@ -33,10 +76,7 @@ class HistoryCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-            color: completed ? Colors.green.shade200 : Colors.orange.shade200,
-            width: 1,
-          ),
+          border: Border.all(color: statusLightBorderColor, width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -60,24 +100,18 @@ class HistoryCardWidget extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
-                    color: completed
-                        ? Colors.green.shade50
-                        : Colors.orange.shade50,
+                    color: statusLightColor,
                     borderRadius: BorderRadius.circular(20.r),
-                    border: Border.all(
-                      color: completed
-                          ? Colors.green.shade200
-                          : Colors.orange.shade200,
-                      width: 1,
-                    ),
+                    border: Border.all(color: statusLightBorderColor, width: 1),
                   ),
                   child: CustomText(
-                    text: completed ? "Completed" : "Pending",
-                    color: completed
-                        ? Colors.green.shade700
-                        : Colors.orange.shade700,
+                    text: statusText,
+                    color: statusDarkColor,
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
                   ),
@@ -106,7 +140,7 @@ class HistoryCardWidget extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
-                color: completed ? Colors.green.shade50 : Colors.orange.shade50,
+                color: statusLightColor,
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
@@ -115,22 +149,26 @@ class HistoryCardWidget extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        Icons.check_circle_outline,
-                        color: completed ? Colors.green : Colors.orange,
+                        isCompleted
+                            ? Icons.check_circle_outline
+                            : isInProgress
+                            ? Icons.hourglass_bottom
+                            : Icons.pending_outlined,
+                        color: statusColor,
                         size: 16.sp,
                       ),
                       SizedBox(width: 6.w),
                       CustomText(
                         text: "Progress",
-                        color: completed ? Colors.green.shade700 : Colors.orange.shade700,
+                        color: statusDarkColor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
                   CustomText(
-                    text: completed ? "100%" : "0%",
-                    color: completed ? Colors.green : Colors.orange,
+                    text: progressText,
+                    color: statusColor,
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
                   ),
@@ -143,14 +181,34 @@ class HistoryCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow({required IconData icon, required String title, required String value}) {
+  bool _isCompletedStatus(String status) {
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'completed' ||
+        lowerStatus == 'done' ||
+        lowerStatus == 'finished';
+  }
+
+  bool _isInProgressStatus(String status) {
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'in_progress' ||
+        lowerStatus == 'in progress' ||
+        lowerStatus == 'progress' ||
+        lowerStatus == 'working';
+  }
+
+  bool _isPendingStatus(String status) {
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'pending' || lowerStatus == 'assigned';
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: AppColor.primaryColor,
-          size: 16.sp,
-        ),
+        Icon(icon, color: AppColor.primaryColor, size: 16.sp),
         SizedBox(width: 8.w),
         CustomText(
           text: "$title: ",

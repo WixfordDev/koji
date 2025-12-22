@@ -448,7 +448,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               MaterialPageRoute(
                 builder: (context) => TaskDetailsScreen(taskId: task.id ?? ""),
               ),
-            );
+            ).then((_) {
+              _updateTabs();
+            });
           },
           child: _buildTaskCard(
             taskId: task.id ?? "", // Pass the task ID
