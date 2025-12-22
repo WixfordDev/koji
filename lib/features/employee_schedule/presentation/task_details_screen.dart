@@ -34,10 +34,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
         title: Text(
           'Task Details',
           style: TextStyle(
@@ -111,14 +107,30 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ),
                       SizedBox(height: 12.h),
 
-                      // Service items
-                      _buildServiceItem('Plumbing Service', '\$90.0'),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: task.service?.length ?? 0,
+                        separatorBuilder: (context, index) =>
+                            SizedBox(height: 8.h),
+                        itemBuilder: (context, index) {
+                          final serviceItem = task.service![index];
+                          final price = serviceItem.price ?? 0;
+                          final quantity = serviceItem.quantity ?? 0;
+                          final total = price * quantity;
+                          return _buildServiceItem(
+                            '${serviceItem.name ?? 'Service'} (x$quantity)',
+                            '\$${total.toStringAsFixed(1)}',
+                          );
+                        },
+                      ),
+
+                      _buildServiceItem(
+                        'Others Amount',
+                        '\$${task.otherAmount?.toStringAsFixed(1) ?? '0.0'}',
+                      ),
                       SizedBox(height: 8.h),
-                      _buildServiceItem('Cleaner Service', '\$10.0'),
-                      SizedBox(height: 8.h),
-                      _buildServiceItem('Cleaner Service', '\$40.0'),
-                      SizedBox(height: 8.h),
-                      _buildServiceItem('GST 5%', '\$20.0'),
+                      _buildServiceItem('GST 9%', ''),
 
                       Divider(height: 24.h, color: Colors.grey[300]),
 
@@ -689,6 +701,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             'difficulty': task.difficulty,
             'notes': task.notes,
             "service": task.service ?? {},
+            "totalPrice": task.totalAmount,
           },
         ),
       ),
