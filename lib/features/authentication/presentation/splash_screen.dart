@@ -5,6 +5,7 @@ import 'package:koji/core/app_constants.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/routes/app_routes.dart';
 import 'package:koji/routes/route_helper.dart';
+import 'package:koji/services/socket_services.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -36,6 +37,9 @@ class _SplashScreenState extends State<SplashScreen>
         context.push('/onboarding');
       }
     });
+
+    SocketServices socket = SocketServices();
+    socket.init();
 
     _controller = AnimationController(
       duration: const Duration(seconds: 2),

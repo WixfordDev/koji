@@ -25,21 +25,32 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   void initState() {
     super.initState();
+    SocketServices().socket.emit('employee-live-location');
     _getCurrentLocation();
+    _connectToSocket();
   }
 
   @override
   void dispose() {
     try {
-      // Check if socket is initialized before trying to disconnect
-      if (SocketServices().socket != null &&
-          SocketServices().socket.connected) {
+      // Remove all socket listeners
+      if (SocketServices().socket != null) {
         SocketServices().socket.off('employee-live-location::snapshot');
+        SocketServices().socket.off('connect');
+        SocketServices().socket.off('disconnect');
+        SocketServices().socket.off('error');
       }
     } catch (e) {
       print('Error disconnecting from socket: $e');
     }
     super.dispose();
+  }
+
+  void _connectToSocket() {
+    // Listen for the location snapshot updates
+    SocketServices().socket.on('employee-live-location::snapshot', (data) {
+      _updateEmployeeLocations(data);
+    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -114,10 +125,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
           var coordinates = locationData?['coordinates'] as List<dynamic>?;
 
           if (coordinates != null && coordinates.length >= 2) {
-            double lat = coordinates[1]
-                .toDouble(); // Latitude is the second element
-            double lng = coordinates[0]
-                .toDouble(); // Longitude is the first element
+            double lng =
+                coordinates[0]?.toDouble() ??
+                0.0; // Longitude is the first element
+            double lat =
+                coordinates[1]?.toDouble() ??
+                0.0; // Latitude is the second element
             String fullName = item['fullName'] ?? 'Unknown Employee';
 
             // Only add employees with valid coordinates (not 0,0 which indicates default location)
@@ -388,11 +401,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: SocketServices().socket.connected
+                    ? Colors.green
+                    : Colors.red,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                "Live",
+                SocketServices().socket.connected ? "Live" : "Offline",
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
