@@ -6,15 +6,15 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../services/api_client.dart';
 import '../../../services/api_constants.dart';
 import '../../helpers/toast_message_helper.dart';
-import '../../models/admin-model/all_categories_model.dart' show AllCategoriesModel;
+import '../../models/admin-model/all_categories_model.dart'
+    show AllCategoriesModel;
 import '../../models/admin-model/all_department_model.dart';
 import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_serviceList_model.dart';
 import '../../models/admin-model/vechicle_model.dart';
 
 class DepartmentController extends GetxController {
-
- /// ============================ Department =====================================
+  /// ============================ Department =====================================
 
   RxBool getAllDepartmentModelLoading = false.obs;
   Rx<AllDepartmentModel> allDepartment = AllDepartmentModel().obs;
@@ -22,29 +22,26 @@ class DepartmentController extends GetxController {
   getAllDepartment() async {
     getAllDepartmentModelLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllDepartmentEndPoint);
+      var response = await ApiClient.getData(
+        ApiConstants.getAllDepartmentEndPoint,
+      );
 
       if (response.statusCode == 200) {
-
-        allDepartment.value = AllDepartmentModel.fromJson(response.body['data']['attributes']);
+        allDepartment.value = AllDepartmentModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getAllDepartmentModelLoading(false);
-
-
-
       } else if (response.statusCode == 404) {
         getAllDepartmentModelLoading(false);
-
       } else {
         getAllDepartmentModelLoading(false);
-
       }
     } catch (e) {
       getAllDepartmentModelLoading(false);
-
     }
   }
 
-/// ================================== Categories =======================
+  /// ================================== Categories =======================
 
   RxBool getCategoriesLoading = false.obs;
   Rx<AllCategoriesModel> categories = AllCategoriesModel().obs;
@@ -52,28 +49,24 @@ class DepartmentController extends GetxController {
   getAllCategories() async {
     getCategoriesLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllCategoriesEndPoint);
+      var response = await ApiClient.getData(
+        ApiConstants.getAllCategoriesEndPoint,
+      );
 
       if (response.statusCode == 200) {
-
-        categories.value = AllCategoriesModel.fromJson(response.body['data']['attributes']);
+        categories.value = AllCategoriesModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getCategoriesLoading(false);
-
-
-
       } else if (response.statusCode == 404) {
         getCategoriesLoading(false);
-
       } else {
         getCategoriesLoading(false);
-
       }
     } catch (e) {
       getCategoriesLoading(false);
-
     }
   }
-
 
   /// ================================== All Employee =======================
 
@@ -83,30 +76,24 @@ class DepartmentController extends GetxController {
   getAllEmployee() async {
     getEmployeeLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllEmployeeEndPoint);
+      var response = await ApiClient.getData(
+        ApiConstants.getAllEmployeeEndPoint,
+      );
 
       if (response.statusCode == 200) {
-
-        employee.value = AllEmployeeModel.fromJson(response.body['data']['attributes']);
+        employee.value = AllEmployeeModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getEmployeeLoading(false);
-
-
-
       } else if (response.statusCode == 404) {
         getEmployeeLoading(false);
-
       } else {
         getEmployeeLoading(false);
-
       }
     } catch (e) {
       getEmployeeLoading(false);
-
     }
   }
-
-
-
 
   /// ================================== All Service List =======================
 
@@ -116,29 +103,24 @@ class DepartmentController extends GetxController {
   getAllServiceList() async {
     getServiceLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllServiceListEndPoint);
+      var response = await ApiClient.getData(
+        ApiConstants.getAllServiceListEndPoint,
+      );
 
       if (response.statusCode == 200) {
-
-        serviceList.value = AllServiceListModel.fromJson(response.body['data']['attributes']);
+        serviceList.value = AllServiceListModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getServiceLoading(false);
-
-
-
       } else if (response.statusCode == 404) {
         getServiceLoading(false);
-
       } else {
         getServiceLoading(false);
-
       }
     } catch (e) {
       getServiceLoading(false);
-
     }
   }
-
-
 
   /// ============================ Employee Request =====================================
 
@@ -148,10 +130,14 @@ class DepartmentController extends GetxController {
   getEmployeeRequest() async {
     getEmployeeRequestLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getEmployeeUserListEndPoint);
+      var response = await ApiClient.getData(
+        ApiConstants.getEmployeeUserListEndPoint,
+      );
 
       if (response.statusCode == 200) {
-        employeeRequest.value = AllEmployeeModel.fromJson(response.body['data']['attributes']);
+        employeeRequest.value = AllEmployeeModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getEmployeeRequestLoading(false);
       } else if (response.statusCode == 404) {
         getEmployeeRequestLoading(false);
@@ -162,7 +148,6 @@ class DepartmentController extends GetxController {
       getEmployeeRequestLoading(false);
     }
   }
-
 
   /// ============================ Vehicles =====================================
 
@@ -175,7 +160,9 @@ class DepartmentController extends GetxController {
       var response = await ApiClient.getData(ApiConstants.vehicleListEndPoint);
 
       if (response.statusCode == 200) {
-        allVehicles.value = AllVehicleModel.fromJson(response.body['data']['attributes']);
+        allVehicles.value = AllVehicleModel.fromJson(
+          response.body['data']['attributes'],
+        );
         getAllVehiclesModelLoading(false);
       } else if (response.statusCode == 404) {
         getAllVehiclesModelLoading(false);
@@ -289,11 +276,7 @@ class DepartmentController extends GetxController {
   }) async {
     updateServiceLoading(true);
     try {
-      var body = {
-        "name": name,
-        "quantity": quantity,
-        "price": price,
-      };
+      var body = {"name": name, "quantity": quantity, "price": price};
 
       var response = await ApiClient.patch(
         "${ApiConstants.updateServiceEndPoint}$serviceId",
@@ -374,19 +357,19 @@ class DepartmentController extends GetxController {
   var createNewLoading = false.obs;
 
   Future<String?> createNewTask({
-    required String department,
-    required String serviceCategory,
-    required String vehicle,
+    required String departmentId,
+    required String serviceCategoryId,
+    required String vehicleId,
     required String customerName,
     required String customerNumber,
     required String customerAddress,
+    required String assignTo, // Comma-separated string of employee IDs
     required String assignDate,
     required String deadline,
-    required List<Map<String, dynamic>> services,  // Changed from List<String>
+    required List<Map<String, dynamic>> services, // Changed from List<String>
     required double otherAmount,
     required double totalAmount,
     required File? attachmentFile,
-    required String assignTo,
     required String notes,
     required String priority,
     required String difficulty,
@@ -396,18 +379,20 @@ class DepartmentController extends GetxController {
     try {
       // Prepare the request body
       Map<String, String> body = {
-        "department": department,
-        "serviceCategory": serviceCategory,
-        "vehicle": vehicle,
+        "department": departmentId,
+        "serviceCategory": serviceCategoryId,
+        if (vehicleId.isNotEmpty) "vehicle": vehicleId,
         "customerName": customerName,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
+        "assignTo": assignTo, // Send as comma-separated string
         "assignDate": assignDate,
         "deadline": deadline,
-        "services": jsonEncode(services), // Already properly formatted as array of objects
+        "services": jsonEncode(
+          services,
+        ), // Already properly formatted as array of objects
         "otherAmount": otherAmount.toString(),
         "totalAmount": totalAmount.toString(),
-        "assignTo": assignTo,
         "notes": notes,
         "priority": priority,
         "difficulty": difficulty,
@@ -448,14 +433,6 @@ class DepartmentController extends GetxController {
     }
   }
 
-
-
-
-
-
-
-
-
   /// ====== State variables for AdminCreateTaskScreen ======
 
   // Images for attachment
@@ -465,6 +442,9 @@ class DepartmentController extends GetxController {
   RxString selectedDepartment = ''.obs;
   RxString selectedCategory = ''.obs;
   RxString selectedVehicle = ''.obs; // New vehicle selection
+  RxString selectedDepartmentId = ''.obs;
+  RxString selectedCategoryId = ''.obs;
+  RxString selectedVehicleId = ''.obs;
   RxList<String> selectedRoles = <String>[].obs;
   RxString selectedPriority = ''.obs;
   RxString selectedDifficulty = ''.obs;
@@ -476,7 +456,8 @@ class DepartmentController extends GetxController {
   Rx<TimeOfDay?> endTime = Rx<TimeOfDay?>(null);
 
   // Service list
-  RxList<ServiceItemWithQuantity> selectedServiceList = <ServiceItemWithQuantity>[].obs;
+  RxList<ServiceItemWithQuantity> selectedServiceList =
+      <ServiceItemWithQuantity>[].obs;
 
   // Initialize
   @override
@@ -486,25 +467,27 @@ class DepartmentController extends GetxController {
     selectedImages.assignAll([null, null, null]);
   }
 
-
   // Methods to update state
   void updateImage(int index, File file) {
     selectedImages[index] = file;
     update();
   }
 
-  void updateSelectedDepartment(String department) {
-    selectedDepartment.value = department;
+  void updateSelectedDepartment(String departmentId, String departmentName) {
+    selectedDepartmentId.value = departmentId;
+    selectedDepartment.value = departmentName;
     update();
   }
 
-  void updateSelectedCategory(String category) {
-    selectedCategory.value = category;
+  void updateSelectedCategory(String categoryId, String categoryName) {
+    selectedCategoryId.value = categoryId;
+    selectedCategory.value = categoryName;
     update();
   }
 
-  void updateSelectedVehicle(String vehicle) {
-    selectedVehicle.value = vehicle;
+  void updateSelectedVehicle(String vehicleId, String vehicleName) {
+    selectedVehicleId.value = vehicleId;
+    selectedVehicle.value = vehicleName;
     update();
   }
 
@@ -571,7 +554,7 @@ class DepartmentController extends GetxController {
     // Clear text fields would be done in the UI layer
     selectedDepartment.value = '';
     selectedCategory.value = '';
-    selectedVehicle.value = '';  // Reset selected vehicle
+    selectedVehicle.value = ''; // Reset selected vehicle
     selectedRoles.clear();
     selectedPriority.value = '';
     selectedDifficulty.value = '';
@@ -589,7 +572,13 @@ class DepartmentController extends GetxController {
     if (date == null || time == null) return '';
 
     // Create a DateTime object with the date and time
-    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    DateTime dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     return dateTime.toIso8601String();
   }
 
@@ -597,7 +586,8 @@ class DepartmentController extends GetxController {
   double calculateTotalAmount() {
     double total = 0.0;
     for (var serviceWithQty in selectedServiceList) {
-      double price = double.tryParse(serviceWithQty.serviceItem.price ?? '0') ?? 0.0;
+      double price =
+          double.tryParse(serviceWithQty.serviceItem.price ?? '0') ?? 0.0;
       int quantity = serviceWithQty.quantity;
       total += price * quantity;
     }
@@ -611,53 +601,54 @@ class DepartmentController extends GetxController {
     required String customerAddress,
     required String notes,
   }) {
-    if (selectedDepartment.value.isEmpty) {
-      return 'Please select a department';
-    }
+    // if (selectedDepartment.value.isEmpty) {
+    //   return 'Please select a department';
+    // }
 
-    if (selectedCategory.value.isEmpty) {
-      return 'Please select a service category';
-    }
+    // if (selectedCategory.value.isEmpty) {
+    //   return 'Please select a service category';
+    // }
 
-    if (selectedVehicle.value.isEmpty) {  // New validation for vehicle
-      return 'Please select a vehicle';
-    }
+    // if (selectedVehicle.value.isEmpty) {
+    //   // New validation for vehicle
+    //   return 'Please select a vehicle';
+    // }
 
-    if (customerName.trim().isEmpty) {
-      return 'Please enter customer name';
-    }
+    // if (customerName.trim().isEmpty) {
+    //   return 'Please enter customer name';
+    // }
 
-    if (customerNumber.trim().isEmpty) {
-      return 'Please enter customer number';
-    }
+    // if (customerNumber.trim().isEmpty) {
+    //   return 'Please enter customer number';
+    // }
 
-    if (customerAddress.trim().isEmpty) {
-      return 'Please enter customer address';
-    }
+    // if (customerAddress.trim().isEmpty) {
+    //   return 'Please enter customer address';
+    // }
 
-    if (selectedRoles.isEmpty) {
-      return 'Please select at least one employee to assign to';
-    }
+    // if (selectedRoles.isEmpty) {
+    //   return 'Please select at least one employee to assign to';
+    // }
 
-    if (startDate.value == null || startTime.value == null) {
-      return 'Please select assign date and time';
-    }
+    // if (startDate.value == null || startTime.value == null) {
+    //   return 'Please select assign date and time';
+    // }
 
-    if (endDate.value == null || endTime.value == null) {
-      return 'Please select deadline date and time';
-    }
+    // if (endDate.value == null || endTime.value == null) {
+    //   return 'Please select deadline date and time';
+    // }
 
-    if (selectedPriority.value.isEmpty) {
-      return 'Please select a priority';
-    }
+    // if (selectedPriority.value.isEmpty) {
+    //   return 'Please select a priority';
+    // }
 
-    if (selectedDifficulty.value.isEmpty) {
-      return 'Please select a difficulty level';
-    }
+    // if (selectedDifficulty.value.isEmpty) {
+    //   return 'Please select a difficulty level';
+    // }
 
-    if (selectedServiceList.isEmpty) {
-      return 'Please select at least one service';
-    }
+    // if (selectedServiceList.isEmpty) {
+    //   return 'Please select at least one service';
+    // }
 
     return null; // No validation errors
   }
@@ -669,7 +660,13 @@ class DepartmentController extends GetxController {
     if (date == null || time == null) return '';
 
     // Create a DateTime object with the date and time
-    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    DateTime dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     return dateTime.toIso8601String();
   }
 
@@ -707,20 +704,27 @@ class DepartmentController extends GetxController {
 
       // Calculate amounts
       double totalAmount = calculateTotalAmount();
-      double otherAmount = 0.0; // This might be for additional costs not included in services
+      double otherAmount =
+          0.0; // This might be for additional costs not included in services
 
       // Get the first selected attachment (or null if none selected)
-      File? attachmentFile = selectedImages
-          .firstWhere((image) => image != null, orElse: () => null);
+      File? attachmentFile = selectedImages.firstWhere(
+        (image) => image != null,
+        orElse: () => null,
+      );
 
       // Join all selected roles for assignTo (if multiple employees can be assigned)
-      String assignTo = selectedRoles.join(','); // Join with comma if multiple roles, or use first if single assignment needed
+      String assignTo = selectedRoles.join(
+        ',',
+      ); // Join with comma if multiple roles, or use first if single assignment needed
 
       // Prepare the request body
       Map<String, String> body = {
-        "department": selectedDepartment.value,
-        "serviceCategory": selectedCategory.value,
-        "vehicle": selectedVehicle.value,  // Include vehicle in request
+        "department": selectedDepartmentId.value, // Use ID instead of name
+        "serviceCategory": selectedCategoryId.value, // Use ID instead of name
+        if (selectedVehicleId.value.isNotEmpty)
+          "vehicle": selectedVehicleId
+              .value, // Use ID instead of name, only if not empty
         "customerName": customerName,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
@@ -729,10 +733,12 @@ class DepartmentController extends GetxController {
         "services": jsonEncode(services), // Convert array to JSON string
         "otherAmount": otherAmount.toString(),
         "totalAmount": totalAmount.toString(),
-        "assignTo": assignTo,
+        "assignTo": assignTo, // Send as comma-separated string
         "notes": notes,
-        "priority": selectedPriority.value.toLowerCase(), // Convert to lowercase to match expected format
-        "difficulty": selectedDifficulty.value.toLowerCase(), // Convert to lowercase to match expected format
+        "priority": selectedPriority.value
+            .toLowerCase(), // Convert to lowercase to match expected format
+        "difficulty": selectedDifficulty.value
+            .toLowerCase(), // Convert to lowercase to match expected format
       };
 
       // Prepare multipart body for file attachment
@@ -767,9 +773,7 @@ class DepartmentController extends GetxController {
 
   var deleteServiceLoading = false.obs;
 
-  Future<bool> deleteService({
-    required String serviceId,
-  }) async {
+  Future<bool> deleteService({required String serviceId}) async {
     deleteServiceLoading(true);
     try {
       var response = await ApiClient.deleteData(
@@ -806,10 +810,7 @@ class ServiceItemWithQuantity {
   ServiceItem serviceItem;
   int quantity;
 
-  ServiceItemWithQuantity({
-    required this.serviceItem,
-    required this.quantity,
-  });
+  ServiceItemWithQuantity({required this.serviceItem, required this.quantity});
 
   Map<String, dynamic> toJson() => {
     'name': serviceItem.name,

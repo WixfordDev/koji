@@ -188,8 +188,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
                 SizedBox(height: 12.h),
 
-                /// IMEI Field
-                _buildTextField('IMEI', task.id ?? 'N/A'),
+                /// Vehicle Field
+                _buildTextField('Vehicle Number', task.vehicle ?? 'N/A'),
 
                 SizedBox(height: 12.h),
 

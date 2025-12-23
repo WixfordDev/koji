@@ -824,6 +824,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       setState(() {
                         selectedDepartment = dept.name;
                       });
+                      departmentController.updateSelectedDepartment(dept.id ?? '', dept.name ?? '');
                       Navigator.pop(context);
                     },
                     child: Container(
@@ -965,6 +966,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       setState(() {
                         selectedCategory = cat.name;
                       });
+                      departmentController.updateSelectedCategory(cat.id ?? '', cat.name ?? '');
                       Navigator.pop(context);
                     },
                     child: Container(
@@ -1111,7 +1113,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       setState(() {
                         selectedVehicle = vehicle.name;
                       });
-                      departmentController.updateSelectedVehicle(vehicle.name ?? '');
+                      departmentController.updateSelectedVehicle(vehicle.id ?? '', vehicle.name ?? '');
                       Navigator.pop(context);
                     },
                     child: Container(
@@ -1371,6 +1373,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                     setState(() {
                       selectedPriority = priority;
                     });
+                    departmentController.updateSelectedPriority(priority);
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -1622,19 +1625,21 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
     // Call the createNewTask method from DepartmentController
     String? result = await departmentController.createNewTask(
-      department: selectedDepartment!,
-      serviceCategory: selectedCategory!,
-      vehicle: selectedVehicle!,  // Pass the selected vehicle
+      departmentId: departmentController.selectedDepartmentId.value,
+      serviceCategoryId: departmentController.selectedCategoryId.value,
+      vehicleId: departmentController.selectedVehicleId.value.isNotEmpty
+          ? departmentController.selectedVehicleId.value
+          : "",  // Pass the selected vehicle ID if not empty, otherwise empty string
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
       customerAddress: _customerAddressController.text.trim(),
+      assignTo: assignTo,
       assignDate: assignDate,
       deadline: deadlineDate,
       services: services,
       otherAmount: otherAmount,
       totalAmount: totalAmount,
       attachmentFile: attachmentFile,
-      assignTo: assignTo,
       notes: _notesController.text.trim(),
       priority: selectedPriority!.toLowerCase(), // Convert to lowercase to match expected format
       difficulty: selectedDifficulty!.toLowerCase(), // Convert to lowercase to match expected format
