@@ -64,237 +64,237 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         child: SingleChildScrollView(
 
           child: Obx(()=>
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 24.h),
-                        Center(
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              GestureDetector(
-                                onTap: _showImagePickerOptions,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(100.r),
-                                  child: _pickedImage != null
-                                      ? Image.file(
-                                    _pickedImage!,
-                                    width: 100.r,
-                                    height: 100.r,
-                                    fit: BoxFit.cover,
-                                  )
-                                      : profileController.profile.value.user?.image != null
-                                      ? Image.network(
-                                    "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
-                                    width: 100.r,
-                                    height: 100.r,
-                                    fit: BoxFit.cover,
-                                  )
-                                      : Image.asset(
-                                    "assets/images/profile.png",
-                                    width: 100.r,
-                                    height: 100.r,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: -4.h,
-                                right: -4.w,
-                                child: Container(
-                                  width: 24.w,
-                                  height: 24.h,
-                                  padding: EdgeInsets.fromLTRB(5.6.w, 4.h, 5.6.w, 4.h),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFFFFF),
-                                    borderRadius: BorderRadius.circular(16.r),
-                                    border: Border.all(
-                                      color: const Color(0xFFEFEFEF),
-                                      width: 0.86.w,
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 24.h),
+                          Center(
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                GestureDetector(
+                                  onTap: _showImagePickerOptions,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(100.r),
+                                    child: _pickedImage != null
+                                        ? Image.file(
+                                      _pickedImage!,
+                                      width: 100.r,
+                                      height: 100.r,
+                                      fit: BoxFit.cover,
+                                    )
+                                        : profileController.profile.value.user?.image != null
+                                        ? Image.network(
+                                      "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                                      width: 100.r,
+                                      height: 100.r,
+                                      fit: BoxFit.cover,
+                                    )
+                                        : Image.asset(
+                                      "assets/images/profile.png",
+                                      width: 100.r,
+                                      height: 100.r,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
-                                  child: Assets.icons.camera.svg(
+                                ),
+                                Positioned(
+                                  bottom: -4.h,
+                                  right: -4.w,
+                                  child: Container(
+                                    width: 24.w,
+                                    height: 24.h,
+                                    padding: EdgeInsets.fromLTRB(5.6.w, 4.h, 5.6.w, 4.h),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFFFFF),
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      border: Border.all(
+                                        color: const Color(0xFFEFEFEF),
+                                        width: 0.86.w,
+                                      ),
+                                    ),
+                                    child: Assets.icons.camera.svg(
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 8.h),
-                        CustomText(
-                          text: profileController.profile.value.user?.firstName ?? 'N/A',
-                          fontSize: 24.sp,
-                          color: AppColor.secondaryColor,
-                        ),
-                        CustomText(
-                          text: profileController.profile.value.user?.role ?? 'N/A',
-                          fontSize: 14.sp,
-                          color: AppColor.textColor707070,
-                        ),
-                        SizedBox(height: 4.h),
-                        CustomText(
-                          text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
-                          fontSize: 14.sp,
-                          color: AppColor.textColor707070,
-                        ),
-                        SizedBox(height: 12.h),
-                        CustomText(
-                          text: 'My Profile',
-                          fontSize: 16.sp,
-                          color: AppColor.secondaryColor,
-                        ),
-                      ],
+                          SizedBox(height: 8.h),
+                          CustomText(
+                            text: profileController.profile.value.user?.firstName ?? 'N/A',
+                            fontSize: 24.sp,
+                            color: AppColor.secondaryColor,
+                          ),
+                          CustomText(
+                            text: profileController.profile.value.user?.role ?? 'N/A',
+                            fontSize: 14.sp,
+                            color: AppColor.textColor707070,
+                          ),
+                          SizedBox(height: 4.h),
+                          CustomText(
+                            text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                            fontSize: 14.sp,
+                            color: AppColor.textColor707070,
+                          ),
+                          SizedBox(height: 12.h),
+                          CustomText(
+                            text: 'My Profile',
+                            fontSize: 16.sp,
+                            color: AppColor.secondaryColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 12.h),
+                  CustomText(
+                    text: 'Employee ID',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: employeeIdCtrl,
+                    hintText: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+
+                  ),
+
+                  SizedBox(height: 16.h),
+                  CustomText(
+                    text: 'Your Name',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: nameCtrl,
+                    hintText: profileController.profile.value.user?.firstName ?? 'N/A',
+                  ),
+
+                  SizedBox(height: 16.h),
+                  CustomText(
+                    text: 'E-mail',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: emailCtrl,
+                    hintText: profileController.profile.value.user?.email ?? 'N/A',
+                  ),
+
+
+                  SizedBox(height: 16.h),
+
+                  CustomText(
+                    text: 'Gender',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: genderCtrl,
+                    hintText: "Male",
+                    suffixIcon: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Color(0xFF9E9E9E),
+                      size: 20.sp,
                     ),
-                  ],
-                ),
-
-                SizedBox(height: 12.h),
-                CustomText(
-                  text: 'Employee ID',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: employeeIdCtrl,
-                  hintText: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
-
-                ),
-
-                SizedBox(height: 16.h),
-                CustomText(
-                  text: 'Your Name',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: nameCtrl,
-                  hintText: profileController.profile.value.user?.firstName ?? 'N/A',
-                ),
-
-                SizedBox(height: 16.h),
-                CustomText(
-                  text: 'E-mail',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: emailCtrl,
-                  hintText: profileController.profile.value.user?.email ?? 'N/A',
-                ),
-
-
-                SizedBox(height: 16.h),
-
-                CustomText(
-                  text: 'Gender',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: genderCtrl,
-                  hintText: "Male",
-                  suffixIcon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF9E9E9E),
-                    size: 20.sp,
+                    onSuffixTap: _showGenderSelector,
                   ),
-                  onSuffixTap: _showGenderSelector,
-                ),
 
 
 
-                SizedBox(height: 16.h),
+                  SizedBox(height: 16.h),
 
-                CustomText(
-                  text: 'Date of Birth',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
+                  CustomText(
+                    text: 'Date of Birth',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
 
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: dateOfBirthCtrl,
-                  hintText: profileController.profile.value.user?.dateOfBirth ?? 'N/A',
-                  suffixIcon: Icon(
-                    Icons.calendar_today_outlined,
-                    color: Color(0xFF9E9E9E),
-                    size: 18.sp,
                   ),
-                  onSuffixTap: _pickDateOfBirth,
-                ),
-
-
-                SizedBox(height: 16.h),
-
-                CustomText(
-                  text: 'Marital Status',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: maritalCtrl,
-                  hintText: "Unmarried",
-                  suffixIcon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF9E9E9E),
-                    size: 20.sp,
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: dateOfBirthCtrl,
+                    hintText: profileController.profile.value.user?.dateOfBirth ?? 'N/A',
+                    suffixIcon: Icon(
+                      Icons.calendar_today_outlined,
+                      color: Color(0xFF9E9E9E),
+                      size: 18.sp,
+                    ),
+                    onSuffixTap: _pickDateOfBirth,
                   ),
-                  onSuffixTap: _showMaritalStatusSelector,
-                ),
 
 
-                SizedBox(height: 16.h),
+                  SizedBox(height: 16.h),
 
-                CustomText(
-                  text: 'Phone No.',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: phoneCtrl,
-                  hintText: profileController.profile.value.user?.phoneNumber ?? 'N/A',
-                ),
-
-
-                SizedBox(height: 16.h),
-
-                CustomText(
-                  text: 'Address',
-                  fontSize: 14.sp,
-                  color: AppColor.secondaryColor,
-                ),
-                SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: addressCtrl,
-                  hintText: profileController.profile.value.user?.address ?? 'N/A',
-                ),
-                SizedBox(height: 24.h),
-                Obx(() =>
-                  CustomButton(
-                    title: profileController.updateProfileLoading.value ? 'Updating...' : 'Update',
-                    onpress: () {
-                      if (!profileController.updateProfileLoading.value) {
-                        _updateProfile();
-                      }
-                    },
+                  CustomText(
+                    text: 'Marital Status',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
                   ),
-                ),
-                SizedBox(height: 80.h),
-              ],
-            ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: maritalCtrl,
+                    hintText: "Unmarried",
+                    suffixIcon: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Color(0xFF9E9E9E),
+                      size: 20.sp,
+                    ),
+                    onSuffixTap: _showMaritalStatusSelector,
+                  ),
+
+
+                  SizedBox(height: 16.h),
+
+                  CustomText(
+                    text: 'Phone No.',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: phoneCtrl,
+                    hintText: profileController.profile.value.user?.phoneNumber ?? 'N/A',
+                  ),
+
+
+                  SizedBox(height: 16.h),
+
+                  CustomText(
+                    text: 'Address',
+                    fontSize: 14.sp,
+                    color: AppColor.secondaryColor,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomAuthTextField(
+                    controller: addressCtrl,
+                    hintText: profileController.profile.value.user?.address ?? 'N/A',
+                  ),
+                  SizedBox(height: 24.h),
+                  Obx(() =>
+                      CustomButton(
+                        title: profileController.updateProfileLoading.value ? 'Updating...' : 'Update',
+                        onpress: () {
+                          if (!profileController.updateProfileLoading.value) {
+                            _updateProfile();
+                          }
+                        },
+                      ),
+                  ),
+                  SizedBox(height: 80.h),
+                ],
+              ),
           ),
         ),
       ),
@@ -487,5 +487,4 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
 }
-
 

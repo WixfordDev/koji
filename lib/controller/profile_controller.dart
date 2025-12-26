@@ -45,6 +45,8 @@ class ProfileController extends GetxController {
     String? phoneNumber,
     String? nidNumber,
     String? dateOfBirth,
+    String? gender,
+    String? maritalStatus,
     String? address,
     File? file,
     required String screenType,
@@ -57,7 +59,9 @@ class ProfileController extends GetxController {
       "callingCode": callingCode ?? "",
       "phoneNumber": phoneNumber ?? "",
       "nidNumber": nidNumber ?? "",
-      "dateOfBirth": dateOfBirth ?? "", // Fixed typo
+      "dateOfBirth": dateOfBirth ?? "",
+      "gender": gender ?? "",
+      "maritalStatus": maritalStatus ?? "",
       "address": address ?? "",
     };
 

@@ -11,7 +11,7 @@ class FirebaseNotificationService {
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
   // ✅ Static socket instance (Ensure it's initialized properly)
   static late IO.Socket socket;
@@ -19,7 +19,7 @@ class FirebaseNotificationService {
   // Singleton pattern
   FirebaseNotificationService._privateConstructor();
   static final FirebaseNotificationService instance =
-      FirebaseNotificationService._privateConstructor();
+  FirebaseNotificationService._privateConstructor();
 
   /// **Initialize Firebase Notifications and Socket**
   static Future<void> initialize() async {
@@ -41,14 +41,14 @@ class FirebaseNotificationService {
 
     // Initialize local notifications
     const AndroidInitializationSettings androidInitSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
+    DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     final InitializationSettings initSettings = InitializationSettings(
       android: androidInitSettings,
@@ -86,21 +86,21 @@ class FirebaseNotificationService {
         NotificationDetails(
           android: android != null
               ? AndroidNotificationDetails(
-                  'reservation_channel',
-                  'Pet Attix',
-                  importance: Importance.max,
-                  priority: Priority.high,
-                  playSound: true,
-                  icon: '@mipmap/ic_launcher',
-                )
+            'reservation_channel',
+            'Pet Attix',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            icon: '@mipmap/ic_launcher',
+          )
               : null,
 
           iOS: apple != null
               ? DarwinNotificationDetails(
-                  presentBadge: true,
-                  presentAlert: true,
-                  presentSound: true,
-                )
+            presentBadge: true,
+            presentAlert: true,
+            presentSound: true,
+          )
               : null,
         ),
       );
