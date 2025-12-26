@@ -79,6 +79,45 @@ Technical Implementation:
 - Storage: SharedPreferences for local persistence
 - Real-time: Socket.IO for live communication
 - Notifications: FCM integration
+- Koji Flutter Application - Complete Employee Management System
+
+Architecture:
+- MVVM/MVC with GetX for state management
+- GoRouter for navigation with centralized routing
+- API communication via custom ApiClient with http package
+- Dependency injection using Get lazyPut with DependencyInjection class
+
+Key Features:
+1. Authentication System: Complete auth flow (sign up, login, verify email, forgot/reset password) with JWT token management
+2. Admin Dashboard: Attendance management, task creation system with departments, categories, services, and employee assignment
+3. Attendance System: Clock-in/clock-out functionality with location tracking
+4. Task Management: Create, assign, and track tasks with service selection, quantity, pricing, priority and difficulty levels
+5. Real-time communication: Socket.IO integration for live updates
+6. Location tracking: Employee location tracking with geolocator
+7. Push notifications: FCM integration for notifications
+
+Project Structure:
+lib/
+├── constants/           # App constants (colors)
+├── controller/          # GetX Controllers (auth, admin)
+├── core/               # Core app constants and exceptions
+├── features/           # Feature-based modules (auth, admin, employee)
+├── global/             # Global assets
+├── helpers/            # Utility functions (prefs, toast, DI)
+├── models/             # Data models (admin, attendance)
+├── routes/             # Routing configuration
+├── services/           # API services and business logic
+├── shared_services/    # Shared services (theme)
+└── shared_widgets/     # Reusable UI components
+
+Technical Implementation:
+- API Client: Comprehensive HTTP client with multipart support
+- Models: JSON serialization/deserialization for data mapping
+- Controllers: Reactive state management with Rx observables
+- UI: ScreenUtil for responsive design, reusable widgets
+- Storage: SharedPreferences for local persistence
+- Real-time: Socket.IO for live communication
+- Notifications: FCM integration
 
 ## Overall Architecture:
 - **Architecture Pattern:** MVVM/MVC with GetX for state management

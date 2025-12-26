@@ -48,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Obx(
-                () => Column(
+                    () => Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: 24.h),
@@ -56,46 +56,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(40.r),
                         child:
-                            profileController.profile.value.user?.image != null
+                        profileController.profile.value.user?.image != null
                             ? CachedNetworkImage(
-                                imageUrl:
-                                    "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
-                                width: 80.r,
-                                height: 80.r,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    Shimmer.fromColors(
-                                      baseColor: AppColor.borderColor,
-                                      highlightColor: AppColor.backgroundColor,
-                                      child: Container(
-                                        width: 80.r,
-                                        height: 80.r,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            40.r,
-                                          ),
-                                          color: AppColor.borderColor,
-                                        ),
-                                      ),
+                          imageUrl:
+                          "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                          width: 80.r,
+                          height: 80.r,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              Shimmer.fromColors(
+                                baseColor: AppColor.borderColor,
+                                highlightColor: AppColor.backgroundColor,
+                                child: Container(
+                                  width: 80.r,
+                                  height: 80.r,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                      40.r,
                                     ),
-                                errorWidget: (context, url, error) =>
-                                    Assets.images.profile.image(
-                                      width: 80.r,
-                                      height: 80.r,
-                                      fit: BoxFit.cover,
-                                    ),
-                              )
-                            : Assets.images.profile.image(
+                                    color: AppColor.borderColor,
+                                  ),
+                                ),
+                              ),
+                          errorWidget: (context, url, error) =>
+                              Assets.images.profile.image(
                                 width: 80.r,
                                 height: 80.r,
                                 fit: BoxFit.cover,
                               ),
+                        )
+                            : Assets.images.profile.image(
+                          width: 80.r,
+                          height: 80.r,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     SizedBox(height: 8.h),
                     CustomText(
                       text:
-                          profileController.profile.value.user?.firstName ??
+                      profileController.profile.value.user?.firstName ??
                           'N/A',
                       fontSize: 24.sp,
                       color: AppColor.secondaryColor,
@@ -203,6 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               SizedBox(height: 16.h),
+
               /// ==================================> Terms =============================>
               GestureDetector(
                 onTap: () {
