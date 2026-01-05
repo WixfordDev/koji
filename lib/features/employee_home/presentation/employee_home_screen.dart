@@ -145,150 +145,160 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Profile Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CustomNetworkImage(
-                          imageUrl: userImage.isNotEmpty
-                              ? "${ApiConstants.imageBaseUrl}$userImage"
-                              : "https://example.com/image.jpg",
-                          height: 40.h,
-                          width: 40.w,
-                          boxShape: BoxShape.circle,
-                        ),
-                        SizedBox(width: 10.w),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              text: _greeting(),
-                              color: const Color(0xff8F8F8F),
-                              fontSize: 12.sp,
-                            ),
-                            CustomText(
-                              text: userName.isNotEmpty ? userName : 'User',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.sp,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        context.push('/notificationScreen');
-                      },
-                      child: Icon(
-                        Icons.notifications_none_outlined,
-                        color: const Color(0xff8F8F8F),
-                        size: 22.sp,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 96.h),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/homeBG.png'),
 
-                // Center Clock and Date (live)
-                Center(
-                  child: Column(
+                  fit: BoxFit.contain,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Profile Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CustomText(
-                        text: _formatClock(_now),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 60.sp,
+                      Row(
+                        children: [
+                          CustomNetworkImage(
+                            imageUrl: userImage.isNotEmpty
+                                ? "${ApiConstants.imageBaseUrl}$userImage"
+                                : "https://example.com/image.jpg",
+                            height: 40.h,
+                            width: 40.w,
+                            boxShape: BoxShape.circle,
+                          ),
+                          SizedBox(width: 10.w),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                text: _greeting(),
+                                color: const Color(0xff8F8F8F),
+                                fontSize: 12.sp,
+                              ),
+                              CustomText(
+                                text: userName.isNotEmpty ? userName : 'User',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      CustomText(
-                        text: _formatDate(_now),
-                        color: const Color(0xff8F8F8F),
-                        fontSize: 26.sp,
+                      GestureDetector(
+                        onTap: () {
+                          context.push('/notificationScreen');
+                        },
+                        child: Icon(
+                          Icons.notifications_none_outlined,
+                          color: const Color(0xff8F8F8F),
+                          size: 22.sp,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: 60.h),
+                  SizedBox(height: 96.h),
 
-                // Check In / Check Out Button
-                Center(
-                  child: GestureDetector(
-                    onTap: isCheckedIn
-                        ? _showConfirmCheckOutDialog
-                        : _performCheckIn,
-                    child: Container(
-                      height: 229.h,
-                      width: 229.h,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: isCheckedIn
-                              ? [Colors.redAccent, Colors.red]
-                              : [Colors.blueAccent, Colors.blue],
+                  // Center Clock and Date (live)
+                  Center(
+                    child: Column(
+                      children: [
+                        CustomText(
+                          text: _formatClock(_now),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60.sp,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icons/hand.svg',
-                            height: 60,
-                            width: 60,
-                          ),
+                        CustomText(
+                          text: _formatDate(_now),
+                          color: const Color(0xff8F8F8F),
+                          fontSize: 26.sp,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 60.h),
 
-                          SizedBox(height: 5.h),
-                          CustomText(
-                            text: isCheckedIn ? "CHECK OUT" : "CHECK IN",
-                            color: Colors.white,
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w600,
+                  // Check In / Check Out Button
+                  Center(
+                    child: GestureDetector(
+                      onTap: isCheckedIn
+                          ? _showConfirmCheckOutDialog
+                          : _performCheckIn,
+                      child: Container(
+                        height: 229.h,
+                        width: 229.h,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: isCheckedIn
+                                ? [Colors.redAccent, Colors.red]
+                                : [Colors.blueAccent, Colors.blue],
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/hand.svg',
+                              height: 60,
+                              width: 60,
+                            ),
+
+                            SizedBox(height: 5.h),
+                            CustomText(
+                              text: isCheckedIn ? "CHECK OUT" : "CHECK IN",
+                              color: Colors.white,
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(height: 20.h),
+                  SizedBox(height: 20.h),
 
-                // Location Text (dynamic from attendance if available)
-                Center(
-                  child: CustomText(
-                    text: _locationLabel(),
-                    color: const Color(0xff8F8F8F),
-                    fontSize: 12.sp,
+                  // Location Text (dynamic from attendance if available)
+                  Center(
+                    child: CustomText(
+                      text: _locationLabel(),
+                      color: const Color(0xff8F8F8F),
+                      fontSize: 12.sp,
+                    ),
                   ),
-                ),
-                SizedBox(height: 62.h),
+                  SizedBox(height: 62.h),
 
-                // Bottom Info Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _infoItem(
-                      _formatTime(todayAttendance?.clockIn),
-                      "Clock In",
-                    ),
-                    _infoItem(
-                      _formatTime(todayAttendance?.clockOut),
-                      "Clock Out",
-                    ),
-                    _infoItem(
-                      _formatTotalHours(todayAttendance),
-                      "Total Hours",
-                    ),
-                  ],
-                ),
-              ],
+                  // Bottom Info Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _infoItem(
+                        _formatTime(todayAttendance?.clockIn),
+                        "Clock In",
+                      ),
+                      _infoItem(
+                        _formatTime(todayAttendance?.clockOut),
+                        "Clock Out",
+                      ),
+                      _infoItem(
+                        _formatTotalHours(todayAttendance),
+                        "Total Hours",
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -299,7 +309,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   Widget _infoItem(String time, String label) {
     return Column(
       children: [
-        CustomText(text: time, fontWeight: FontWeight.w600, fontSize: 14.sp),
+        CustomText(text: time, fontWeight: FontWeight.w600, fontSize: 20.sp),
         SizedBox(height: 4.h),
         CustomText(
           text: label,

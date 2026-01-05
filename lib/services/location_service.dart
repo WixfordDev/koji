@@ -92,7 +92,9 @@ class LocationService {
     };
 
     // Print location data for debugging
-    print("Sending location update: $locationData");
+    print(
+      "Sending location update: $locationData address : ${_getLocationName(position)}",
+    );
 
     // Emit location update via socket
     SocketServices().emit("location-update", locationData);
