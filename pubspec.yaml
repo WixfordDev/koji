@@ -40,6 +40,7 @@ dependencies:
   firebase_messaging:
   firebase_core: ^4.1.1
   flutter_local_notifications: ^18.0.0
+  geocoding: 
 
 dev_dependencies:
   flutter_test:

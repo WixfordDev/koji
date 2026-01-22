@@ -164,7 +164,7 @@ class AuthController extends GetxController {
 
     var response = await ApiClient.postData(
       ApiConstants.loginUpEndPoint,
-      jsonEncode(body),
+      body,
       headers: headers,
     );
 
@@ -196,6 +196,9 @@ class AuthController extends GetxController {
       logInLoading(false);
     } else {
       logInLoading(false);
+      ToastMessageHelper.showToastMessage(
+        "We've sent an OTP to your email to verify your email.",
+      );
       if (response.body["message"] == "Email not verified") {
         RouteHelper.goToVerifyScreen(
           context,
@@ -206,9 +209,6 @@ class AuthController extends GetxController {
         await PrefsHelper.setString(
           AppConstants.bearerToken,
           response.body["data"]['tokens'],
-        );
-        ToastMessageHelper.showToastMessage(
-          "We've sent an OTP to your email to verify your email.",
         );
       } else if (response.body["message"] == "⛔ Wrong password! ⛔") {
         ToastMessageHelper.showToastMessage(response.body["message"]);
