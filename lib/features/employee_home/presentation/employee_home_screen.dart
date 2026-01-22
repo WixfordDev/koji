@@ -15,6 +15,8 @@ import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/core/app_constants.dart';
 import 'package:koji/controller/employee_location_controller.dart';
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class EmployeeHomeScreen extends StatefulWidget {
   const EmployeeHomeScreen({super.key});
@@ -36,15 +38,18 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   Timer? _clockTimer;
   String userName = '';
   String userImage = '';
+  String currentLocationName = 'Singapore, Adam Park'; // Default location
 
   @override
   void initState() {
     super.initState();
     // Initialize location tracking when the app starts
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _initializeLocationTracking();
       _fetchAttendanceList();
       _loadUserName();
+      // Get the current location immediately
+      await _getCurrentLocation();
     });
     _now = DateTime.now();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -57,8 +62,105 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
     // Get the location controller to start location updates
     final locationController = Get.put(EmployeeLocationController());
 
+    // Listen to location updates
+    locationController.currentAddressName.listen((address) {
+      if (address.isNotEmpty) {
+        setState(() {
+          currentLocationName = address;
+        });
+      }
+    });
+
     // Start location tracking
     locationController.startLocationTracking();
+  }
+
+  /// Get the current location from the device
+  Future<void> _getCurrentLocation() async {
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          currentLocationName = 'Location services are disabled';
+        });
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            currentLocationName = 'Location permissions are denied';
+          });
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          currentLocationName = 'Location permissions are permanently denied';
+        });
+        return;
+      }
+
+      // Get the current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Convert the position to an address using reverse geocoding
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+
+        // Format the address
+        String address = '';
+
+        if (place.street != null && place.street!.isNotEmpty) {
+          address += place.street!;
+        }
+
+        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+          address += address.isEmpty
+              ? place.subLocality!
+              : ', ${place.subLocality}';
+        }
+
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          address += address.isEmpty ? place.locality! : ', ${place.locality}';
+        }
+
+        if (place.administrativeArea != null &&
+            place.administrativeArea!.isNotEmpty) {
+          address += address.isEmpty
+              ? place.administrativeArea!
+              : ', ${place.administrativeArea}';
+        }
+
+        if (place.country != null && place.country!.isNotEmpty) {
+          address += address.isEmpty ? place.country! : ', ${place.country}';
+        }
+
+        setState(() {
+          currentLocationName = address.isNotEmpty ? address : 'Unknown location';
+        });
+      } else {
+        setState(() {
+          currentLocationName = 'Address not found';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        currentLocationName = 'Error getting location: $e';
+      });
+    }
   }
 
   Future<void> _loadUserName() async {
@@ -378,16 +480,24 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
 
   String _locationLabel() {
     try {
+      // If we have a location from today's attendance, use that
       final loc = todayAttendance?.location;
       if (loc is Map<String, dynamic>) {
         final name = loc['name'];
         if (name != null && name.toString().isNotEmpty)
           return 'Location: ${name.toString()}';
       }
+
+      // Otherwise, use the current GPS location
+      if (currentLocationName.isNotEmpty && currentLocationName != 'Singapore, Adam Park') {
+        return 'Location: $currentLocationName';
+      }
+
+      // If still no location, indicate that we're getting the current location
       if (isCheckedIn) return 'Location: You are currently checked in';
-      return 'Location: Singapore, Adam Park';
+      return 'Getting your current location...';
     } catch (_) {
-      return 'Location: Singapore, Adam Park';
+      return 'Location: $currentLocationName';
     }
   }
 

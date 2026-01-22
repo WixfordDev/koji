@@ -9,6 +9,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:koji/services/firebase_notification_service.dart';
+import 'package:toastification/toastification.dart';
+import 'helpers/toast_message_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,8 @@ void main() async {
   await FirebaseMessaging.instance;
   // Print FCM Token
   await FirebaseNotificationService.initialize();
+
+  // runApp(ToastificationWrapper(child: MyApp()));
   runApp(const MyApp());
 }
 
