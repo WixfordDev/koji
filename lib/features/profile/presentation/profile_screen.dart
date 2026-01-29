@@ -42,13 +42,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         automaticallyImplyLeading: false,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        padding: EdgeInsets.symmetric(horizontal: 24.w),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Obx(
-                    () => Column(
+              Obx(() => Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: 24.h),
@@ -140,7 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 22.w,
                               height: 22.h,
                             ),
-                            SizedBox(width: 5.w),
+                            SizedBox(width: 9.w),
                             CustomText(
                               text: 'My Profile',
                               fontSize: 16.sp,
@@ -184,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 22.w,
                               height: 22.h,
                             ),
-                            SizedBox(width: 5.w),
+                            SizedBox(width: 9.w),
                             CustomText(
                               text: 'Change Password',
                               fontSize: 16.sp,
@@ -266,8 +265,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
                         child: Row(
                           children: [
-                            Assets.icons.terms.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 5.w),
+                            Assets.icons.privacy.svg(width: 22.w, height: 22.h),
+                            SizedBox(width: 9.w),
                             CustomText(
                               text: 'Privacy Policy',
                               fontSize: 16.sp,
@@ -288,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 16.h),
 
 
-              /// ==================================> Privacy Policy =============================>
+              /// ==================================> About Us =============================>
               GestureDetector(
                 onTap: () {
                   context.push('/aboutUsScreen');
@@ -316,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 22.w,
                               height: 22.h,
                             ),
-                            SizedBox(width: 5.w),
+                            SizedBox(width: 9.w),
                             CustomText(text: 'About Us',
                               fontSize: 16.sp,
                               color: AppColor.secondaryColor,
@@ -356,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Row(
                           children: [
                             Assets.icons.help.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 5.w),
+                            SizedBox(width: 9.w),
                             CustomText(
                               text: 'Help & Support',
                               fontSize: 16.sp,

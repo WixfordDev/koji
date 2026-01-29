@@ -22,7 +22,7 @@ class _AdminEmployeeRequestScreenState
     extends State<AdminEmployeeRequestScreen> {
 
   TextEditingController searchCtrl = TextEditingController();
-
+  String selectedFilter = "All";
 
 
 
@@ -39,7 +39,36 @@ class _AdminEmployeeRequestScreenState
     });
   }
 
-
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Filter by",
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              _buildFilterOption("Employee List", "All"),
+              _buildFilterOption("Employee Request", "All"),
+              SizedBox(height: 20.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   String _getImageUrl(String imageUrl) {
     // If the image URL is already a full URL (starts with http:// or https://), return as is
@@ -65,9 +94,81 @@ class _AdminEmployeeRequestScreenState
           children: [
 
             SizedBox(height: 12.h),
-            CustomAuthTextField(controller: searchCtrl, hintText: "Search"),
 
-            SizedBox(height: 12.h),
+            // Search and Filter Row
+            Row(
+              children: [
+                // Search Field
+                Expanded(
+                  child: Container(
+                    height: 48.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24.r),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: TextField(
+                      controller: searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: "Search",
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.grey[400],
+                          size: 22.sp,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 12.h,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 12.w),
+
+                // Filter Dropdown Button
+                GestureDetector(
+                  onTap: _showFilterBottomSheet,
+                  child: Container(
+                    height: 48.h,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24.r),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "All",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey[600],
+                          size: 20.sp,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 16.h),
+
 
             HorizontalListExample(
               items: [
@@ -83,7 +184,7 @@ class _AdminEmployeeRequestScreenState
               },
             ),
 
-            SizedBox(height: 12.h),
+            SizedBox(height: 28.h),
 
             Expanded(
               child: GetX<AdminHomeController>(
@@ -173,4 +274,29 @@ class _AdminEmployeeRequestScreenState
       ),
     );
   }
+
+
+  Widget _buildFilterOption(String title, String value) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: selectedFilter == value
+          ? Icon(Icons.check, color: Color(0xffF4726D))
+          : null,
+      onTap: () {
+        setState(() {
+          selectedFilter = value;
+        });
+        Navigator.pop(context);
+        // Add your filter logic here
+      },
+    );
+  }
+
 }

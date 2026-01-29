@@ -60,7 +60,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                   CustomText(text:
-                    "Admin",
+                  "Admin",
                     color: AppColor.textColor4F4F4F,
                     fontSize: 12.sp,
                   ),
@@ -90,14 +90,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               bool isDataAvailable =
                   (attendanceSummary.totalEmployees != null && attendanceSummary.totalEmployees! > 0) ||
-                  (attendanceSummary.employeesArrivedOnTime != null) ||
-                  (attendanceSummary.lateComersToday != null) ||
-                  (attendanceSummary.absentEmployeesToday != null) ||
-                  (attendanceSummary.workingEmployeesToday != null) ||
-                  (taskSummary.totalTask != null) ||
-                  (taskSummary.completeTask != null) ||
-                  (taskSummary.pendingTask != null) ||
-                  (taskSummary.inProgressTask != null);
+                      (attendanceSummary.employeesArrivedOnTime != null) ||
+                      (attendanceSummary.lateComersToday != null) ||
+                      (attendanceSummary.absentEmployeesToday != null) ||
+                      (attendanceSummary.workingEmployeesToday != null) ||
+                      (taskSummary.totalTask != null) ||
+                      (taskSummary.completeTask != null) ||
+                      (taskSummary.pendingTask != null) ||
+                      (taskSummary.inProgressTask != null);
 
               if (!isDataAvailable) {
                 return Center(
@@ -208,9 +208,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
                   SizedBox(height: 24.h),
 
-               /// =============================> Today Attendance Summary =====================>
+                  /// =============================> Today Attendance Summary =====================>
                   Text(
-                    "Today’s Attendance Summary",
+                    "Today's Attendance Summary",
                     style: AppTextStyle.semiBold(15.sp),),
 
                   SizedBox(height: 10.h),
@@ -228,7 +228,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
 
                   Text(
-                    "Today’s Task Summary",
+                    "Today's Task Summary",
                     style: AppTextStyle.semiBold(15.sp),
                   ),
                   SizedBox(height: 10.h),
@@ -293,8 +293,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   Widget _buildQuickCard(String title, List<Color> gradient, Widget icon) {
     return Container(
-      width: 165.w,
-      height: 220.h,
+      width: 167.w,
+      height: 167.h,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.r),
         gradient: LinearGradient(
@@ -302,24 +302,33 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: const [
-          BoxShadow(color: Colors.black38, blurRadius: 2, offset: Offset(0, 2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 2,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(14.w),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              icon,
-              Text(
-                title,
-                style: AppTextStyle.semiBold(16.sp, color: Colors.white),
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-            ],
-          ),
+              child: icon,
+            ),
+            Text(
+              title,
+              style: AppTextStyle.semiBold(18.sp, color: Colors.white),
+            ),
+          ],
         ),
       ),
     );
@@ -344,12 +353,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         children: children
             .map(
               (child) => Column(
-                children: [
-                  child,
-                  Divider(thickness: 0.4, color: Colors.grey[300]),
-                ],
-              ),
-            )
+            children: [
+              child,
+              Divider(thickness: 0.4, color: Colors.grey[300]),
+            ],
+          ),
+        )
             .toList(),
       ),
     );
