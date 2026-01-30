@@ -78,103 +78,97 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
 
   // ------------------------------ TABS ------------------------------
   Widget _buildTabs() {
-    return GetBuilder<AdminHomeController>(
-      builder: (controller) {
-        String allCount = controller.getAllListTaskLoading.value
-            ? "All"
-            : "All (${controller.getAllListTask.value.results?.length ?? 0})";
+    return Obx(() {
+      String allCount = adminHomeController.getAllListTaskLoading.value
+          ? "All"
+          : "All (${adminHomeController.getAllListTask.value.results?.length ?? 0})";
 
-        List<String> tabs = [allCount, ...statusFilters.skip(1)]; // Skip "All" from statusFilters
+      List<String> tabs = [allCount, ...statusFilters.skip(1)]; // Skip "All" from statusFilters
 
-        return SizedBox(
-          height: 40,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            physics: const BouncingScrollPhysics(), // Add bouncy scrolling effect
-            itemBuilder: (context, index) {
-              final bool active = selectedTab == index;
+      return SizedBox(
+        height: 40,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          physics: const BouncingScrollPhysics(),
+          itemBuilder: (context, index) {
+            final bool active = selectedTab == index;
 
-              return GestureDetector(
-                onTap: () => setState(() => selectedTab = index),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: active
-                        ? const LinearGradient(
-                      colors: [Color(0xffEC526A), Color(0xffF77F6E)],
-                    )
-                        : null,
-                    borderRadius: BorderRadius.circular(30),
-                    border: active
-                        ? null
-                        : Border.all(color: const Color(0xffC8C8C8)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      tabs[index],
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: active ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
+            return GestureDetector(
+              onTap: () => setState(() => selectedTab = index),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: active
+                      ? const LinearGradient(
+                    colors: [Color(0xffEC526A), Color(0xffF77F6E)],
+                  )
+                      : null,
+                  borderRadius: BorderRadius.circular(30),
+                  border: active
+                      ? null
+                      : Border.all(color: const Color(0xffC8C8C8)),
+                ),
+                child: Center(
+                  child: Text(
+                    tabs[index],
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: active ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-              );
-            },
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemCount: tabs.length,
-          ),
-        );
-      },
-    );
+              ),
+            );
+          },
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemCount: tabs.length,
+        ),
+      );
+    });
   }
 
   // ------------------------------ TASK LIST ------------------------------
   Widget _buildTaskList() {
-    return GetBuilder<AdminHomeController>(
-      builder: (controller) {
-        if (controller.getAllListTaskLoading.value) {
-          return const Center(child: CustomLoader());
-        }
+    return Obx(() {
+      if (adminHomeController.getAllListTaskLoading.value) {
+        return const Center(child: CustomLoader());
+      }
 
-        if (controller.getAllListTask.value.results == null ||
-            controller.getAllListTask.value.results!.isEmpty) {
-          return const Center(child: Text("No tasks found"));
-        }
+      if (adminHomeController.getAllListTask.value.results == null ||
+          adminHomeController.getAllListTask.value.results!.isEmpty) {
+        return const Center(child: Text("No tasks found"));
+      }
 
-        // Filter tasks based on selected tab
-        List<Result> filteredTasks = _filterTasks(controller.getAllListTask.value.results!);
+      // Filter tasks based on selected tab
+      List<Result> filteredTasks = _filterTasks(adminHomeController.getAllListTask.value.results!);
 
-        if (filteredTasks.isEmpty) {
-          return const Center(child: Text("No tasks found for this status"));
-        }
+      if (filteredTasks.isEmpty) {
+        return const Center(child: Text("No tasks found for this status"));
+      }
 
-        return ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          itemCount: filteredTasks.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final task = filteredTasks[index];
-            final status = task.status?.toString().toLowerCase() ?? '';
-            final progress = (task.progressPercent ?? 0) / 100.0;
+      return ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        itemCount: filteredTasks.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final task = filteredTasks[index];
+          final progress = (task.progressPercent ?? 0) / 100.0;
 
-            final statusValue = _getStatusValue(task.status);
-            return _taskCard(
-              title: _formatServiceCategory(task.serviceCategory?.toString()),
-              status: _formatStatusEnum(task.status),
-              statusColor: _getStatusColor(statusValue),
-              priority: _formatPriorityEnum(task.priority),
-              progress: progress,
-              date: task.assignDate != null
-                  ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
-                  : 'No date',
-            );
-          },
-        );
-      },
-    );
+          return _taskCard(
+            title: task.customerName ?? 'Task',
+            status: _formatStatus(task.status ?? 'pending'),
+            statusColor: _getStatusColor(task.status ?? 'pending'),
+            priority: _formatPriority(task.priority ?? 'medium'),
+            progress: progress,
+            date: task.assignDate != null
+                ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
+                : 'No date',
+          );
+        },
+      );
+    });
   }
 
   // Filter tasks based on selected status tab
@@ -184,45 +178,32 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     }
 
     String selectedStatus = statusFilters[selectedTab].toLowerCase();
-    // Handle submitted vs submited (as the model uses "submited")
-    if (selectedStatus == "submitted") {
-      selectedStatus = "submited";
-    }
 
     return tasks.where((task) {
-      String taskStatus = _getStatusValue(task.status);
-      // Handle the case where the model uses "submited" instead of "submitted"
+      String taskStatus = (task.status ?? 'pending').toLowerCase();
+
+      // Handle submitted vs submited
       if (taskStatus == "submited" && selectedStatus == "submitted") {
         return true;
       }
+      if (taskStatus == "submitted" && selectedStatus == "submited") {
+        return true;
+      }
+
       return taskStatus == selectedStatus;
     }).toList();
   }
 
-  // Get the status value from enum
-  String _getStatusValue(dynamic status) {
-    if (status == null) return '';
-
-    String statusString = status.toString();
-
-    // Handle the enum pattern "Status." prefix
-    if (statusString.startsWith('Status.')) {
-      statusString = statusString.substring(7); // Remove "Status." prefix
-    }
-
-    return statusString.toLowerCase();
-  }
-
-  // Format status for display (already exists but improved)
+  // Format status for display
   String _formatStatus(String status) {
     if (status.isEmpty) return 'Pending';
 
     // Handle API typo
-    if (status == "submited") return "Submitted";
-    if (status == "progress") return "In Progress";
+    if (status.toLowerCase() == "submited") return "Submitted";
+    if (status.toLowerCase() == "progress") return "In Progress";
 
     // Capitalize first letter
-    return status[0].toUpperCase() + status.substring(1);
+    return status[0].toUpperCase() + status.substring(1).toLowerCase();
   }
 
   // Get color based on status
@@ -231,19 +212,26 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
       case 'pending':
         return Colors.orange;
       case 'progress':
+      case 'in_progress':
         return Colors.blue;
       case 'submitted':
       case 'submited':
-        return const Color(0xff6B7280); // Grey for submitted
+        return const Color(0xff6B7280);
       case 'approved':
         return Colors.green;
       case 'rejected':
         return Colors.red;
       case 'completed':
-        return const Color(0xff10B981); // Green
+        return const Color(0xff10B981);
       default:
         return Colors.grey;
     }
+  }
+
+  // Format priority
+  String _formatPriority(String priority) {
+    if (priority.isEmpty) return 'Medium';
+    return priority[0].toUpperCase() + priority.substring(1).toLowerCase();
   }
 
   // Get month name from number
@@ -340,7 +328,7 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
               const Text("👨‍🔧  👩‍🔧  🧑‍🔧", style: TextStyle(fontSize: 18)),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 14),
+                  const Icon(Icons.calendar_today, size: 14),
                   const SizedBox(width: 4),
                   Text(
                     date,
@@ -375,122 +363,6 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
       ),
     );
   }
-
-  // Format service category to remove prefixes and format nicely
-  String _formatServiceCategory(String? category) {
-    if (category == null || category.isEmpty) return 'Task';
-
-    // Check if it's a known service category ID and map to name
-    String serviceName = _mapServiceCategoryById(category);
-    if (serviceName != category) {
-      return serviceName;
-    }
-
-    // If not found in mapping, try to format the enum normally
-    // Remove enum prefix patterns like "ServiceCategory."
-    String formatted = category
-        .replaceAll('ServiceCategory.', '')
-        .replaceAll('THE_', '')
-        .replaceAll('_', ' ');
-
-    // Capitalize each word properly
-    return formatted.split(' ')
-        .where((word) => word.isNotEmpty)
-        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join(' ');
-  }
-
-  // Map service category IDs to actual service names
-  String _mapServiceCategoryById(String? categoryId) {
-    if (categoryId == null) return 'Task';
-
-    // Remove prefixes and normalize the ID for comparison
-    String cleanId = categoryId
-        .replaceAll('ServiceCategory.', '')
-        .replaceAll('THE_', '')
-        .replaceAll('_', '');
-
-    // Convert to lowercase for comparison
-    String lowerCleanId = cleanId.toLowerCase();
-
-    // Check for known service IDs (using lowercase versions)
-    switch (lowerCleanId) {
-      case '690a1088223815bcb3528a5b':
-        return 'Hand Painting Service';
-      case '691a224ffb67f0b04e2d7cb7':
-        return 'Plumbing Service';
-      case 'anotherid': // Add other known IDs as needed
-        return 'Another Service';
-      default:
-        return categoryId; // Return original if no mapping found
-    }
-  }
-
-// Format priority properly
-  String _formatPriority(String? priority) {
-    if (priority == null || priority.isEmpty) return 'Medium';
-
-    // Remove "Priority." prefix and capitalize
-    String formatted = priority.replaceAll('Priority.', '');
-    return formatted[0].toUpperCase() + formatted.substring(1).toLowerCase();
-  }
-
-  // Format status enum properly
-  String _formatStatusEnum(dynamic status) {
-    if (status == null) return 'Pending';
-
-    String statusString = status.toString();
-
-    // Handle the enum pattern "Status." prefix
-    if (statusString.startsWith('Status.')) {
-      statusString = statusString.substring(7); // Remove "Status." prefix
-    }
-
-    switch (statusString.toLowerCase()) {
-      case 'submited':
-        return 'Submitted';
-      case 'progress':
-        return 'In Progress';
-      case 'pending':
-        return 'Pending';
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      case 'completed':
-        return 'Completed';
-      default:
-        return statusString[0].toUpperCase() + statusString.substring(1);
-    }
-  }
-
-  // Format priority enum properly
-  String _formatPriorityEnum(dynamic priority) {
-    if (priority == null) return 'Medium';
-
-    String priorityString = priority.toString();
-
-    // Handle the enum pattern "Priority." prefix
-    if (priorityString.startsWith('Priority.')) {
-      priorityString = priorityString.substring(9); // Remove "Priority." prefix
-    }
-
-    switch (priorityString.toLowerCase()) {
-      case 'high':
-        return 'High';
-      case 'medium':
-        return 'Medium';
-      case 'low':
-        return 'Low';
-      default:
-        return priorityString[0].toUpperCase() + priorityString.substring(1);
-    }
-  }
-
-
-
-
-
 
   // ------------------------------ BOTTOM BUTTON ------------------------------
   Widget _buildCreateTaskButton() {
