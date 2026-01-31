@@ -160,8 +160,9 @@ class DepartmentController extends GetxController {
       var response = await ApiClient.getData(ApiConstants.vehicleListEndPoint);
 
       if (response.statusCode == 200) {
+        // Parse the entire data object, not just attributes
         allVehicles.value = AllVehicleModel.fromJson(
-          response.body['data']['attributes'],
+          response.body['data'],
         );
         getAllVehiclesModelLoading(false);
       } else if (response.statusCode == 404) {
@@ -170,6 +171,7 @@ class DepartmentController extends GetxController {
         getAllVehiclesModelLoading(false);
       }
     } catch (e) {
+      print("Error loading vehicles: $e");
       getAllVehiclesModelLoading(false);
     }
   }
@@ -385,7 +387,7 @@ class DepartmentController extends GetxController {
         "customerName": customerName,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
-        "assignTo": assignTo, // Send as comma-separated string
+        "assignTo": jsonEncode(assignTo.split(',').map((id) => id.trim()).toList()),
         "assignDate": assignDate,
         "deadline": deadline,
         "services": jsonEncode(

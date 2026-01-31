@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -758,6 +757,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     departmentController.updateSelectedServiceList(selectedServiceList);
   }
 
+
+
+
+
   // ---------------- Bottom Sheets ----------------
 
   void _showDepartmentBottomSheet() {
@@ -769,138 +772,185 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (context) {
-        return Obx(() {
-          if (departmentController.getAllDepartmentModelLoading.value) {
-            return Container(
-              height: 300.h,
-              child: Center(child: CustomLoader()),
-            );
-          }
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Obx(() {
+              if (departmentController.getAllDepartmentModelLoading.value) {
+                return Container(
+                  height: 300.h,
+                  child: Center(child: CustomLoader()),
+                );
+              }
 
-          final departments = departmentController.allDepartment.value.results ?? [];
+              final departments = departmentController.allDepartment.value.results ?? [];
 
-          if (departments.isEmpty) {
-            return Container(
-              height: 300.h,
-              child: Center(child: Text("No departments found")),
-            );
-          }
+              if (departments.isEmpty) {
+                return Container(
+                  height: 300.h,
+                  child: Center(child: Text("No departments found")),
+                );
+              }
 
-          return Padding(
-            padding: EdgeInsets.all(20.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Department",
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.edit_outlined, size: 20.r),
-                    ),
-                  ],
+              return Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
                 ),
-                SizedBox(height: 16.h),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "Search here...",
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                ...departments.map((dept) {
-                  bool isSelected = selectedDepartment == dept.name;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedDepartment = dept.name;
-                      });
-                      departmentController.updateSelectedDepartment(dept.id ?? '', dept.name ?? '');
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 8.h),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Color(0xFFFF7D7D) : Colors.white,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Row(
+                child: Padding(
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dept.name ?? "",
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  color: isSelected ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              if (dept.description != null)
-                                Text(
-                                  dept.description!,
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: isSelected ? Colors.white70 : Colors.grey,
-                                  ),
-                                ),
-                            ],
+                          Text(
+                            "Department",
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  _showUpdateDepartmentDialog(dept);
-                                },
-                                icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
-                                padding: EdgeInsets.zero,
-                                constraints: BoxConstraints(),
-                              ),
-                              if (isSelected)
-                                Container(
-                                  padding: EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
-                                )
-                              else
-                                Container(
-                                  width: 20.r,
-                                  height: 20.r,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.grey.shade300, width: 2),
-                                  ),
-                                ),
-                            ],
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(Icons.edit_outlined, size: 20.r, color: Colors.grey),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }).toList(),
-                SizedBox(height: 20.h),
-              ],
-            ),
-          );
-        });
+                      SizedBox(height: 16.h),
+
+                      // Search Field
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: "Search here...",
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          prefixIcon: Icon(Icons.search, color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: AppColor.primaryColor),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // Department List
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: departments.length,
+                          itemBuilder: (context, index) {
+                            final dept = departments[index];
+                            final isSelected = selectedDepartment == dept.name;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setModalState(() {
+                                  selectedDepartment = dept.name;
+                                });
+                                setState(() {
+                                  selectedDepartment = dept.name;
+                                });
+                                departmentController.updateSelectedDepartment(
+                                  dept.id ?? '',
+                                  dept.name ?? '',
+                                );
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(bottom: 12.h),
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  border: Border.all(
+                                    color: isSelected ? Colors.black : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            dept.name ?? "N/A",
+                                            style: TextStyle(
+                                              fontSize: 15.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        // Edit Icon
+                                        IconButton(
+                                          onPressed: () {
+                                            _showUpdateDepartmentDialog(dept);
+                                          },
+                                          icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                          padding: EdgeInsets.zero,
+                                          constraints: BoxConstraints(),
+                                        ),
+                                        SizedBox(width: 12.w),
+                                        // Selection Indicator
+                                        Container(
+                                          width: 24.r,
+                                          height: 24.r,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isSelected ? Colors.black : Colors.transparent,
+                                            border: Border.all(
+                                              color: isSelected ? Colors.black : Colors.grey.shade400,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: isSelected
+                                              ? Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16.r,
+                                          )
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ),
+                ),
+              );
+            });
+          },
+        );
       },
     );
   }
+
+
+
+
+
 
   void _showCategoryBottomSheet() {
     showModalBottomSheet(
@@ -1058,135 +1108,200 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (context) {
-        return Obx(() {
-          if (departmentController.getAllVehiclesModelLoading.value) {
-            return Container(
-              height: 300.h,
-              child: Center(child: CustomLoader()),
-            );
-          }
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Obx(() {
+              if (departmentController.getAllVehiclesModelLoading.value) {
+                return Container(
+                  height: 300.h,
+                  child: Center(child: CustomLoader()),
+                );
+              }
 
-          final vehicles = departmentController.allVehicles.value.attributes?.results ?? [];
+              final vehicles = departmentController.allVehicles.value.attributes?.results ?? [];
 
-          if (vehicles.isEmpty) {
-            return Container(
-              height: 300.h,
-              child: Center(child: Text("No vehicles found")),
-            );
-          }
-
-          return Padding(
-            padding: EdgeInsets.all(20.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Vehicle",
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+              if (vehicles.isEmpty) {
+                return Container(
+                  height: 300.h,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.directions_car_outlined, size: 50.r, color: Colors.grey),
+                        SizedBox(height: 16.h),
+                        Text(
+                          "No vehicles found",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.edit_outlined, size: 20.r),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.h),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "Search here...",
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 12.h),
                   ),
+                );
+              }
+
+              return Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
                 ),
-                SizedBox(height: 16.h),
-                ...vehicles.map((vehicle) {
-                  bool isSelected = selectedVehicle == vehicle.name;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedVehicle = vehicle.name;
-                      });
-                      departmentController.updateSelectedVehicle(vehicle.id ?? '', vehicle.name ?? '');
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 8.h),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Color(0xFFFF7D7D) : Colors.white,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Row(
+                child: Padding(
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                vehicle.name ?? "",
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  color: isSelected ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              if (vehicle.description != null)
-                                Text(
-                                  vehicle.description!,
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: isSelected ? Colors.white70 : Colors.grey,
-                                  ),
-                                ),
-                            ],
+                          Text(
+                            "Vehicle",
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  _showUpdateVehicleDialog(vehicle);
-                                },
-                                icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
-                                padding: EdgeInsets.zero,
-                                constraints: BoxConstraints(),
-                              ),
-                              if (isSelected)
-                                Container(
-                                  padding: EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.check, color: Color(0xFFFF7D7D), size: 16.r),
-                                )
-                              else
-                                Container(
-                                  width: 20.r,
-                                  height: 20.r,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.grey.shade300, width: 2),
-                                  ),
-                                ),
-                            ],
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(Icons.edit_outlined, size: 20.r, color: Colors.grey),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }).toList(),
-                SizedBox(height: 20.h),
-              ],
-            ),
-          );
-        });
+                      SizedBox(height: 16.h),
+
+                      // Search Field
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: "Search here...",
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          prefixIcon: Icon(Icons.search, color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                            borderSide: BorderSide(color: AppColor.primaryColor),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // Vehicle List
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: vehicles.length,
+                          itemBuilder: (context, index) {
+                            final vehicle = vehicles[index];
+                            final isSelected = selectedVehicle == vehicle.name;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setModalState(() {
+                                  selectedVehicle = vehicle.name;
+                                });
+                                setState(() {
+                                  selectedVehicle = vehicle.name;
+                                });
+                                departmentController.updateSelectedVehicle(
+                                  vehicle.id ?? '',
+                                  vehicle.name ?? '',
+                                );
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(bottom: 12.h),
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  border: Border.all(
+                                    color: isSelected ? Colors.black : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            vehicle.name ?? "N/A",
+                                            style: TextStyle(
+                                              fontSize: 15.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          if (vehicle.description != null && vehicle.description!.isNotEmpty)
+                                            Padding(
+                                              padding: EdgeInsets.only(top: 4.h),
+                                              child: Text(
+                                                vehicle.description!,
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        // Edit Icon
+                                        IconButton(
+                                          onPressed: () {
+                                            _showUpdateVehicleDialog(vehicle);
+                                          },
+                                          icon: Icon(Icons.edit, size: 18.r, color: Colors.grey),
+                                          padding: EdgeInsets.zero,
+                                          constraints: BoxConstraints(),
+                                        ),
+                                        SizedBox(width: 12.w),
+                                        // Selection Indicator
+                                        Container(
+                                          width: 24.r,
+                                          height: 24.r,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isSelected ? Colors.black : Colors.transparent,
+                                            border: Border.all(
+                                              color: isSelected ? Colors.black : Colors.grey.shade400,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: isSelected
+                                              ? Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16.r,
+                                          )
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ),
+                ),
+              );
+            });
+          },
+        );
       },
     );
   }
@@ -1664,7 +1779,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   }
 
   void _showUpdateVehicleDialog(VehicleResult vehicle) {
-    // Create controllers with the current values
     TextEditingController nameController = TextEditingController(text: vehicle.name);
     TextEditingController descriptionController = TextEditingController(text: vehicle.description);
 
@@ -1672,60 +1786,127 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Update Vehicle"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          title: Text(
+            "Update Vehicle",
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Vehicle Name",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
                   ),
                 ),
-              ),
-              SizedBox(height: 10.h),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(
-                  labelText: "Description",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: "Enter vehicle name",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 16.h),
+                Text(
+                  "Description (Optional)",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: "Enter description",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
             ),
             Obx(() => ElevatedButton(
-                  onPressed: departmentController.updateVehicleLoading.value
+              onPressed: departmentController.updateVehicleLoading.value
+                  ? null
+                  : () async {
+                if (nameController.text.trim().isEmpty) {
+                  ToastMessageHelper.showToastMessage("Vehicle name cannot be empty");
+                  return;
+                }
+
+                final success = await departmentController.updateVehicle(
+                  vehicleId: vehicle.id ?? '',
+                  name: nameController.text.trim(),
+                  description: descriptionController.text.trim().isEmpty
                       ? null
-                      : () async {
-                          final success = await departmentController.updateVehicle(
-                            vehicleId: vehicle.id ?? '',
-                            name: nameController.text.trim(),
-                            description: descriptionController.text.trim(),
-                          );
-                          if (success) {
-                            Navigator.pop(context);
-                          }
-                        },
-                  child: departmentController.updateVehicleLoading.value
-                      ? SizedBox(
-                          width: 20.r,
-                          height: 20.r,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text("Update"),
-                )),
+                      : descriptionController.text.trim(),
+                );
+
+                if (success) {
+                  Navigator.pop(context);
+                  // Update the selected vehicle name if it was the one being edited
+                  if (selectedVehicle == vehicle.name) {
+                    setState(() {
+                      selectedVehicle = nameController.text.trim();
+                    });
+                    departmentController.updateSelectedVehicle(
+                      vehicle.id ?? '',
+                      nameController.text.trim(),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              ),
+              child: departmentController.updateVehicleLoading.value
+                  ? SizedBox(
+                width: 20.r,
+                height: 20.r,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : Text(
+                "Update",
+                style: TextStyle(color: Colors.white),
+              ),
+            )),
           ],
         );
       },
@@ -1733,7 +1914,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   }
 
   void _showUpdateDepartmentDialog(Department dept) {
-    // Create controllers with the current values
     TextEditingController nameController = TextEditingController(text: dept.name);
     TextEditingController descriptionController = TextEditingController(text: dept.description);
 
@@ -1741,60 +1921,127 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Update Department"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          title: Text(
+            "Update Department",
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Department Name",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
                   ),
                 ),
-              ),
-              SizedBox(height: 10.h),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(
-                  labelText: "Description",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: "Enter department name",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 16.h),
+                Text(
+                  "Description (Optional)",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: "Enter description",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
             ),
             Obx(() => ElevatedButton(
-                  onPressed: departmentController.updateDepartmentLoading.value
+              onPressed: departmentController.updateDepartmentLoading.value
+                  ? null
+                  : () async {
+                if (nameController.text.trim().isEmpty) {
+                  ToastMessageHelper.showToastMessage("Department name cannot be empty");
+                  return;
+                }
+
+                final success = await departmentController.updateDepartment(
+                  departmentId: dept.id ?? '',
+                  name: nameController.text.trim(),
+                  description: descriptionController.text.trim().isEmpty
                       ? null
-                      : () async {
-                          final success = await departmentController.updateDepartment(
-                            departmentId: dept.id ?? '',
-                            name: nameController.text.trim(),
-                            description: descriptionController.text.trim(),
-                          );
-                          if (success) {
-                            Navigator.pop(context);
-                          }
-                        },
-                  child: departmentController.updateDepartmentLoading.value
-                      ? SizedBox(
-                          width: 20.r,
-                          height: 20.r,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text("Update"),
-                )),
+                      : descriptionController.text.trim(),
+                );
+
+                if (success) {
+                  Navigator.pop(context);
+                  // Update the selected department name if it was the one being edited
+                  if (selectedDepartment == dept.name) {
+                    setState(() {
+                      selectedDepartment = nameController.text.trim();
+                    });
+                    departmentController.updateSelectedDepartment(
+                      dept.id ?? '',
+                      nameController.text.trim(),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              ),
+              child: departmentController.updateDepartmentLoading.value
+                  ? SizedBox(
+                width: 20.r,
+                height: 20.r,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : Text(
+                "Update",
+                style: TextStyle(color: Colors.white),
+              ),
+            )),
           ],
         );
       },
