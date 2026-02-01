@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import 'dart:io';
 import '../../../constants/app_color.dart';
+import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../controller/admincontroller/department_controller.dart';
 import '../../../helpers/toast_message_helper.dart';
 import '../../../models/admin-model/all_serviceList_model.dart';
@@ -46,22 +47,22 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   final ImagePicker _picker = ImagePicker();
   List<File?> selectedImages = [null, null, null];
 
-  // Selected values
+
   String? selectedDepartment;
   String? selectedCategory;
-  String? selectedVehicle;  // New vehicle selection variable
+  String? selectedVehicle;
   List<String> selectedRoles = [];
   String? selectedPriority;
   String? selectedDifficulty;
 
-  // Selected service items list
+
   List<ServiceItemWithQuantity> selectedServiceList = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Listen for app lifecycle changes to ensure UI is updated when returning to screen
+
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1646,13 +1647,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     }
   }
 
-  // Backend value to display value mapping
-  final Map<String, String> priorityDisplayMap = {
-    'low': 'Low',
-    'medium': 'Medium',
-    'high': 'High',
-    'urgent': 'Urgent',
-  };
 
   final Map<String, String> difficultyDisplayMap = {
     'very easy': 'Very Easy',
@@ -1662,7 +1656,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     'very hard': 'Very Hard',
   };
 
-  // Backend values for API
+
   List<String> get priorities => priorityDisplayMap.keys.toList();
   List<String> get difficulties => difficultyDisplayMap.keys.toList();
 
@@ -1773,8 +1767,14 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       // Reinitialize local variables from controller
       _initializeLocalVariablesFromController();
 
-      // Show success message
-      _showToast('Task created successfully!');
+      // Navigate back first
+      Navigator.pop(context);
+
+      // Then refresh the task list after a small delay
+      Future.delayed(Duration(milliseconds: 300), () {
+        final adminHomeController = Get.find<AdminHomeController>();
+        adminHomeController.getAllListTasks();
+      });
     }
   }
 
@@ -1912,6 +1912,13 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       },
     );
   }
+  final Map<String, String> priorityDisplayMap = {
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
+    'urgent': 'Urgent',
+  };
+
 
   void _showUpdateDepartmentDialog(Department dept) {
     TextEditingController nameController = TextEditingController(text: dept.name);
@@ -2121,7 +2128,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     ToastMessageHelper.showToastMessage(message);
   }
 
-  // Format date as "5 Nov 2024" or "05/11/2024"
+
   String _formatDate(DateTime date) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -2133,7 +2140,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     // return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
-// Format time as "09:30 AM" or "09:30"
+
   String _formatTime(TimeOfDay time) {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
@@ -2192,5 +2199,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       },
     );
   }
+
+
 
 }

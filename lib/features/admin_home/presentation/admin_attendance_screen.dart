@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
+import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_text.dart';
 import 'admin_view_attendance_screen.dart';
 
@@ -360,15 +361,18 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       ),
       child: Row(
         children: [
+
+
           CircleAvatar(
             radius: 25,
             backgroundImage: imageUrl != null && imageUrl.isNotEmpty
-                ? NetworkImage(imageUrl)
+                ? NetworkImage(_getImageUrl(imageUrl))
                 : AssetImage('assets/images/profile.png') as ImageProvider,
             child: imageUrl == null || imageUrl.isEmpty
                 ? Icon(Icons.person)
                 : null,
           ),
+
           SizedBox(width: 10.w),
           Expanded(
             child: Column(
@@ -421,6 +425,20 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
   }
 
   String selectedStatus = 'Pending';
+
+
+  String _getImageUrl(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) return '';
+
+    // If already a full URL, return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend your base URL
+    String baseUrl = ApiConstants.imageBaseUrl; // Your API base URL
+    return "$baseUrl$imageUrl";
+  }
 
 
 }

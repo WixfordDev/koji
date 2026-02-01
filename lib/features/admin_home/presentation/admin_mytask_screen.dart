@@ -131,44 +131,50 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
 
   // ------------------------------ TASK LIST ------------------------------
   Widget _buildTaskList() {
-    return Obx(() {
-      if (adminHomeController.getAllListTaskLoading.value) {
-        return const Center(child: CustomLoader());
-      }
+    return GetBuilder<AdminHomeController>(
+      builder: (controller) {
+        if (controller.getAllListTaskLoading.value) {
+          return const Center(child: CustomLoader());
+        }
 
-      if (adminHomeController.getAllListTask.value.results == null ||
-          adminHomeController.getAllListTask.value.results!.isEmpty) {
-        return const Center(child: Text("No tasks found"));
-      }
+        if (controller.getAllListTask.value.results == null ||
+            controller.getAllListTask.value.results!.isEmpty) {
+          return const Center(child: Text("No tasks found"));
+        }
 
-      // Filter tasks based on selected tab
-      List<Result> filteredTasks = _filterTasks(adminHomeController.getAllListTask.value.results!);
+        List<Result> filteredTasks = _filterTasks(controller.getAllListTask.value.results!);
 
-      if (filteredTasks.isEmpty) {
-        return const Center(child: Text("No tasks found for this status"));
-      }
+        if (filteredTasks.isEmpty) {
+          return const Center(child: Text("No tasks found for this status"));
+        }
 
-      return ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        itemCount: filteredTasks.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final task = filteredTasks[index];
-          final progress = (task.progressPercent ?? 0) / 100.0;
+        return RefreshIndicator(
+          onRefresh: () async {
+            await controller.getAllListTasks();
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            itemCount: filteredTasks.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final task = filteredTasks[index];
+              final progress = (task.progressPercent ?? 0) / 100.0;
 
-          return _taskCard(
-            title: task.customerName ?? 'Task',
-            status: _formatStatus(task.status ?? 'pending'),
-            statusColor: _getStatusColor(task.status ?? 'pending'),
-            priority: _formatPriority(task.priority ?? 'medium'),
-            progress: progress,
-            date: task.assignDate != null
-                ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
-                : 'No date',
-          );
-        },
-      );
-    });
+              return _taskCard(
+                title: task.customerName ?? 'Task',
+                status: _formatStatus(task.status ?? 'pending'),
+                statusColor: _getStatusColor(task.status ?? 'pending'),
+                priority: _formatPriority(task.priority ?? 'medium'),
+                progress: progress,
+                date: task.assignDate != null
+                    ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
+                    : 'No date',
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   // Filter tasks based on selected status tab
