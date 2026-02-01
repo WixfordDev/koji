@@ -132,57 +132,57 @@ class _AdminEmployeeRequestScreenState
 
                 SizedBox(width: 12.w),
 
-                // Filter Dropdown Button
-                GestureDetector(
-                  onTap: _showFilterBottomSheet,
-                  child: Container(
-                    height: 48.h,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24.r),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "All",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.grey[600],
-                          size: 20.sp,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                // // Filter Dropdown Button
+                // GestureDetector(
+                //   onTap: _showFilterBottomSheet,
+                //   child: Container(
+                //     height: 48.h,
+                //     padding: EdgeInsets.symmetric(horizontal: 16.w),
+                //     decoration: BoxDecoration(
+                //       color: Colors.white,
+                //       borderRadius: BorderRadius.circular(24.r),
+                //       border: Border.all(color: Colors.grey[300]!),
+                //     ),
+                //     child: Row(
+                //       mainAxisSize: MainAxisSize.min,
+                //       children: [
+                //         Text(
+                //           "All",
+                //           style: TextStyle(
+                //             fontSize: 14.sp,
+                //             fontWeight: FontWeight.w500,
+                //             color: Colors.black87,
+                //           ),
+                //         ),
+                //         SizedBox(width: 8.w),
+                //         Icon(
+                //           Icons.keyboard_arrow_down,
+                //           color: Colors.grey[600],
+                //           size: 20.sp,
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
               ],
             ),
 
-            SizedBox(height: 16.h),
-
-
-            HorizontalListExample(
-              items: [
-                {"id": 1, "title": "All Shift"},
-                {"id": 2, "title": "Morning Shift"},
-                {"id": 3, "title": "Evening Shift"},
-                {"id": 3, "title": "Night Shift"},
-              ],
-              onItemSelected: (selectedItem) {
-                print(
-                  "You clicked: ${selectedItem["title"]}, ID: ${selectedItem["id"]}",
-                );
-              },
-            ),
+            // SizedBox(height: 16.h),
+            //
+            //
+            // HorizontalListExample(
+            //   items: [
+            //     {"id": 1, "title": "All Shift"},
+            //     {"id": 2, "title": "Morning Shift"},
+            //     {"id": 3, "title": "Evening Shift"},
+            //     {"id": 3, "title": "Night Shift"},
+            //   ],
+            //   onItemSelected: (selectedItem) {
+            //     print(
+            //       "You clicked: ${selectedItem["title"]}, ID: ${selectedItem["id"]}",
+            //     );
+            //   },
+            // ),
 
             SizedBox(height: 28.h),
 

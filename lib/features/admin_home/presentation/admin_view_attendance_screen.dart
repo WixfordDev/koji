@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 
+import '../../../services/api_constants.dart';
+
 class AdminViewAttendanceScreen extends StatefulWidget {
   final String employeeName;
   final String role;
@@ -92,7 +94,7 @@ class _AdminViewAttendanceScreenState extends State<AdminViewAttendanceScreen> {
                     radius: 40,
                     backgroundImage: widget.image != null &&
                         widget.image!.isNotEmpty
-                        ? NetworkImage(widget.image!)
+                        ? NetworkImage(_getImageUrl(widget.image))
                         : AssetImage('assets/images/profile.png')
                     as ImageProvider,
                     child: (widget.image == null || widget.image!.isEmpty)
@@ -287,5 +289,18 @@ class _AdminViewAttendanceScreenState extends State<AdminViewAttendanceScreen> {
         ),
       ),
     );
+  }
+
+
+
+  String _getImageUrl(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) return '';
+
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    String baseUrl = ApiConstants.imageBaseUrl;
+    return "$baseUrl$imageUrl";
   }
 }
