@@ -5,6 +5,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:koji/features/admin_home/presentation/widget/transaction_widget.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../models/admin-model/transaction_model.dart';
+import 'admin_create_new_invoice_screen.dart';
 
 
 class AdminTransactionScreen extends StatefulWidget {
@@ -116,46 +117,21 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
             }),
           ),
 
-          Padding(
-            padding: EdgeInsets.all(17.w),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Download invoice logic
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFF7D7D),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.r),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Download Invoice",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Icon(
-                      Icons.download,
-                      color: Colors.white,
-                      size: 20.r,
-                    ),
-                  ],
-                ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AdminCreateInvoiceScreen(
               ),
             ),
-          ),
-        ],
+          );
+        },
+        backgroundColor: Color(0xFFF95555),
+        child: Icon(Icons.add, color: Colors.white, size: 24.sp),
       ),
     );
   }
 }
+

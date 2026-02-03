@@ -219,5 +219,66 @@ class AdminHomeController extends GetxController {
       return false;
     }
   }
+
+
+  /// Add these methods to the AdminHomeController class
+
+  /// ============================ Create Invoice  =====================================
+
+  RxBool createInvoiceLoading = false.obs;
+
+  Future<bool> createInvoice(Map<String, dynamic> requestBody) async {
+    createInvoiceLoading(true);
+    try {
+      var response = await ApiClient.postData(
+        ApiConstants.invoiceEndPoint,
+        requestBody,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        createInvoiceLoading(false);
+        print("Invoice created successfully");
+        return true;
+      } else {
+        createInvoiceLoading(false);
+        print("Error creating invoice: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      createInvoiceLoading(false);
+      print("Exception in createInvoice: $e");
+      return false;
+    }
+  }
+
+  /// ============================ Create Quotation  =====================================
+
+  RxBool createQuotationLoading = false.obs;
+
+  Future<bool> createQuotation(Map<String, dynamic> requestBody) async {
+    createQuotationLoading(true);
+    try {
+      var response = await ApiClient.postData(
+        ApiConstants.quotationEndPoint,
+        requestBody,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        createQuotationLoading(false);
+        print("Quotation created successfully");
+        return true;
+      } else {
+        createQuotationLoading(false);
+        print("Error creating quotation: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      createQuotationLoading(false);
+      print("Exception in createQuotation: $e");
+      return false;
+    }
+  }
+
+
 }
 
