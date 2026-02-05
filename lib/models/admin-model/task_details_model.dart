@@ -158,7 +158,7 @@ class AssignTo {
 
 class Location {
   final String? type;
-  final List<double>? coordinates;
+  final List<num>? coordinates;
   final String? locationName;
 
   Location({
@@ -169,7 +169,7 @@ class Location {
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
     type: json["type"],
-    coordinates: json["coordinates"] == null ? [] : List<double>.from(json["coordinates"]!.map((x) => x?.toDouble())),
+    coordinates: json["coordinates"] == null ? [] : List<num>.from(json["coordinates"]),
     locationName: json["locationName"],
   );
 

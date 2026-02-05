@@ -139,7 +139,7 @@ class EmployeeTaskData {
 
 class Location {
   final String? type;
-  final List<double>? coordinates;
+  final List<num>? coordinates;  // Changed from List<double> to List<num> to handle both int and double
   final String? locationName;
 
   Location({
@@ -152,7 +152,7 @@ class Location {
         type: json["type"],
         coordinates: json["coordinates"] == null
             ? []
-            : List<double>.from(json["coordinates"]),
+            : List<num>.from(json["coordinates"]),  // Changed to List<num>
         locationName: json["locationName"],
       );
 

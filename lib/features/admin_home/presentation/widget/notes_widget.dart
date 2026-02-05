@@ -28,18 +28,38 @@ class NotesWidget extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            ElevatedButton.icon(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 _showAddNoteDialog(context);
               },
-              icon: Icon(Icons.add, size: 18.r),
-              label: Text("Add Note"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                foregroundColor: Colors.white,
+              child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                shape: RoundedRectangleBorder(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 18.r, color: Colors.white),
+                    SizedBox(width: 4.w),
+                    Text(
+                      "Add Note",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -183,8 +203,8 @@ class NotesWidget extends StatelessWidget {
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 if (noteController.text.trim().isNotEmpty) {
                   List<String> updatedNotes = List.from(notes);
                   updatedNotes.add(noteController.text.trim());
@@ -192,16 +212,28 @@ class NotesWidget extends StatelessWidget {
                   Navigator.pop(context);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                shape: RoundedRectangleBorder(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              ),
-              child: Text(
-                "Add",
-                style: TextStyle(color: Colors.white),
+                child: Text(
+                  "Add",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ],
@@ -247,8 +279,8 @@ class NotesWidget extends StatelessWidget {
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 if (noteController.text.trim().isNotEmpty) {
                   List<String> updatedNotes = List.from(notes);
                   updatedNotes[index] = noteController.text.trim();
@@ -256,16 +288,28 @@ class NotesWidget extends StatelessWidget {
                   Navigator.pop(context);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                shape: RoundedRectangleBorder(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              ),
-              child: Text(
-                "Update",
-                style: TextStyle(color: Colors.white),
+                child: Text(
+                  "Update",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ],

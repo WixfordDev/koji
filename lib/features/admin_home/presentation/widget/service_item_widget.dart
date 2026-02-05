@@ -36,18 +36,38 @@ class ServiceItemsWidget extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            ElevatedButton.icon(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 _showServicePickerDialog(context);
               },
-              icon: Icon(Icons.add, size: 18.r),
-              label: Text("Add Service"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                foregroundColor: Colors.white,
+              child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                shape: RoundedRectangleBorder(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 18.r, color: Colors.white),
+                    SizedBox(width: 4.w),
+                    Text(
+                      "Add Service",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -271,25 +291,36 @@ class ServiceItemsWidget extends StatelessWidget {
                               ],
                             ),
                           ),
-                          ElevatedButton(
-                            onPressed: () {
+                          InkWell(
+                            onTap: () {
                               Navigator.pop(context);
                               _showServiceFormDialog(context, service);
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.primaryColor,
-                              foregroundColor: Colors.white,
+                            child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 16.w,
                                 vertical: 8.h,
                               ),
-                              shape: RoundedRectangleBorder(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFEC526A),
+                                    Color(0xFFF77F6E),
+                                  ],
+                                  stops: [0.0075, 0.9527],
+                                ),
                                 borderRadius: BorderRadius.circular(6.r),
                               ),
-                            ),
-                            child: Text(
-                              "Add",
-                              style: TextStyle(fontSize: 12.sp),
+                              child: Text(
+                                "Add",
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -412,8 +443,8 @@ class ServiceItemsWidget extends StatelessWidget {
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 int quantity =
                     int.tryParse(quantityController.text.trim()) ?? 1;
                 String price = priceController.text.trim();
@@ -440,16 +471,28 @@ class ServiceItemsWidget extends StatelessWidget {
                 ToastMessageHelper.showToastMessage(
                     "Service added successfully!");
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                shape: RoundedRectangleBorder(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              ),
-              child: Text(
-                "Add Service",
-                style: TextStyle(color: Colors.white),
+                child: Text(
+                  "Add Service",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ],
@@ -565,8 +608,8 @@ class ServiceItemsWidget extends StatelessWidget {
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 int quantity =
                     int.tryParse(quantityController.text.trim()) ?? 1;
                 String price = priceController.text.trim();
@@ -593,16 +636,28 @@ class ServiceItemsWidget extends StatelessWidget {
                 ToastMessageHelper.showToastMessage(
                     "Service updated successfully!");
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                shape: RoundedRectangleBorder(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              ),
-              child: Text(
-                "Update Service",
-                style: TextStyle(color: Colors.white),
+                child: Text(
+                  "Update Service",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ],

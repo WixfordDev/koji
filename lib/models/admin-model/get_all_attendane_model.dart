@@ -98,7 +98,7 @@ class Employee {
 
 class EmployeeLocation {
   final String? type;
-  final List<double>? coordinates;
+  final List<num>? coordinates;
   final String? locationName;
 
   EmployeeLocation({
@@ -109,7 +109,7 @@ class EmployeeLocation {
 
   factory EmployeeLocation.fromJson(Map<String, dynamic> json) => EmployeeLocation(
     type: json["type"],
-    coordinates: json["coordinates"] == null ? [] : List<double>.from(json["coordinates"]!.map((x) => x?.toDouble())),
+    coordinates: json["coordinates"] == null ? [] : List<num>.from(json["coordinates"]),
     locationName: json["locationName"],
   );
 
@@ -123,7 +123,7 @@ class EmployeeLocation {
 class AllAttendanceModelLocation {
   final String? name;
   final String? type;
-  final List<double>? coordinates;
+  final List<num>? coordinates;
 
   AllAttendanceModelLocation({
     this.name,
@@ -134,7 +134,7 @@ class AllAttendanceModelLocation {
   factory AllAttendanceModelLocation.fromJson(Map<String, dynamic> json) => AllAttendanceModelLocation(
     name: json["name"],
     type: json["type"],
-    coordinates: json["coordinates"] == null ? [] : List<double>.from(json["coordinates"]!.map((x) => x?.toDouble())),
+    coordinates: json["coordinates"] == null ? [] : List<num>.from(json["coordinates"]),
   );
 
   Map<String, dynamic> toJson() => {

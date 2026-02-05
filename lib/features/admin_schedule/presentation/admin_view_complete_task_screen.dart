@@ -40,6 +40,18 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
     });
   }
 
+  // Helper method to format time to 12-hour format
+  String _formatTime(DateTime? dateTime) {
+    if (dateTime == null) return 'N/A';
+
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+
+    return '$displayHour:$minute $period';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +71,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
             ),
             SizedBox(width: 12.w),
             CustomText(
-              text: "Complete View Task",
+              text: "View Task",
               color: AppColor.secondaryColor,
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
@@ -149,7 +161,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                     return TaskCard(
                       taskTitle: serviceNames.isEmpty ? 'No services' : serviceNames,
                       status: task.status?.toString() ?? 'Unknown',
-                      time: task.assignDate?.toString() ?? 'N/A',
+                      time: _formatTime(task.assignDate),
                       progressPercentage: (task.progressPercent ?? 0).toDouble(),
                       userName: task.customerName ?? 'N/A',
                       userImage: 'https://via.placeholder.com/40',
@@ -162,10 +174,10 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                         // Navigate to AdminCompleteTaskScreen with task ID
                         String taskId = task.id ?? '';
                         if (taskId.isNotEmpty) {
-                          // Navigate to task details screen using GoRouter with query parameters
+                          // Navigate using query parameters instead
                           context.pushNamed(
                             RoutePaths.adminCompleteTaskScreen,
-                            pathParameters: {
+                            queryParameters: {  // Changed from pathParameters to queryParameters
                               'taskId': taskId,
                             },
                           );

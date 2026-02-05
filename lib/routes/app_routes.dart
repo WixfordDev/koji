@@ -22,6 +22,7 @@ import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_home/presentation/admin_transaction_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
+import '../features/admin_schedule/presentation/admin_view_complete_task_screen.dart';
 import '../features/admin_map/admin_map_screen.dart';
 
 // Employee Screens
@@ -276,6 +277,14 @@ class AppRouter {
           builder: (_, __) => AdminCompleteTaskScreen(),
         ),
         GoRoute(
+          path: '/adminCompleteTaskScreen/:taskId',
+          name: 'adminCompleteTaskScreenWithParams',
+          builder: (context, state) {
+            final taskId = state.pathParameters['taskId'] ?? '';
+            return AdminCompleteTaskScreen(taskId: taskId);
+          },
+        ),
+        GoRoute(
           path: RoutePaths.adminAttendanceScreen,
           name: RoutePaths.adminAttendanceScreen,
           builder: (_, __) => AdminAttendanceScreen(),
@@ -417,6 +426,17 @@ class AppRouter {
           path: '/adminCreateInvoiceScreen',
           name: 'adminCreateInvoiceScreen',
           builder: (_, _) => AdminCreateInvoiceScreen(),
+        ),
+
+        // Route with parameters for admin complete view task screen
+        GoRoute(
+          path: RoutePaths.adminCompleteViewTaskScreenWithParams,
+          name: 'adminCompleteViewTaskScreenWithParams',
+          builder: (context, state) {
+            final date = state.pathParameters['date'] ?? '';
+            final assignTo = state.pathParameters['assignTo'] ?? '';
+            return AdminCompleteViewTaskScreen(date: date, assignTo: assignTo);
+          },
         ),
       ],
     );

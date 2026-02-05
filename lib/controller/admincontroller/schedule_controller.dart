@@ -87,7 +87,12 @@ class ScheduleController extends GetxController {
       var response = await ApiClient.getData(endpoint);
 
       if (response.statusCode == 200) {
-        allTaskListData.value = GetAllListTaskModel.fromJson(response.body);
+        // Fix: Access the nested data.attributes path
+        if (response.body['data'] != null && response.body['data']['attributes'] != null) {
+          allTaskListData.value = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        } else {
+          allTaskListData.value = null;
+        }
         return allTaskListData.value;
       } else {
         print("Error getting employee tasks: ${response.statusCode}");
@@ -100,6 +105,13 @@ class ScheduleController extends GetxController {
       allTaskListDataLoading(false);
     }
   }
+
+
+
+
+
+
+
 
   // Task details
   Rx<TaskDetailsModel?> taskDetailsData = Rx<TaskDetailsModel?>(null);

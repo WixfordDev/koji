@@ -137,8 +137,8 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
+                InkWell(
+                  onTap: () {
                     String name = nameController.text.trim();
                     int quantity = int.tryParse(quantityController.text.trim()) ?? 1;
                     String price = priceController.text.trim();
@@ -179,16 +179,28 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
 
                     ToastMessageHelper.showToastMessage("Service added successfully!");
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor,
-                    shape: RoundedRectangleBorder(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFEC526A),
+                          Color(0xFFF77F6E),
+                        ],
+                        stops: [0.0075, 0.9527],
+                      ),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-                  ),
-                  child: Text(
-                    "Add Service",
-                    style: TextStyle(color: Colors.white),
+                    child: Text(
+                      "Add Service",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ],
