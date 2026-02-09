@@ -58,7 +58,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
       backgroundColor: Colors.white,
       appBar: AppBar(
         forceMaterialTransparency: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 0,
@@ -66,14 +66,14 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
           children: [
             IconButton(
               padding: EdgeInsets.zero,
-              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
+              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
               onPressed: () => Navigator.pop(context),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 8.w),
             CustomText(
               text: "View Task",
-              color: AppColor.secondaryColor,
-              fontSize: 16.sp,
+              color: Colors.black,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w600,
             ),
           ],
@@ -83,7 +83,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 12.h),
+            SizedBox(height: 16.h),
 
             // Tab Bar
             Padding(
@@ -98,20 +98,23 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                 int completeCount = tasks.where((task) => _getStatusString(task.status) == 'submited').length;
                 int allCount = tasks.length;
 
-                return Row(
-                  children: [
-                    Expanded(child: _buildTab('All', allCount)),
-                    SizedBox(width: 5.w),
-                    Expanded(child: _buildTab('Pending', pendingCount)),
-                    SizedBox(width: 5.w),
-                    Expanded(child: _buildTab('InProgress', progressCount)),
-                    SizedBox(width: 5.w),
-                    Expanded(child: _buildTab('Complete', completeCount)),
-                  ],
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildTab('All', allCount),
+                      SizedBox(width: 8.w),
+                      _buildTab('Pending', pendingCount),
+                      SizedBox(width: 8.w),
+                      _buildTab('InProgress', progressCount),
+                      SizedBox(width: 8.w),
+                      _buildTab('Complete', completeCount),
+                    ],
+                  ),
                 );
               }),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 20.h),
 
             // Task List with loading state
             Expanded(
@@ -144,15 +147,21 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                 }
 
                 if (filteredTasks.isEmpty) {
-                  return const Center(
-                    child: Text('No tasks found'),
+                  return Center(
+                    child: Text(
+                      'No tasks found',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
                   );
                 }
 
                 return ListView.separated(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   itemCount: filteredTasks.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
                   itemBuilder: (context, index) {
                     final task = filteredTasks[index];
                     final services = task.services ?? [];
@@ -174,10 +183,10 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                         // Navigate to AdminCompleteTaskScreen with task ID
                         String taskId = task.id ?? '';
                         if (taskId.isNotEmpty) {
-                          // Navigate using query parameters instead
-                          context.pushNamed(
-                            RoutePaths.adminCompleteTaskScreen,
-                            queryParameters: {  // Changed from pathParameters to queryParameters
+                          // Navigate using path parameters
+                          context.goNamed(
+                            'adminCompleteTaskScreenWithParams',
+                            pathParameters: {
                               'taskId': taskId,
                             },
                           );
@@ -211,23 +220,18 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
-          )
-              : null,
-          color: isSelected ? null : const Color(0xFFF2F4F7),
-          borderRadius: BorderRadius.circular(30.r),
+          color: isSelected ? const Color(0xFFF95555) : const Color(0xFFEAECF0),
+          borderRadius: BorderRadius.circular(100.r),
         ),
-        child: CustomText(
-          text: count > 0 ? '$title ($count)' : title,
-          fontSize: 10.sp,
-          fontWeight: FontWeight.w500,
-          color: isSelected ? Colors.white : const Color(0xFF667085),
+        child: Text(
+          count > 0 ? '$title ($count)' : title,
+          style: TextStyle(
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : const Color(0xFF667085),
+          ),
         ),
       ),
     );

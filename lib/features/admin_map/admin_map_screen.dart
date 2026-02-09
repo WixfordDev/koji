@@ -8,12 +8,12 @@ import 'package:koji/services/socket_services.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'dart:convert';
 
-class TrackingScreen extends StatefulWidget {
+class AdminMapScreen extends StatefulWidget {
   @override
-  _TrackingScreenState createState() => _TrackingScreenState();
+  _AdminMapScreenState createState() => _AdminMapScreenState();
 }
 
-class _TrackingScreenState extends State<TrackingScreen> {
+class _AdminMapScreenState extends State<AdminMapScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
   double _radius = 2.0; // miles
@@ -43,6 +43,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     } catch (e) {
       print('Error disconnecting from socket: $e');
     }
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -150,6 +151,50 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
       setState(() {
         _employees = newEmployees;
+
+        String query = _searchController.text;
+
+        if (query.isEmpty) {
+          // If search is empty, apply only the radius filter
+          _filteredEmployees = _employees.where((employee) {
+            double distanceInMeters = Geolocator.distanceBetween(
+              _currentLocation.latitude,
+              _currentLocation.longitude,
+              employee.location.latitude,
+              employee.location.longitude,
+            );
+            double distanceInMiles = distanceInMeters / 1609.34;
+            return distanceInMiles <= _radius;
+          }).toList();
+        } else {
+          // Apply both search and radius filter
+          _filteredEmployees = _employees.where((employee) {
+            bool nameMatches = employee.name.toLowerCase().contains(
+              query.toLowerCase(),
+            );
+
+            double distanceInMeters = Geolocator.distanceBetween(
+              _currentLocation.latitude,
+              _currentLocation.longitude,
+              employee.location.latitude,
+              employee.location.longitude,
+            );
+            double distanceInMiles = distanceInMeters / 1609.34;
+            bool withinRadius = distanceInMiles <= _radius;
+
+            return nameMatches && withinRadius;
+          }).toList();
+        }
+      });
+    }
+  }
+
+  void _filterEmployees() {
+    setState(() {
+      String query = _searchController.text;
+
+      if (query.isEmpty) {
+        // If search is empty, apply only the radius filter
         _filteredEmployees = _employees.where((employee) {
           double distanceInMeters = Geolocator.distanceBetween(
             _currentLocation.latitude,
@@ -160,22 +205,61 @@ class _TrackingScreenState extends State<TrackingScreen> {
           double distanceInMiles = distanceInMeters / 1609.34;
           return distanceInMiles <= _radius;
         }).toList();
-      });
-    }
+      } else {
+        // Apply both search and radius filter
+        _filteredEmployees = _employees.where((employee) {
+          bool nameMatches = employee.name.toLowerCase().contains(
+            query.toLowerCase(),
+          );
+
+          double distanceInMeters = Geolocator.distanceBetween(
+            _currentLocation.latitude,
+            _currentLocation.longitude,
+            employee.location.latitude,
+            employee.location.longitude,
+          );
+          double distanceInMiles = distanceInMeters / 1609.34;
+          bool withinRadius = distanceInMiles <= _radius;
+
+          return nameMatches && withinRadius;
+        }).toList();
+      }
+    });
   }
 
-  void _filterEmployees() {
+  void _updateSearchResults(String query) {
     setState(() {
-      _filteredEmployees = _employees.where((employee) {
-        double distanceInMeters = Geolocator.distanceBetween(
-          _currentLocation.latitude,
-          _currentLocation.longitude,
-          employee.location.latitude,
-          employee.location.longitude,
-        );
-        double distanceInMiles = distanceInMeters / 1609.34;
-        return distanceInMiles <= _radius;
-      }).toList();
+      if (query.isEmpty) {
+        // If search is empty, apply only the radius filter
+        _filteredEmployees = _employees.where((employee) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _currentLocation.latitude,
+            _currentLocation.longitude,
+            employee.location.latitude,
+            employee.location.longitude,
+          );
+          double distanceInMiles = distanceInMeters / 1609.34;
+          return distanceInMiles <= _radius;
+        }).toList();
+      } else {
+        // Apply both search and radius filter
+        _filteredEmployees = _employees.where((employee) {
+          bool nameMatches = employee.name.toLowerCase().contains(
+            query.toLowerCase(),
+          );
+
+          double distanceInMeters = Geolocator.distanceBetween(
+            _currentLocation.latitude,
+            _currentLocation.longitude,
+            employee.location.latitude,
+            employee.location.longitude,
+          );
+          double distanceInMiles = distanceInMeters / 1609.34;
+          bool withinRadius = distanceInMiles <= _radius;
+
+          return nameMatches && withinRadius;
+        }).toList();
+      }
     });
   }
 
@@ -329,28 +413,28 @@ class _TrackingScreenState extends State<TrackingScreen> {
           ),
         ],
       ),
-      body: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Google Map with radius circle
-          GoogleMap(
-            mapType: MapType.normal,
-            initialCameraPosition: CameraPosition(
-              target: _currentLocation,
-              zoom: 14,
+      body: SafeArea(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Google Map with radius circle
+            GoogleMap(
+              mapType: MapType.normal,
+              initialCameraPosition: CameraPosition(
+                target: _currentLocation,
+                zoom: 14,
+              ),
+              markers: markers,
+              circles: circles,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
             ),
-            markers: markers,
-            circles: circles,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
-            },
-          ),
 
-          // Search Field (Floating Style)
-          SafeArea(
-            child: Positioned(
+            // Search Field (Floating Style) with enhanced search options
+            Positioned(
               top: 100.h,
               left: 16,
               right: 16,
@@ -379,43 +463,35 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     ),
                   ),
                   onChanged: (value) {
-                    setState(() {
-                      _filteredEmployees = _employees
-                          .where(
-                            (e) => e.name.toLowerCase().contains(
-                              value.toLowerCase(),
-                            ),
-                          )
-                          .toList();
-                    });
+                    _updateSearchResults(value);
                   },
                 ),
               ),
             ),
-          ),
 
-          // Status indicator
-          Positioned(
-            top: 10,
-            right: 10,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: SocketServices().socket.connected
-                    ? Colors.green
-                    : Colors.red,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                SocketServices().socket.connected ? "Live" : "Offline",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            // Status indicator
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: SocketServices().socket.connected
+                      ? Colors.green
+                      : Colors.red,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  SocketServices().socket.connected ? "Live" : "Offline",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

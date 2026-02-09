@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import '../../../constants/app_color.dart';
+import 'package:go_router/go_router.dart';
 import '../../../controller/admincontroller/schedule_controller.dart';
 import '../../../models/admin-model/task_details_model.dart';
-import '../../../shared_widgets/admin_task_complete.dart';
+import '../../../shared_widgets/admin_task_complete_card.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class AdminCompleteTaskScreen extends StatefulWidget {
@@ -25,8 +24,15 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
     super.initState();
     scheduleController = Get.find<ScheduleController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Check if taskId was passed as a parameter
       if (widget.taskId != null && widget.taskId!.isNotEmpty) {
         scheduleController.getTaskDetails(widget.taskId!);
+      } else {
+        // If not passed as parameter, try to get from GoRouter state
+        final taskId = GoRouterState.of(context).pathParameters['taskId'];
+        if (taskId != null && taskId.isNotEmpty) {
+          scheduleController.getTaskDetails(taskId);
+        }
       }
     });
   }
@@ -37,7 +43,7 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         forceMaterialTransparency: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 0,
@@ -45,14 +51,19 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
           children: [
             IconButton(
               padding: EdgeInsets.zero,
-              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
-              onPressed: () => Navigator.pop(context),
+              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+              onPressed: () async {
+
+                  if (mounted) {
+                    context.go('/adminBottomNavBar');
+                }
+              },
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 8.w),
             CustomText(
               text: "Task Details",
-              color: AppColor.secondaryColor,
-              fontSize: 20.sp,
+              color: Colors.black,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w600,
             ),
           ],
@@ -70,183 +81,99 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
           }
 
           return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Task Information Card
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoRow('Customer Name:', taskDetails.customerName ?? 'N/A'),
-                      _buildInfoRow('Customer Number:', taskDetails.customerNumber ?? 'N/A'),
-                      _buildInfoRow('Customer Address:', taskDetails.customerAddress ?? 'N/A'),
-                      _buildInfoRow('Assign Date:',
-                        taskDetails.assignDate != null
-                          ? DateFormat('MMM dd, yyyy').format(taskDetails.assignDate!)
-                          : 'N/A'),
-                      _buildInfoRow('Deadline:',
-                        taskDetails.deadline != null
-                          ? DateFormat('MMM dd, yyyy').format(taskDetails.deadline!)
-                          : 'N/A'),
-                      _buildInfoRow('Priority:', taskDetails.priority ?? 'N/A'),
-                      _buildInfoRow('Difficulty:', taskDetails.difficulty ?? 'N/A'),
-                      _buildInfoRow('Status:', taskDetails.status ?? 'N/A'),
-                      _buildInfoRow('Total Amount:', '৳${taskDetails.totalAmount?.toStringAsFixed(2) ?? '0.00'}'),
-                    ],
+                // AdminTaskCompleteCard with dynamic data
+                AdminTaskCompleteCard(taskDetails: taskDetails),
+
+                SizedBox(height: 20.h),
+
+                // Services Section
+                Text(
+                  'Services',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
                   ),
                 ),
 
-                SizedBox(height: 20.h),
+                SizedBox(height: 12.h),
 
-                // AdminTaskCompleteCard
-                const AdminTaskCompleteCard(),
+                // Services List
+                ..._buildServiceItems(taskDetails.services ?? []),
 
-                SizedBox(height: 20.h),
+                SizedBox(height: 24.h),
 
-                // Services Card
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        text: 'Services',
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.secondaryColor,
-                      ),
-                      SizedBox(height: 12.h),
-                      ..._buildServiceItems(taskDetails.services ?? []),
-                    ],
+                // Assigned To Section
+                Text(
+                  'Assigned To',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
                   ),
                 ),
 
-                SizedBox(height: 20.h),
+                SizedBox(height: 12.h),
 
-                // Assigned To Card
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        text: 'Assigned To',
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.secondaryColor,
-                      ),
-                      SizedBox(height: 12.h),
-                      _buildAssigneeInfo(taskDetails.assignTo),
-                    ],
-                  ),
-                ),
+                _buildAssigneeInfo(taskDetails.assignTo),
 
-                SizedBox(height: 20.h),
+                SizedBox(height: 24.h),
 
-                // Notes Card
-                if (taskDetails.notes != null && taskDetails.notes!.isNotEmpty)
-                  Container(
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          text: 'Notes',
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColor.secondaryColor,
-                        ),
-                        SizedBox(height: 12.h),
-                        CustomText(
-                          text: taskDetails.notes ?? 'N/A',
-                          fontSize: 14.sp,
-                          color: AppColor.textColor,
-                        ),
-                      ],
+                // Notes Section
+                if (taskDetails.notes != null && taskDetails.notes!.isNotEmpty) ...[
+                  Text(
+                    'Notes',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
+                  SizedBox(height: 12.h),
+                  Text(
+                    taskDetails.notes ?? 'N/A',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: const Color(0xFF667085),
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                ],
 
                 // Download Task Report Button
                 if (taskDetails.invoicePath != null && taskDetails.invoicePath!.isNotEmpty)
-                  Column(
-                    children: [
-                      SizedBox(height: 30.h),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52.h,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.r),
-                            ),
-                            backgroundColor: const Color(0xFFEC526A),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                          ),
-                          icon: const Icon(Icons.download, color: Colors.white),
-                          label: const Text(
-                            "Download Task Report",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600),
-                          ),
-                          onPressed: () {
-                            // Add download functionality
-                          },
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52.h,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100.r),
+                        ),
+                        backgroundColor: const Color(0xFFF95555),
+                        elevation: 0,
+                      ),
+                      icon: Icon(Icons.download, color: Colors.white, size: 20.sp),
+                      label: Text(
+                        "Download Task Report",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
+                      onPressed: () {
+                        // Add download functionality
+                      },
+                    ),
                   ),
+
+                SizedBox(height: 32.h),
               ],
             ),
           );
@@ -255,63 +182,52 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120.w,
-            child: CustomText(
-              text: label,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColor.textColor666666,
-            ),
-          ),
-          Expanded(
-            child: CustomText(
-              text: value,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w400,
-              color: AppColor.textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   List<Widget> _buildServiceItems(List<Service> services) {
+    if (services.isEmpty) {
+      return [
+        Text(
+          'No services available',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: const Color(0xFF667085),
+          ),
+        ),
+      ];
+    }
+
     return services.map((service) {
       return Padding(
-        padding: EdgeInsets.only(bottom: 8.h),
+        padding: EdgeInsets.only(bottom: 12.h),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              flex: 2,
-              child: CustomText(
-                text: service.name ?? 'N/A',
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w400,
-                color: AppColor.textColor,
+              flex: 3,
+              child: Text(
+                service.name ?? 'N/A',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
               ),
             ),
-            Expanded(
-              child: CustomText(
-                text: 'Qty: ${service.quantity ?? 0}',
+            SizedBox(width: 12.w),
+            Text(
+              'Qty: ${service.quantity ?? 0}',
+              style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w400,
-                color: AppColor.textColor,
+                color: const Color(0xFF667085),
               ),
             ),
-            Expanded(
-              child: CustomText(
-                text: '৳${service.price?.toStringAsFixed(2) ?? '0.00'}',
+            SizedBox(width: 12.w),
+            Text(
+              '৳${service.price?.toStringAsFixed(2) ?? '0.00'}',
+              style: TextStyle(
                 fontSize: 14.sp,
-                fontWeight: FontWeight.w400,
-                color: AppColor.textColor,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
               ),
             ),
           ],
@@ -320,34 +236,105 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
     }).toList();
   }
 
-  Widget _buildAssigneeInfo(AssignTo? assignTo) {
+  Widget _buildAssigneeInfo(dynamic assignTo) {
     if (assignTo == null) {
-      return CustomText(text: 'N/A', fontSize: 14.sp);
+      return Text(
+        'N/A',
+        style: TextStyle(
+          fontSize: 14.sp,
+          color: const Color(0xFF667085),
+        ),
+      );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          text: assignTo.fullName ?? 'N/A',
+    // Check if assignTo is a string (ID) or an AssignTo object
+    if (assignTo is String) {
+      return Text(
+        assignTo,
+        style: TextStyle(
           fontSize: 14.sp,
-          fontWeight: FontWeight.w600,
-          color: AppColor.textColor,
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
         ),
-        SizedBox(height: 4.h),
-        if (assignTo.email != null)
-          CustomText(
-            text: assignTo.email!,
-            fontSize: 12.sp,
-            color: AppColor.textColor666666,
+      );
+    } else if (assignTo is AssignTo) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            assignTo.fullName ?? 'N/A',
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
-        if (assignTo.phoneNumber != null)
-          CustomText(
-            text: assignTo.phoneNumber!,
-            fontSize: 12.sp,
-            color: AppColor.textColor666666,
+          if (assignTo.email != null) ...[
+            SizedBox(height: 4.h),
+            Text(
+              assignTo.email!,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: const Color(0xFF667085),
+              ),
+            ),
+          ],
+          if (assignTo.phoneNumber != null) ...[
+            SizedBox(height: 4.h),
+            Text(
+              assignTo.phoneNumber!,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: const Color(0xFF667085),
+              ),
+            ),
+          ],
+        ],
+      );
+    } else if (assignTo is List) {
+      if (assignTo.isEmpty) {
+        return Text(
+          'No assignees',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: const Color(0xFF667085),
           ),
-      ],
-    );
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: assignTo.map((item) {
+          String displayText = 'N/A';
+
+          if (item is String) {
+            displayText = item;
+          } else if (item is Map<String, dynamic>) {
+            displayText = item['fullName'] ?? item['id'] ?? 'N/A';
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: 8.h),
+            child: Text(
+              displayText,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+          );
+        }).toList(),
+      );
+    } else {
+      return Text(
+        assignTo.toString(),
+        style: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
+        ),
+      );
+    }
   }
 }

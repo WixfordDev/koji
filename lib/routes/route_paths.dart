@@ -43,4 +43,7 @@ class RoutePaths {
   static const String adminCompleteViewTaskScreen = '/adminCompleteViewTaskScreen';
   static const String adminCompleteViewTaskScreenWithParams = '/adminCompleteViewTaskScreen/:date/:assignTo';
 
+  static const String trackingScreen = '/trackingScreen';
+  static const String adminMapScreen = '/adminMapScreen';
+
 }

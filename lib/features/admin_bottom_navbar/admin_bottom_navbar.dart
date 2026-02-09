@@ -7,6 +7,7 @@ import 'package:koji/features/message/presentation/message_screen.dart';
 import 'package:koji/features/profile/presentation/profile_screen.dart';
 import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../constants/app_color.dart';
+import '../admin_map/tracking_screen.dart';
 
 class AdminBottomNavBar extends StatefulWidget {
   const AdminBottomNavBar({super.key});
@@ -20,7 +21,7 @@ class _AdminBottomNavBarState extends State<AdminBottomNavBar> {
     AdminHomeScreen(),
     AdminScheduleScreen(),
     MessageListScreen(),
-    TrackingScreen(),
+    AdminMapScreen(),
     ProfileScreen(),
   ];
 

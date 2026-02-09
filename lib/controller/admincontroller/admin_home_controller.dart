@@ -238,6 +238,8 @@ class AdminHomeController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         createInvoiceLoading(false);
         print("Invoice created successfully");
+        // Refresh transaction list after successful creation
+        getTransaction();
         return true;
       } else {
         createInvoiceLoading(false);
@@ -266,6 +268,8 @@ class AdminHomeController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         createQuotationLoading(false);
         print("Quotation created successfully");
+        // Refresh transaction list after successful creation
+        getTransaction();
         return true;
       } else {
         createQuotationLoading(false);

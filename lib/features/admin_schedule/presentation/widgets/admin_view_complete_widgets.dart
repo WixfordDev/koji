@@ -38,7 +38,7 @@ class TaskCard extends StatelessWidget {
     } else if (statusLower.contains('progress')) {
       return const Color(0xFFFFB800);
     } else if (statusLower.contains('pending')) {
-      return const Color(0xFFFF1414);
+      return const Color(0xFFF95555);
     }
     return Colors.grey;
   }
@@ -61,19 +61,19 @@ class TaskCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 356.w,
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: const Color(0xFFCECECE).withOpacity(0.25),
+            color: const Color(0xFFEAECF0),
+            width: 1,
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -84,25 +84,28 @@ class TaskCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF95555).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
-                    Icons.flash_on,
+                    Icons.bolt,
                     size: 20.sp,
                     color: const Color(0xFFF95555),
                   ),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
-                  child: CustomText(
-                    textAlign: TextAlign.start,
-                    text: taskTitle,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  child: Text(
+                    taskTitle,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -117,23 +120,25 @@ class TaskCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20.r),
+                    borderRadius: BorderRadius.circular(100.r),
                   ),
-                  child: CustomText(
-                    text: _getStatusText(status),
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w500,
-                    color: _getStatusColor(status),
+                  child: Text(
+                    _getStatusText(status),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: _getStatusColor(status),
+                    ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 8.w),
 
                 // Time Badge
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF95555).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20.r),
+                    color: const Color(0xFFF95555),
+                    borderRadius: BorderRadius.circular(100.r),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -141,14 +146,16 @@ class TaskCard extends StatelessWidget {
                       Icon(
                         Icons.access_time,
                         size: 14.sp,
-                        color: const Color(0xFFF95555),
+                        color: Colors.white,
                       ),
                       SizedBox(width: 4.w),
-                      CustomText(
-                        text: time,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFF95555),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -156,33 +163,32 @@ class TaskCard extends StatelessWidget {
                 const Spacer(),
 
                 // Percentage
-                CustomText(
-                  text: '${progressPercentage.toInt()}%',
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                Text(
+                  '${progressPercentage.toInt()}%',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 12.h),
 
-            // Progress Bar - Updated with new design
+            // Progress Bar
             Container(
-              width: 324.w,
-              height: 4.h,
+              height: 6.h,
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E5E5),
-                borderRadius: BorderRadius.circular(30.r),
+                color: const Color(0xFFEAECF0),
+                borderRadius: BorderRadius.circular(100.r),
               ),
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor: progressPercentage / 100,
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF95555), Color(0xFFFF8C8C)],
-                    ),
-                    borderRadius: BorderRadius.circular(30.r),
+                    color: const Color(0xFFF95555),
+                    borderRadius: BorderRadius.circular(100.r),
                   ),
                 ),
               ),
@@ -197,43 +203,31 @@ class TaskCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: priority.toLowerCase() == 'high'
-                          ? Colors.red.withOpacity(0.1)
-                          : priority.toLowerCase() == 'medium'
-                          ? Colors.amber.withOpacity(0.1)
-                          : Colors.green.withOpacity(0.1),
+                      color: _getPriorityColor(priority).withOpacity(0.1),
                       border: Border.all(
-                        color: priority.toLowerCase() == 'high'
-                            ? Colors.red
-                            : priority.toLowerCase() == 'medium'
-                            ? Colors.amber
-                            : Colors.green,
+                        color: _getPriorityColor(priority),
+                        width: 1,
                       ),
-                      borderRadius: BorderRadius.circular(20.r),
+                      borderRadius: BorderRadius.circular(100.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.warning_amber,
+                          Icons.warning_amber_rounded,
                           size: 14.sp,
-                          color: priority.toLowerCase() == 'high'
-                              ? Colors.red[700]
-                              : priority.toLowerCase() == 'medium'
-                              ? Colors.amber[700]
-                              : Colors.green[700],
+                          color: _getPriorityColor(priority),
                         ),
                         SizedBox(width: 4.w),
                         Flexible(
-                          child: CustomText(
-                            text: 'Priority: $priority',
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w500,
-                            color: priority.toLowerCase() == 'high'
-                                ? Colors.red[700]!
-                                : priority.toLowerCase() == 'medium'
-                                ? Colors.amber[700]!
-                                : Colors.green[700]!,
+                          child: Text(
+                            'Priority: ${priority.toLowerCase()}',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: _getPriorityColor(priority),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -247,25 +241,31 @@ class TaskCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      border: Border.all(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(20.r),
+                      color: const Color(0xFF2E90FA).withOpacity(0.1),
+                      border: Border.all(
+                        color: const Color(0xFF2E90FA),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(100.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.bar_chart,
+                          Icons.bar_chart_rounded,
                           size: 14.sp,
-                          color: Colors.blue[700],
+                          color: const Color(0xFF2E90FA),
                         ),
                         SizedBox(width: 4.w),
                         Flexible(
-                          child: CustomText(
-                            text: 'Difficulty: $difficulty',
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue[700]!,
+                          child: Text(
+                            'Difficulty: ${difficulty.toLowerCase()}',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF2E90FA),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -284,34 +284,56 @@ class TaskCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 16.r,
-                      backgroundColor: const Color(0xFFE5E5E5),
+                      backgroundColor: const Color(0xFFEAECF0),
                       child: Icon(
                         Icons.person,
                         size: 18.sp,
-                        color: const Color(0xFF666666),
+                        color: const Color(0xFF667085),
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    CustomText(
-                      text: userName,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                    Text(
+                      userName,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
                     ),
                   ],
                 ),
                 Row(
                   children: [
                     Icon(
-                      Icons.calendar_today,
+                      Icons.calendar_today_outlined,
                       size: 14.sp,
-                      color: Colors.grey,
+                      color: const Color(0xFF667085),
                     ),
                     SizedBox(width: 4.w),
-                    CustomText(
-                      text: date,
-                      fontSize: 12.sp,
-                      color: Colors.grey[600]!,
+                    Text(
+                      date,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF667085),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    // Chat Icon
+                    Container(
+                      width: 20.w,
+                      height: 20.h,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEAECF0),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.chat_bubble_outline,
+                          size: 12.sp,
+                          color: const Color(0xFF667085),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -321,5 +343,17 @@ class TaskCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getPriorityColor(String priority) {
+    final priorityLower = priority.toLowerCase();
+    if (priorityLower == 'high') {
+      return const Color(0xFFF04438);
+    } else if (priorityLower == 'medium') {
+      return const Color(0xFFF79009);
+    } else if (priorityLower == 'low') {
+      return const Color(0xFF12B76A);
+    }
+    return Colors.grey;
   }
 }

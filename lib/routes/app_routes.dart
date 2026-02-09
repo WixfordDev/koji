@@ -24,6 +24,7 @@ import '../features/admin_schedule/presentation/admin_complete_task_screen.dart'
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_schedule/presentation/admin_view_complete_task_screen.dart';
 import '../features/admin_map/admin_map_screen.dart';
+import '../features/admin_map/tracking_screen.dart';
 
 // Employee Screens
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
@@ -426,6 +427,18 @@ class AppRouter {
           path: '/adminCreateInvoiceScreen',
           name: 'adminCreateInvoiceScreen',
           builder: (_, _) => AdminCreateInvoiceScreen(),
+        ),
+
+        GoRoute(
+          path: RoutePaths.adminMapScreen,
+          name: 'adminMapScreen',
+          builder: (_, _) => AdminMapScreen(),
+        ),
+
+        GoRoute(
+          path: RoutePaths.trackingScreen,
+          name: 'trackingScreen',
+          builder: (_, _) => TrackingScreen(),
         ),
 
         // Route with parameters for admin complete view task screen

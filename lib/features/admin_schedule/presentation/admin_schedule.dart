@@ -6,15 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
 
-
-
 class AdminScheduleScreen extends StatelessWidget {
   const AdminScheduleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ScheduleController>(
-      init: Get.find<ScheduleController>(), // Use existing instance
+      init: Get.find<ScheduleController>(),
       builder: (controller) {
         return _AdminScheduleScreenContent(controller: controller);
       },
@@ -32,7 +30,6 @@ class _AdminScheduleScreenContent extends StatefulWidget {
 }
 
 class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
-
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -40,14 +37,27 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
   // Dynamic event data from API
   Map<DateTime, Map<String, int>> _events = {};
 
-  // Dynamic teams data from API
+  // Dynamic teams data from API with color assignments
   List<Map<String, dynamic>> _teams = [];
+
+  // Predefined team colors matching the reference design
+  final List<Color> _teamColors = [
+    const Color(0xFFF95555), // Red/Pink
+    const Color(0xFF4CD964), // Green
+    const Color(0xFF5856D6), // Purple
+    const Color(0xFF007AFF), // Blue
+    const Color(0xFFFF9500), // Orange
+    const Color(0xFFFF2D55), // Deep Pink
+    const Color(0xFF34C759), // Light Green
+    const Color(0xFFAF52DE), // Light Purple
+  ];
 
   ScheduleController get _scheduleController => widget.controller;
 
   @override
   void initState() {
     super.initState();
+    _selectedDay = DateTime.now(); // Set selected day to today initially
     _loadInitialData();
   }
 
@@ -83,13 +93,21 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     _scheduleController.getEmployeeTaskData(date: date).then((data) {
       if (data?.data?.attributes?.results != null) {
         _teams = [];
+        int colorIndex = 0;
+
         for (var item in data!.data!.attributes!.results!) {
-          _teams.add({'teamName': 'Team (${item.touchesCount ?? 0} touches)',
+          // Assign color from the predefined list, cycling through if needed
+          Color teamColor = _teamColors[colorIndex % _teamColors.length];
+
+          _teams.add({
+            'teamName': '${item.fullName ?? 'Team'}',
+            'touchesCount': item.touchesCount ?? 0,
+            'teamColor': teamColor,
             'members': [
               {
                 'name': item.fullName ?? 'N/A',
                 'taskCount': '${item.totalPendingTask ?? 0} Pending Tasks',
-                'location': item.location?.locationName ?? 'N/A',
+                'location': item.location?.locationName ?? 'Default Location',
                 'assignTo': item.assignTo ?? '',
                 'timeSlots': _formatTimeSlots(item.touches),
                 'stats': {
@@ -100,6 +118,8 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
               }
             ],
           });
+
+          colorIndex++;
         }
         setState(() {});
       }
@@ -109,16 +129,15 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
   List<Map<String, String>> _formatTimeSlots(List<String>? timeSlots) {
     if (timeSlots == null || timeSlots.isEmpty) {
       return [
-        {'time': 'No scheduled tasks', 'type': 'work'}
+        {'time': 'No scheduled tasks', 'type': 'empty'}
       ];
     }
 
     List<Map<String, String>> formattedSlots = [];
     for (var slot in timeSlots) {
-      // Assuming the format is "HH:MM-HH:MM"
       formattedSlots.add({
         'time': _formatTimeRange(slot),
-        'type': 'work' // Default to work, could be enhanced based on actual data
+        'type': 'work'
       });
     }
     return formattedSlots;
@@ -140,9 +159,9 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
   String _convertTo12Hour(String time24) {
     try {
       DateTime parsedTime = DateFormat('HH:mm').parse(time24);
-      return DateFormat('hh:mm a').format(parsedTime);
+      return DateFormat('hh:mm a').format(parsedTime).toUpperCase();
     } catch (e) {
-      return time24; // Return original if parsing fails
+      return time24;
     }
   }
 
@@ -154,57 +173,31 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
 
     List<Widget> markers = [];
 
+    // Show completed count in green
     if (events['completed'] != null && events['completed']! > 0) {
       markers.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 4.w,
-              height: 4.h,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4CD964),
-                shape: BoxShape.circle,
-              ),
-            ),
-            SizedBox(width: 2.w),
-            Text(
-              '${events['completed']}',
-              style: TextStyle(
-                fontSize: 9.sp,
-                color: Color(0xFF4CD964),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        Text(
+          '+${events['completed']}',
+          style: TextStyle(
+            fontSize: 9.sp,
+            color: const Color(0xFF4CD964),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       );
     }
 
+    // Show pending count in red
     if (events['pending'] != null && events['pending']! > 0) {
-      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 2.w));
       markers.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 4.w,
-              height: 4.h,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFF1414),
-                shape: BoxShape.circle,
-              ),
-            ),
-            SizedBox(width: 2.w),
-            Text(
-              '${events['pending']}',
-              style: TextStyle(
-                fontSize: 9.sp,
-                color: Color(0xFFFF1414),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        Text(
+          '●${events['pending']}',
+          style: TextStyle(
+            fontSize: 9.sp,
+            color: const Color(0xFFFF1414),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       );
     }
@@ -223,7 +216,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 12.h),
+                SizedBox(height: 16.h),
 
                 /// Header Section
                 Row(
@@ -237,17 +230,16 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                             _focusedDay.month - 1,
                           );
 
-                          // Load data for the new month
                           String month = DateFormat('yyyy-MM').format(_focusedDay);
                           _loadMonthlyData(month);
                         });
                       },
-                      child: Icon(Icons.arrow_back_ios, size: 18.sp, color: Colors.black),
+                      child: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black),
                     ),
                     Text(
                       DateFormat.yMMMM().format(_focusedDay),
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
@@ -260,385 +252,431 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                             _focusedDay.month + 1,
                           );
 
-                          // Load data for the new month
                           String month = DateFormat('yyyy-MM').format(_focusedDay);
                           _loadMonthlyData(month);
                         });
                       },
-                      child: Icon(Icons.arrow_forward_ios, size: 18.sp, color: Colors.black),
+                      child: Icon(Icons.arrow_forward_ios, size: 20.sp, color: Colors.black),
                     ),
                   ],
                 ),
 
-                SizedBox(height: 12.h),
+                SizedBox(height: 16.h),
 
                 /// Table Calendar
-                TableCalendar(
-                  focusedDay: _focusedDay,
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  calendarFormat: _calendarFormat,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-
-                      // Load employee task data for the selected day
-                      String date = DateFormat('yyyy-MM-dd').format(selectedDay);
-                      _loadEmployeeTaskData(date);
-                    });
-                  },
-                  onPageChanged: (focusedDay) {
-                    setState(() {
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  headerVisible: false,
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    outsideDaysVisible: false,
-                    cellMargin: EdgeInsets.all(4.w),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
-                  daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    weekendStyle: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  daysOfWeekHeight: 40.h,
-                  calendarBuilders: CalendarBuilders(
-                    markerBuilder: (context, date, events) {
-                      final markers = _buildEventMarkers(date);
-                      if (markers.isEmpty) return const SizedBox.shrink();
+                  child: TableCalendar(
+                    focusedDay: _focusedDay,
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    calendarFormat: _calendarFormat,
+                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
 
-                      return Positioned(
-                        bottom: 2.h,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: markers,
-                        ),
-                      );
+                        String date = DateFormat('yyyy-MM-dd').format(selectedDay);
+                        _loadEmployeeTaskData(date);
+                      });
                     },
+                    onPageChanged: (focusedDay) {
+                      setState(() {
+                        _focusedDay = focusedDay;
+                      });
+                    },
+                    headerVisible: false,
+                    calendarStyle: CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: const Color(0xFF007AFF).withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      todayTextStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                      selectedDecoration: const BoxDecoration(
+                        color: Color(0xFF007AFF),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedTextStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      defaultTextStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                      weekendTextStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                      outsideDaysVisible: true,
+                      outsideTextStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[400],
+                      ),
+                      cellMargin: EdgeInsets.all(4.w),
+                      cellPadding: EdgeInsets.zero,
+                    ),
+                    daysOfWeekStyle: DaysOfWeekStyle(
+                      weekdayStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      weekendStyle: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    daysOfWeekHeight: 40.h,
+                    calendarBuilders: CalendarBuilders(
+                      markerBuilder: (context, date, events) {
+                        final markers = _buildEventMarkers(date);
+                        if (markers.isEmpty) return const SizedBox.shrink();
+
+                        return Positioned(
+                          bottom: 2.h,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: markers,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 20.h),
 
                 /// Legend
                 Obx(() {
                   int totalCompleted = widget.controller.allEmployeeTaskData.value?.data?.attributes?.results
-                          ?.fold<int>(0, (sum, item) => sum + (item.totalCompliteTask ?? 0)) ?? 0;
+                      ?.fold<int>(0, (sum, item) => sum + (item.totalCompliteTask ?? 0)) ?? 0;
                   int totalInProgress = widget.controller.allEmployeeTaskData.value?.data?.attributes?.results
-                          ?.fold<int>(0, (sum, item) => sum + (item.totalProgressTask ?? 0)) ?? 0;
+                      ?.fold<int>(0, (sum, item) => sum + (item.totalProgressTask ?? 0)) ?? 0;
                   int totalPending = widget.controller.allEmployeeTaskData.value?.data?.attributes?.results
-                          ?.fold<int>(0, (sum, item) => sum + (item.totalPendingTask ?? 0)) ?? 0;
+                      ?.fold<int>(0, (sum, item) => sum + (item.totalPendingTask ?? 0)) ?? 0;
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 8.h,
-                            width: 8.w,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4CD964),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            "Completed ($totalCompleted)",
-                            style: TextStyle(fontSize: 11.sp, color: Colors.grey[700]),
-                          ),
-                        ],
+                      _buildLegendItem(
+                        color: const Color(0xFF4CD964),
+                        label: 'Completed',
+                        count: totalCompleted,
                       ),
-                      SizedBox(width: 12.w),
-                      Row(
-                        children: [
-                          Container(
-                            height: 8.h,
-                            width: 8.w,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFB509),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            "InProgress ($totalInProgress)",
-                            style: TextStyle(fontSize: 11.sp, color: Colors.grey[700]),
-                          ),
-                        ],
+                      SizedBox(width: 16.w),
+                      _buildLegendItem(
+                        color: const Color(0xFFFFB509),
+                        label: 'InProgress',
+                        count: totalInProgress,
                       ),
-                      SizedBox(width: 12.w),
-                      Row(
-                        children: [
-                          Container(
-                            height: 8.h,
-                            width: 8.w,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF1414),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            "Pending ($totalPending)",
-                            style: TextStyle(fontSize: 11.sp, color: Colors.grey[700]),
-                          ),
-                        ],
+                      SizedBox(width: 16.w),
+                      _buildLegendItem(
+                        color: const Color(0xFFFF1414),
+                        label: 'Pending',
+                        count: totalPending,
                       ),
                     ],
                   );
                 }),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 20.h),
 
                 /// Teams Section
-                widget.controller.employeeTaskDataLoading.value
-                    ? const Center(child: CircularProgressIndicator())
-                    : _teams.isEmpty
-                        ? const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Center(
-                              child: Text(
-                                'No employee task data available',
-                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                Obx(() {
+                  if (widget.controller.employeeTaskDataLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (_teams.isEmpty) {
+                    return Padding(
+                      padding: EdgeInsets.all(32.h),
+                      child: Center(
+                        child: Text(
+                          'No employee task data available',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// Teams Header - Only show once at the top
+                      Text(
+                        'Teams (${_teams.length.toString().padLeft(2, '0')})',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+
+                      SizedBox(height: 16.h),
+
+                      /// All team members without individual team headers
+                      ..._teams.asMap().entries.map((entry) {
+                        var team = entry.value;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// Team Members
+                            ...team['members'].map<Widget>((member) => Container(
+                              margin: EdgeInsets.only(bottom: 16.h),
+                              padding: EdgeInsets.all(16.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(
+                                  color: Colors.grey[200]!,
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ),
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ..._teams.map((team) => Column(
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  /// Team Header
-                                  Container(
-                                    width: 160.w,
-                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFFF95555),
-                                      borderRadius: BorderRadius.circular(100.r),
-                                    ),
-                                    child: Text(
-                                      team['teamName'],
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                  /// Member Header
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 20.r,
+                                            backgroundColor: team['teamColor'].withOpacity(0.15),
+                                            child: Icon(
+                                              Icons.person,
+                                              size: 20.sp,
+                                              color: team['teamColor'],
+                                            ),
+                                          ),
+                                          SizedBox(width: 12.w),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                member['name'],
+                                                style: TextStyle(
+                                                  fontSize: 16.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(height: 2.h),
+                                              Text(
+                                                member['taskCount'],
+                                                style: TextStyle(
+                                                  fontSize: 13.sp,
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    ),
+
+                                      /// View Button
+                                      GestureDetector(
+                                        onTap: () {
+                                          String selectedDate = _selectedDay != null
+                                              ? DateFormat('yyyy-MM-dd').format(_selectedDay!)
+                                              : DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+                                          String assignTo = member['assignTo'] ?? '';
+
+                                          context.pushNamed(
+                                            'adminCompleteViewTaskScreenWithParams',
+                                            pathParameters: {
+                                              'date': selectedDate,
+                                              'assignTo': assignTo,
+                                            },
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                            vertical: 8.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: team['teamColor'].withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(100.r),
+                                          ),
+                                          child: Text(
+                                            'View',
+                                            style: TextStyle(
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.w600,
+                                              color: team['teamColor'],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
 
                                   SizedBox(height: 12.h),
 
-                                  /// Team Members
-                                  ...team['members'].map<Widget>((member) => Container(
-                                        width: 356.w,
-                                        margin: EdgeInsets.only(bottom: 16.h),
-                                        padding: EdgeInsets.all(16.w),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(14.r),
-                                          border: Border.all(
-                                            color: const Color(0xFFCECECE).withOpacity(0.25),
+                                  /// Location
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Current Location: ',
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          member['location'],
+                                          style: TextStyle(
+                                            fontSize: 13.sp,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color: Color(0x1A000000),
-                                              blurRadius: 4,
-                                              offset: Offset(0, 2),
-                                            ),
-                                          ],
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            /// Member Header
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    CircleAvatar(
-                                                      radius: 16.r,
-                                                      backgroundColor: Color(0xFFFFE5E5),
-                                                      child: Icon(
-                                                        Icons.person,
-                                                        size: 18.sp,
-                                                        color: Color(0xFFF95555),
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 8.w),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          member['name'],
-                                                          style: TextStyle(
-                                                            fontSize: 15.sp,
-                                                            fontWeight: FontWeight.w600,
-                                                            color: Colors.black,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          member['taskCount'],
-                                                          style: TextStyle(
-                                                            fontSize: 12.sp,
-                                                            color: Colors.grey,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
+                                      ),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 14.h),
+
+                                  /// Time Slots
+                                  if (member['timeSlots'].isNotEmpty &&
+                                      member['timeSlots'][0]['type'] != 'empty')
+                                    Wrap(
+                                      spacing: 8.w,
+                                      runSpacing: 8.h,
+                                      children: member['timeSlots'].map<Widget>((slot) {
+                                        return Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 14.w,
+                                            vertical: 8.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: team['teamColor'],
+                                            borderRadius: BorderRadius.circular(100.r),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 14.sp,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 6.w),
+                                              Text(
+                                                slot['time'],
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
                                                 ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
 
-                                                /// ==================================== View ===========================
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    // Get the date for the selected day or use today's date
-                                                    String selectedDate = _selectedDay != null
-                                                        ? DateFormat('yyyy-MM-dd').format(_selectedDay!)
-                                                        : DateFormat('yyyy-MM-dd').format(DateTime.now());
+                                  if (member['timeSlots'].isNotEmpty &&
+                                      member['timeSlots'][0]['type'] != 'empty')
+                                    SizedBox(height: 14.h),
 
-                                                    // Get the member's assignTo ID
-                                                    String assignTo = member['assignTo'] ?? '';
-
-                                                    // Navigate using named route with parameters
-                                                    context.pushNamed(
-                                                      'adminCompleteViewTaskScreenWithParams',
-                                                      pathParameters: {
-                                                        'date': selectedDate,
-                                                        'assignTo': assignTo,
-                                                      },
-                                                    );
-                                                  },
-                                                  child: Container(
-                                                    padding: EdgeInsets.symmetric(
-                                                      horizontal: 12.w,
-                                                      vertical: 6.h,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: Color(0xFFF0626B).withOpacity(0.1),
-                                                      borderRadius: BorderRadius.circular(100.r),
-                                                    ),
-                                                    child: Text(
-                                                      'View',
-                                                      style: TextStyle(
-                                                        fontSize: 12.sp,
-                                                        fontWeight: FontWeight.w500,
-                                                        color: Color(0xFFF95555),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-
-                                            SizedBox(height: 8.h),
-
-                                            /// Location
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  'Current Location: ',
-                                                  style: TextStyle(
-                                                    fontSize: 12.sp,
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  member['location'],
-                                                  style: TextStyle(
-                                                    fontSize: 12.sp,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-
-                                            SizedBox(height: 12.h),
-
-                                            /// Time Slots
-                                            Wrap(
-                                              spacing: 8.w,
-                                              runSpacing: 8.h,
-                                              children: member['timeSlots'].map<Widget>((slot) {
-                                                bool isBreak = slot['type'] == 'break';
-                                                return Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 12.w,
-                                                    vertical: 6.h,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: isBreak
-                                                        ? Color(0xFFFF6B6B).withOpacity(0.1)
-                                                        : Color(0xFFF95555),
-                                                    borderRadius: BorderRadius.circular(100.r),
-                                                  ),
-                                                  child: Text(
-                                                    slot['time'],
-                                                    style: TextStyle(
-                                                      fontSize: 11.sp,
-                                                      fontWeight: FontWeight.w500,
-                                                      color: isBreak ? Color(0xFFF95555) : Colors.white,
-                                                    ),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                            ),
-
-                                            SizedBox(height: 12.h),
-
-                                            /// Stats
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                _buildStatItem(
-                                                  '● Completed (${member['stats']['completed']})',
-                                                  Color(0xFF4CD964),
-                                                ),
-                                                _buildStatItem(
-                                                  '● In progress (${member['stats']['inProgress']})',
-                                                  Color(0xFFFFB800),
-                                                ),
-                                                _buildStatItem(
-                                                  '● Pending (${member['stats']['pending']})',
-                                                  Color(0xFFFF1414),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      )).toList(),
+                                  /// Stats
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _buildStatItem(
+                                        'Completed (${member['stats']['completed']})',
+                                        const Color(0xFF4CD964),
+                                      ),
+                                      _buildStatItem(
+                                        'In progress (${member['stats']['inProgress']})',
+                                        const Color(0xFFFFB800),
+                                      ),
+                                      _buildStatItem(
+                                        'Pending (${member['stats']['pending']})',
+                                        const Color(0xFFFF1414),
+                                      ),
+                                    ],
+                                  ),
                                 ],
-                              )).toList(),
-                            ],
-                          ),
+                              ),
+                            )).toList(),
+                          ],
+                        );
+                      }).toList(),
+                    ],
+                  );
+                }),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 80.h),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLegendItem({
+    required Color color,
+    required String label,
+    required int count,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 8.w,
+          height: 8.h,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        SizedBox(width: 6.w),
+        Text(
+          '$label ($count)',
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -653,12 +691,13 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: 4.w),
+        SizedBox(width: 6.w),
         Text(
-          text.replaceAll('● ', ''),
+          text,
           style: TextStyle(
             fontSize: 11.sp,
             color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

@@ -126,14 +126,28 @@ class ScheduleController extends GetxController {
       var response = await ApiClient.getData(endpoint);
 
       if (response.statusCode == 200) {
-        taskDetailsData.value = TaskDetailsModel.fromJson(response.body["data"]["attributes"]);
+        // Check if the response has the expected structure
+        if (response.body["data"] != null && response.body["data"]["attributes"] != null) {
+          taskDetailsData.value = TaskDetailsModel.fromJson(response.body["data"]["attributes"]);
+        } else if (response.body["data"] != null && response.body["data"]["attributes"] == null) {
+          // If data exists but attributes is missing, try parsing the whole data object
+          taskDetailsData.value = TaskDetailsModel.fromJson(response.body["data"]);
+        } else if (response.body["data"] != null && response.body["attributes"] != null) {
+          // Alternative structure where both data and attributes exist at top level
+          taskDetailsData.value = TaskDetailsModel.fromJson(response.body["attributes"]);
+        } else {
+          // If the structure is different, try parsing directly
+          taskDetailsData.value = TaskDetailsModel.fromJson(response.body);
+        }
         return taskDetailsData.value;
       } else {
         print("Error getting task details: ${response.statusCode}");
+        print("Response body: ${response.body}");
         return null;
       }
     } catch (e) {
       print("Exception in getTaskDetails: $e");
+      print("Error occurred while fetching task with ID: $taskId");
       return null;
     } finally {
       taskDetailsLoading(false);
