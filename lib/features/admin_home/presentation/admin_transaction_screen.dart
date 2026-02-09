@@ -3,8 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:koji/features/admin_home/presentation/widget/transaction_widget.dart';
+import 'package:koji/shared_widgets/custom_text.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../models/admin-model/transaction_model.dart';
+import 'admin_create_new_invoice_screen.dart';
 
 
 class AdminTransactionScreen extends StatefulWidget {
@@ -19,6 +21,8 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
 
   late AdminHomeController adminHomeController;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -27,7 +31,6 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
       adminHomeController.getTransaction();
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +88,81 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
               ),
             ),
           ),
+          SizedBox(height: 12.h),
+
+          /// ============> All Invoices Filter Tabs =============
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 12.h),
+            child: Row(
+              children: [
+                // All Tab (Selected)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
+                      stops: [0.0075, 0.9527],
+                    ),
+                    borderRadius: BorderRadius.circular(30.r),
+                  ),
+                  child: Text(
+                    'All',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+
+                // Invoices Tab
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30.r),
+                    border: Border.all(
+                      color: Color(0xFFC8C8C8),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'Invoices',
+                    style: TextStyle(
+                      color: Color(0xFF424242),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+
+                // Quotes Tab
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30.r),
+                    border: Border.all(
+                      color: Color(0xFFC8C8C8),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'Quotes',
+                    style: TextStyle(
+                      color: Color(0xFF424242),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
 
 
           Expanded(
@@ -116,46 +194,24 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
             }),
           ),
 
-          Padding(
-            padding: EdgeInsets.all(17.w),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Download invoice logic
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFF7D7D),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.r),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Download Invoice",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Icon(
-                      Icons.download,
-                      color: Colors.white,
-                      size: 20.r,
-                    ),
-                  ],
-                ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AdminCreateInvoiceScreen(
               ),
             ),
-          ),
-        ],
+          ).then((value) {
+            // Refresh transaction list after returning from invoice creation
+            adminHomeController.getTransaction();
+          });
+        },
+        backgroundColor: Color(0xFFF95555),
+        child: Icon(Icons.add, color: Colors.white, size: 24.sp),
       ),
     );
   }
 }
+

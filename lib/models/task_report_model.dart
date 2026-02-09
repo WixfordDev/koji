@@ -248,7 +248,7 @@ class User {
 
 class Location {
   final String type;
-  final List<double> coordinates;
+  final List<num> coordinates;
   final String locationName;
 
   Location({
@@ -259,12 +259,12 @@ class Location {
 
   factory Location.fromJson(Map<String, dynamic> json) {
     final coords = json['coordinates'] as List<dynamic>?;
-    final convertedCoords = <double>[];
+    final convertedCoords = <num>[];
 
     if (coords != null) {
       for (var coord in coords) {
         if (coord is int) {
-          convertedCoords.add(coord.toDouble());
+          convertedCoords.add(coord);
         } else if (coord is double) {
           convertedCoords.add(coord);
         } else {
@@ -396,7 +396,7 @@ class Service {
 User _parseUser(dynamic userData) {
   if (userData == null) {
     return User(
-      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      location: Location(type: '', coordinates: <num>[], locationName: ''),
       firstName: '',
       fullName: '',
       email: '',
@@ -418,7 +418,7 @@ User _parseUser(dynamic userData) {
   } else if (userData is String) {
     // If it's a string (ID), create a minimal User object
     return User(
-      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      location: Location(type: '', coordinates: <num>[], locationName: ''),
       firstName: '',
       fullName: '',
       email: '',
@@ -443,7 +443,7 @@ User _parseUser(dynamic userData) {
   } else {
     // Fallback case
     return User(
-      location: Location(type: '', coordinates: <double>[], locationName: ''),
+      location: Location(type: '', coordinates: <num>[], locationName: ''),
       firstName: '',
       fullName: '',
       email: '',
@@ -468,16 +468,16 @@ User _parseUser(dynamic userData) {
 // Helper function to parse location field which might be a string ID or a full object
 Location _parseLocation(dynamic locationData) {
   if (locationData == null) {
-    return Location(type: '', coordinates: <double>[], locationName: '');
+    return Location(type: '', coordinates: <num>[], locationName: '');
   } else if (locationData is String) {
     // If it's a string (ID), create a minimal Location object
-    return Location(type: '', coordinates: <double>[], locationName: locationData);
+    return Location(type: '', coordinates: <num>[], locationName: locationData);
   } else if (locationData is Map<String, dynamic>) {
     // If it's a map (full object), parse normally
     return Location.fromJson(locationData);
   } else {
     // Fallback case
-    return Location(type: '', coordinates: <double>[], locationName: locationData.toString());
+    return Location(type: '', coordinates: <num>[], locationName: locationData.toString());
   }
 }
 

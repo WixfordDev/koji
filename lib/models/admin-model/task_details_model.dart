@@ -8,6 +8,7 @@ class TaskDetailsModel {
   final AssignTo? createdBy;
   final Department? department;
   final Department? serviceCategory;
+  final String? vehicle;  // Added vehicle field
   final String? customerName;
   final String? customerNumber;
   final String? customerAddress;
@@ -16,12 +17,12 @@ class TaskDetailsModel {
   final List<Service>? services;
   final String? priority;
   final String? difficulty;
-  final AssignTo? assignTo;
+  final dynamic assignTo; // Changed to dynamic to handle different formats
   final int? otherAmount;
   final int? totalAmount;
   final String? status;
   final List<String>? attachments;
-  final List<String>? submitedDoc;
+  final List<dynamic>? submitedDoc; // Changed to dynamic list
   final bool? isSubmited;
   final String? notes;
   final String? invoicePath;
@@ -36,6 +37,7 @@ class TaskDetailsModel {
     this.createdBy,
     this.department,
     this.serviceCategory,
+    this.vehicle,
     this.customerName,
     this.customerNumber,
     this.customerAddress,
@@ -65,35 +67,37 @@ class TaskDetailsModel {
     createdBy: json["createdBy"] == null ? null : AssignTo.fromJson(json["createdBy"]),
     department: json["department"] == null ? null : Department.fromJson(json["department"]),
     serviceCategory: json["serviceCategory"] == null ? null : Department.fromJson(json["serviceCategory"]),
-    customerName: json["customerName"],
-    customerNumber: json["customerNumber"],
-    customerAddress: json["customerAddress"],
-    assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"]),
-    deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"]),
+    vehicle: json["vehicle"]?.toString(), // Added vehicle field and ensure it's a string
+    customerName: json["customerName"]?.toString(),
+    customerNumber: json["customerNumber"]?.toString(),
+    customerAddress: json["customerAddress"]?.toString(),
+    assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"].toString()),
+    deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"].toString()),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
-    priority: json["priority"],
-    difficulty: json["difficulty"],
-    assignTo: json["assignTo"] == null ? null : AssignTo.fromJson(json["assignTo"]),
-    otherAmount: json["otherAmount"],
-    totalAmount: json["totalAmount"],
-    status: json["status"],
-    attachments: json["attachments"] == null ? [] : List<String>.from(json["attachments"]!.map((x) => x)),
-    submitedDoc: json["submitedDoc"] == null ? [] : List<String>.from(json["submitedDoc"]!.map((x) => x)),
-    isSubmited: json["isSubmited"],
-    notes: json["notes"],
-    invoicePath: json["invoicePath"],
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
-    customerEmail: json["customerEmail"],
-    paymentMethod: json["paymentMethod"],
-    paymentStatus: json["paymentStatus"],
-    customerSignature: json["customerSignature"],
-    id: json["id"],
+    priority: json["priority"]?.toString(),
+    difficulty: json["difficulty"]?.toString(),
+    assignTo: json["assignTo"], // Changed to dynamic, handle differently based on API response
+    otherAmount: json["otherAmount"] is int ? json["otherAmount"] : (json["otherAmount"]?.toString() != null ? int.tryParse(json["otherAmount"].toString()) : null),
+    totalAmount: json["totalAmount"] is int ? json["totalAmount"] : (json["totalAmount"]?.toString() != null ? int.tryParse(json["totalAmount"].toString()) : null),
+    status: json["status"]?.toString(),
+    attachments: json["attachments"] == null ? [] : List<String>.from(json["attachments"]!.map((x) => x.toString())),
+    submitedDoc: json["submitedDoc"] == null ? [] : List<dynamic>.from(json["submitedDoc"]!.map((x) => x)), // Updated to dynamic
+    isSubmited: json["isSubmited"] is bool ? json["isSubmited"] : (json["isSubmited"]?.toString() == 'true' || json["isSubmited"] == 1),
+    notes: json["notes"]?.toString(),
+    invoicePath: json["invoicePath"]?.toString(),
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"].toString()),
+    customerEmail: json["customerEmail"]?.toString(),
+    paymentMethod: json["paymentMethod"]?.toString(),
+    paymentStatus: json["paymentStatus"]?.toString(),
+    customerSignature: json["customerSignature"]?.toString(),
+    id: json["id"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
     "createdBy": createdBy?.toJson(),
     "department": department?.toJson(),
     "serviceCategory": serviceCategory?.toJson(),
+    "vehicle": vehicle, // Added vehicle field
     "customerName": customerName,
     "customerNumber": customerNumber,
     "customerAddress": customerAddress,
@@ -102,7 +106,7 @@ class TaskDetailsModel {
     "services": services == null ? [] : List<dynamic>.from(services!.map((x) => x.toJson())),
     "priority": priority,
     "difficulty": difficulty,
-    "assignTo": assignTo?.toJson(),
+    "assignTo": assignTo, // Changed to dynamic
     "otherAmount": otherAmount,
     "totalAmount": totalAmount,
     "status": status,
@@ -139,11 +143,11 @@ class AssignTo {
 
   factory AssignTo.fromJson(Map<String, dynamic> json) => AssignTo(
     location: json["location"] == null ? null : Location.fromJson(json["location"]),
-    fullName: json["fullName"],
-    email: json["email"],
-    image: json["image"],
-    phoneNumber: json["phoneNumber"],
-    id: json["id"],
+    fullName: json["fullName"]?.toString(),
+    email: json["email"]?.toString(),
+    image: json["image"]?.toString(),
+    phoneNumber: json["phoneNumber"]?.toString(),
+    id: json["id"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -158,7 +162,7 @@ class AssignTo {
 
 class Location {
   final String? type;
-  final List<double>? coordinates;
+  final List<num>? coordinates;
   final String? locationName;
 
   Location({
@@ -168,9 +172,9 @@ class Location {
   });
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
-    type: json["type"],
-    coordinates: json["coordinates"] == null ? [] : List<double>.from(json["coordinates"]!.map((x) => x?.toDouble())),
-    locationName: json["locationName"],
+    type: json["type"]?.toString(),
+    coordinates: json["coordinates"] == null ? [] : List<num>.from(json["coordinates"].map((x) => x is num ? x : (x?.toString() != null ? num.tryParse(x.toString()) ?? 0 : 0))),
+    locationName: json["locationName"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -190,8 +194,8 @@ class Department {
   });
 
   factory Department.fromJson(Map<String, dynamic> json) => Department(
-    name: json["name"],
-    id: json["id"],
+    name: json["name"]?.toString(),
+    id: json["id"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -202,7 +206,7 @@ class Department {
 
 class Service {
   final String? name;
-  final int? price;
+  final num? price;  // Changed to num to handle both int and double
   final int? quantity;
   final String? id;
 
@@ -214,10 +218,10 @@ class Service {
   });
 
   factory Service.fromJson(Map<String, dynamic> json) => Service(
-    name: json["name"],
-    price: json["price"],
-    quantity: json["quantity"],
-    id: json["_id"],
+    name: json["name"]?.toString(),
+    price: json["price"] is num ? json["price"] : (json["price"]?.toString() != null ? num.tryParse(json["price"].toString()) : null),
+    quantity: json["quantity"] is int ? json["quantity"] : (json["quantity"]?.toString() != null ? int.tryParse(json["quantity"].toString()) : null),
+    id: json["_id"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {

@@ -15,13 +15,16 @@ import 'package:koji/models/chat_model.dart';
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
+import '../features/admin_home/presentation/admin_create_new_invoice_screen.dart';
 import '../features/admin_home/presentation/admin_create_task_screen.dart';
 import '../features/admin_home/presentation/admin_employee_request_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_home/presentation/admin_transaction_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
+import '../features/admin_schedule/presentation/admin_view_complete_task_screen.dart';
 import '../features/admin_map/admin_map_screen.dart';
+import '../features/admin_map/tracking_screen.dart';
 
 // Employee Screens
 import '../features/bottom_navbar/presentation/bottom_navbar_screen.dart';
@@ -275,6 +278,14 @@ class AppRouter {
           builder: (_, __) => AdminCompleteTaskScreen(),
         ),
         GoRoute(
+          path: '/adminCompleteTaskScreen/:taskId',
+          name: 'adminCompleteTaskScreenWithParams',
+          builder: (context, state) {
+            final taskId = state.pathParameters['taskId'] ?? '';
+            return AdminCompleteTaskScreen(taskId: taskId);
+          },
+        ),
+        GoRoute(
           path: RoutePaths.adminAttendanceScreen,
           name: RoutePaths.adminAttendanceScreen,
           builder: (_, __) => AdminAttendanceScreen(),
@@ -410,6 +421,35 @@ class AppRouter {
           path: '/adminTransactionScreen',
           name: 'adminTransactionScreen',
           builder: (_, _) => AdminTransactionScreen(),
+        ),
+
+        GoRoute(
+          path: '/adminCreateInvoiceScreen',
+          name: 'adminCreateInvoiceScreen',
+          builder: (_, _) => AdminCreateInvoiceScreen(),
+        ),
+
+        GoRoute(
+          path: RoutePaths.adminMapScreen,
+          name: 'adminMapScreen',
+          builder: (_, _) => AdminMapScreen(),
+        ),
+
+        GoRoute(
+          path: RoutePaths.trackingScreen,
+          name: 'trackingScreen',
+          builder: (_, _) => TrackingScreen(),
+        ),
+
+        // Route with parameters for admin complete view task screen
+        GoRoute(
+          path: RoutePaths.adminCompleteViewTaskScreenWithParams,
+          name: 'adminCompleteViewTaskScreenWithParams',
+          builder: (context, state) {
+            final date = state.pathParameters['date'] ?? '';
+            final assignTo = state.pathParameters['assignTo'] ?? '';
+            return AdminCompleteViewTaskScreen(date: date, assignTo: assignTo);
+          },
         ),
       ],
     );

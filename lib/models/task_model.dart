@@ -176,7 +176,7 @@ class Department {
 
 class Service {
   final String? name;
-  final int? price;
+  final num? price;
   final int? quantity;
   final String? id;
 
