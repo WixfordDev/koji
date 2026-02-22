@@ -11,6 +11,7 @@ class AppConstants {
   static const String fcmToken = "fcmToken";
   static const String mechanicType = "mechanicType";
   static const String emailValidator = "emailValidator";
+  static const String hasCompletedOnboarding = "hasCompletedOnboarding";
 
   static RegExp emailValidate = RegExp(
     r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",

@@ -15,7 +15,9 @@ class ProfileModel {
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) => ProfileModel(
     user: json["user"] == null ? null : User.fromJson(json["user"]),
-    securitySettings: json["securitySettings"] == null ? null : SecuritySettings.fromJson(json["securitySettings"]),
+    securitySettings: json["securitySettings"] == null
+        ? null
+        : SecuritySettings.fromJson(json["securitySettings"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -35,11 +37,12 @@ class SecuritySettings {
     this.securityQuestion,
   });
 
-  factory SecuritySettings.fromJson(Map<String, dynamic> json) => SecuritySettings(
-    recoveryEmail: json["recoveryEmail"],
-    recoveryPhone: json["recoveryPhone"],
-    securityQuestion: json["securityQuestion"],
-  );
+  factory SecuritySettings.fromJson(Map<String, dynamic> json) =>
+      SecuritySettings(
+        recoveryEmail: json["recoveryEmail"],
+        recoveryPhone: json["recoveryPhone"],
+        securityQuestion: json["securityQuestion"],
+      );
 
   Map<String, dynamic> toJson() => {
     "recoveryEmail": recoveryEmail,
@@ -60,8 +63,10 @@ class User {
   final String? role;
   final String? callingCode;
   final String? phoneNumber;
-  final dynamic dateOfBirth;
-  final dynamic address;
+  final String? dateOfBirth;   // changed from dynamic → String?
+  final String? address;       // changed from dynamic → String?
+  final String? gender;        // newly added
+  final String? maritalStatus; // newly added
   final bool? isProfileCompleted;
   final bool? isAdminApproved;
   final bool? isAcceptPolicyTerms;
@@ -82,6 +87,8 @@ class User {
     this.phoneNumber,
     this.dateOfBirth,
     this.address,
+    this.gender,
+    this.maritalStatus,
     this.isProfileCompleted,
     this.isAdminApproved,
     this.isAcceptPolicyTerms,
@@ -90,7 +97,9 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-    location: json["location"] == null ? null : Location.fromJson(json["location"]),
+    location: json["location"] == null
+        ? null
+        : Location.fromJson(json["location"]),
     officeStartTime: json["officeStartTime"],
     officeEndTime: json["officeEndTime"],
     firstName: json["firstName"],
@@ -101,12 +110,16 @@ class User {
     role: json["role"],
     callingCode: json["callingCode"],
     phoneNumber: json["phoneNumber"],
-    dateOfBirth: json["dateOfBirth"],
-    address: json["address"],
+    dateOfBirth: json["dateOfBirth"]?.toString(),
+    address: json["address"]?.toString(),
+    gender: json["gender"]?.toString(),
+    maritalStatus: json["maritalStatus"]?.toString(),
     isProfileCompleted: json["isProfileCompleted"],
     isAdminApproved: json["isAdminApproved"],
     isAcceptPolicyTerms: json["isAcceptPolicyTerms"],
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    createdAt: json["createdAt"] == null
+        ? null
+        : DateTime.parse(json["createdAt"]),
     id: json["id"],
   );
 
@@ -124,6 +137,8 @@ class User {
     "phoneNumber": phoneNumber,
     "dateOfBirth": dateOfBirth,
     "address": address,
+    "gender": gender,
+    "maritalStatus": maritalStatus,
     "isProfileCompleted": isProfileCompleted,
     "isAdminApproved": isAdminApproved,
     "isAcceptPolicyTerms": isAcceptPolicyTerms,
@@ -151,28 +166,21 @@ class Location {
 
   Map<String, dynamic> toJson() => {
     "type": type,
-    "coordinates": coordinates == null ? [] : List<dynamic>.from(coordinates!.map((x) => x)),
+    "coordinates": coordinates == null
+        ? []
+        : List<dynamic>.from(coordinates!.map((x) => x)),
     "locationName": locationName,
   };
 }
 
-// Helper function to parse coordinates which might contain int or double values
 List<double>? _parseCoordinates(dynamic coordinatesData) {
-  if (coordinatesData == null) {
-    return null;
-  } else if (coordinatesData is List) {
-    List<double> result = [];
-    for (var item in coordinatesData) {
-      if (item is int) {
-        result.add(item.toDouble());
-      } else if (item is double) {
-        result.add(item);
-      } else {
-        result.add(0.0); // fallback for unexpected types
-      }
-    }
-    return result;
-  } else {
-    return null;
+  if (coordinatesData == null) return null;
+  if (coordinatesData is List) {
+    return coordinatesData.map((item) {
+      if (item is int) return item.toDouble();
+      if (item is double) return item;
+      return 0.0;
+    }).toList();
   }
+  return null;
 }

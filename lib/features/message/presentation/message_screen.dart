@@ -37,10 +37,13 @@ class _MessageListScreenState extends State<MessageListScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: CustomText(
-          text: "Messages",
-          fontSize: 20.sp,
-          fontWeight: FontWeight.w600,
+        title: Center(
+          child: CustomText(
+            textAlign: TextAlign.center,
+            text: "Messages",
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: Obx(() {

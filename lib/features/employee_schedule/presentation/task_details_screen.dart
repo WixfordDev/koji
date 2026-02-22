@@ -18,6 +18,10 @@ class TaskDetailsScreen extends StatefulWidget {
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   late final EmployeeScheduleController controller;
 
+  // Gradient colors
+  static const Color primaryDark = Color(0xFF162238);
+  static const Color primaryBlue = Color(0xFF4082FB);
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +29,48 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchTaskById(widget.taskId);
     });
+  }
+
+  /// Reusable gradient button
+  Widget _gradientButton({
+    required String label,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        height: 48.h,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+            transform: GradientRotation(344.45 * 3.14159 / 180),
+            colors: [primaryDark, primaryBlue],
+          ),
+          borderRadius: BorderRadius.circular(100.r),
+        ),
+        alignment: Alignment.center,
+        child: isLoading
+            ? SizedBox(
+          height: 22.h,
+          width: 22.h,
+          child: const CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white,
+          ),
+        )
+            : Text(
+          label,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -66,23 +112,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Attachment Section with grey background
-                /// Attachments Section
                 _buildAttachmentSection(task),
-
                 SizedBox(height: 24.h),
-
-                /// Department Field
                 _buildTextField('Department', task.department?.name ?? 'N/A'),
-
                 SizedBox(height: 12.h),
-
-                /// Service Category Field
-                _buildTextField(
-                  'Service Category',
-                  task.serviceCategory?.name ?? 'N/A',
-                ),
-
+                _buildTextField('Service Category', task.serviceCategory?.name ?? 'N/A'),
                 SizedBox(height: 12.h),
 
                 // Service List Section
@@ -106,13 +140,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 12.h),
-
                       ListView.separated(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: task.service?.length ?? 0,
-                        separatorBuilder: (context, index) =>
-                            SizedBox(height: 8.h),
+                        separatorBuilder: (context, index) => SizedBox(height: 8.h),
                         itemBuilder: (context, index) {
                           final serviceItem = task.service![index];
                           final price = serviceItem.price ?? 0;
@@ -124,34 +156,28 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                           );
                         },
                       ),
-
-                      _buildServiceItem(
-                        'Others Amount',
-                        '\$${task.otherAmount?.toStringAsFixed(1) ?? '0.0'}',
-                      ),
+                      _buildServiceItem('Others Amount', '\$${task.otherAmount?.toStringAsFixed(1) ?? '0.0'}'),
                       SizedBox(height: 8.h),
                       _buildServiceItem('GST 9%', ''),
-
                       Divider(height: 24.h, color: Colors.grey[300]),
-
-                      // Total Price
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Total Price',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.black),
                           ),
-                          Text(
-                            '\$${task.totalAmount?.toStringAsFixed(1) ?? '0.0'}',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF4A90E2),
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [primaryDark, primaryBlue],
+                            ).createShader(bounds),
+                            child: Text(
+                              '\$${task.totalAmount?.toStringAsFixed(1) ?? '0.0'}',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -161,180 +187,72 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ),
 
                 SizedBox(height: 12.h),
-
-                /// Customer Name Field
                 _buildTextField('Customer Name', task.customerName ?? 'N/A'),
-
                 SizedBox(height: 12.h),
-
-                /// Customer Number Field
-                _buildTextField(
-                  'Customer Number',
-                  task.customerNumber ?? 'N/A',
-                ),
-
+                _buildTextField('Customer Number', task.customerNumber ?? 'N/A'),
                 SizedBox(height: 12.h),
-
-                /// Customer Address Field
-                _buildTextField(
-                  'Customer Address',
-                  task.customerAddress ?? 'N/A',
-                ),
-
+                _buildTextField('Customer Address', task.customerAddress ?? 'N/A'),
                 SizedBox(height: 12.h),
-
-                /// Assign To Field
-                _buildTextField('Assign To', task.assignTo ?? 'N/A'),
-
+                _buildTextField('Assign To', task.assignTo?.isNotEmpty == true ? task.assignTo!.join(', ') : 'N/A'),
                 SizedBox(height: 12.h),
-
-                /// Vehicle Field
                 _buildTextField('Vehicle Number', task.vehicle ?? 'N/A'),
-
                 SizedBox(height: 12.h),
 
                 Row(
                   children: [
-                    /// Assign Date Field
-                    Expanded(
-                      flex: 1,
-                      child: _buildDateField(
-                        'Assign Date',
-                        task.assignDate.toString(),
-                      ),
-                    ),
-
-                    SizedBox(width: 12.h),
-
-                    /// Assign Time (You can extract time from assignDate if available)
-                    Expanded(
-                      flex: 1,
-                      child: _buildTimeField(
-                        'Assign Time',
-                        task.assignDate?.toIso8601String(),
-                      ),
-                    ),
+                    Expanded(child: _buildDateField('Assign Date', task.assignDate.toString())),
+                    SizedBox(width: 12.w),
+                    Expanded(child: _buildTimeField('Assign Time', task.assignDate?.toIso8601String())),
                   ],
                 ),
-
                 SizedBox(height: 12.h),
-
                 Row(
                   children: [
-                    /// Assign Date Field
-                    Expanded(
-                      flex: 1,
-                      child: _buildDateField(
-                        'End Date',
-                        task.deadline.toString(),
-                      ),
-                    ),
-
-                    SizedBox(width: 12.h),
-
-                    /// Assign Time (You can extract time from assignDate if available)
-                    Expanded(
-                      flex: 1,
-                      child: _buildTimeField(
-                        'End Time',
-                        task.deadline.toString(),
-                      ),
-                    ),
+                    Expanded(child: _buildDateField('End Date', task.deadline.toString())),
+                    SizedBox(width: 12.w),
+                    Expanded(child: _buildTimeField('End Time', task.deadline.toString())),
                   ],
                 ),
-
                 SizedBox(height: 12.h),
-
-                /// Priority Field
                 _buildTextField('Priority', task.priority ?? 'N/A'),
-
                 SizedBox(height: 12.h),
-
-                /// Difficulty Field
                 _buildTextField('Difficulty', task.difficulty ?? 'N/A'),
-
                 SizedBox(height: 24.h),
 
                 // Accept Button
-                if (task.isSubmited != true &&
-                    task.status?.toLowerCase() == 'pending')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _acceptTask(task),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF4A90E2),
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Accept',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                if (task.isSubmited != true && task.status?.toLowerCase() == 'pending')
+                  _gradientButton(
+                    label: 'Accept',
+                    onPressed: () => _acceptTask(task),
                   ),
 
                 SizedBox(height: 12.h),
 
-                // If already accepted, show "Go to Task Screen" button
-                if (task.isSubmited != true &&
-                    task.status?.toLowerCase() != 'pending')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _goToTaskScreen(task),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Go to Task Screen',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                // Go to Task Screen Button
+                if (task.isSubmited != true && task.status?.toLowerCase() != 'pending')
+                  _gradientButton(
+                    label: 'Go to Task Screen',
+                    onPressed: () => _goToTaskScreen(task),
                   ),
 
-                // If already submitted
+                // Already submitted
                 if (task.isSubmited == true)
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(100.r),
                       border: Border.all(color: Colors.green),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 24.sp,
-                        ),
+                        Icon(Icons.check_circle, color: Colors.green, size: 24.sp),
                         SizedBox(width: 8.w),
                         Text(
                           'Task Already Submitted',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
-                          ),
+                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.green),
                         ),
                       ],
                     ),
@@ -347,6 +265,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         );
       }),
     );
+  }
+
+  /// Safely builds image URL — handles slash between base URL and path
+  String _buildImageUrl(String baseUrl, String imagePath) {
+    final base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+    final path = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    return '$base$path';
   }
 
   Widget _buildAttachmentSection(task) {
@@ -363,43 +288,86 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         children: [
           Text(
             'Attachment',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
           ),
-          // SizedBox(height: 4.h),
-          // Text(
-          //   'Format should be in .pdf, .jpeg, .png, less than 5MB',
-          //   style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-          // ),
           SizedBox(height: 12.h),
           if (task.attachments != null && task.attachments!.isNotEmpty)
             SizedBox(
-              height: 100.h,
+              height: 110.h,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: task.attachments!.length,
                 itemBuilder: (context, index) {
-                  return Container(
-                    width: 100.w,
-                    margin: EdgeInsets.only(right: 8.w),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.network(
-                        "${ApiConstants.imageBaseUrl}${task.attachments![index]}",
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: Icon(Icons.image, color: Colors.grey[400]),
-                          );
-                        },
+                  final rawPath = task.attachments![index].toString();
+                  final imageUrl = _buildImageUrl(ApiConstants.imageBaseUrl, rawPath);
+
+                  // Debug — remove after confirming
+                  debugPrint('📎 Attachment URL [$index]: $imageUrl');
+
+                  return GestureDetector(
+                    onTap: () {
+                      // Show full image on tap
+                      showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          backgroundColor: Colors.black,
+                          insetPadding: EdgeInsets.all(12.w),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Icon(Icons.broken_image, color: Colors.white54, size: 48.sp),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 110.w,
+                      height: 110.h,
+                      margin: EdgeInsets.only(right: 10.w),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(color: Colors.grey[300]!),
+                        color: Colors.grey[200],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          // Show loading spinner while image loads
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: primaryBlue,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            debugPrint('❌ Image load error [$index]: $error');
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.broken_image_outlined, color: Colors.grey[400], size: 28.sp),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  'No Image',
+                                  style: TextStyle(fontSize: 10.sp, color: Colors.grey[500]),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
                   );
@@ -409,15 +377,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           else
             Container(
               height: 80.h,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8.r),
-              ),
+              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8.r)),
               child: Center(
-                child: Text(
-                  'No attachments',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
-                ),
+                child: Text('No attachments', style: TextStyle(color: Colors.grey[600], fontSize: 12.sp)),
               ),
             ),
         ],
@@ -429,14 +391,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], fontWeight: FontWeight.w500)),
         SizedBox(height: 6.h),
         Container(
           width: double.infinity,
@@ -446,52 +401,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             borderRadius: BorderRadius.circular(8.r),
             border: Border.all(color: Colors.grey[300]!),
           ),
-          child: Text(
-            value,
-            style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-          ),
+          child: Text(value, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
         ),
       ],
-    );
-  }
-
-  Widget _buildDetailCard(String title, String value, {IconData? icon}) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 20.sp, color: Colors.grey[600]),
-            SizedBox(width: 12.w),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -499,77 +411,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          service,
-          style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-        ),
-        Text(
-          price,
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
+        Text(service, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+        Text(price, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
       ],
-    );
-  }
-
-  Widget _buildAssignItem(String text) {
-    return Row(
-      children: [
-        Icon(Icons.circle, size: 8.sp, color: Colors.grey[600]),
-        SizedBox(width: 8.w),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownCard(String title, String value, List<String> options) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-          ),
-          SizedBox(height: 8.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -577,24 +421,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayDate = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        final date = DateTime.parse(dateString);
-        displayDate = DateFormat('dd-MM-yyyy').format(date);
+        displayDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(dateString));
       } catch (e) {
         displayDate = dateString;
       }
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], fontWeight: FontWeight.w500)),
         SizedBox(height: 6.h),
         Container(
           width: double.infinity,
@@ -606,12 +441,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           ),
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  displayDate,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-                ),
-              ),
+              Expanded(child: Text(displayDate, style: TextStyle(fontSize: 14.sp, color: Colors.black87))),
               Icon(Icons.calendar_today, size: 18.sp, color: Colors.grey[600]),
             ],
           ),
@@ -624,24 +454,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayTime = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        final date = DateTime.parse(dateString);
-        displayTime = DateFormat('hh:mm a').format(date);
+        displayTime = DateFormat('hh:mm a').format(DateTime.parse(dateString));
       } catch (e) {
         displayTime = '09:00 AM';
       }
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], fontWeight: FontWeight.w500)),
         SizedBox(height: 6.h),
         Container(
           width: double.infinity,
@@ -653,12 +474,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           ),
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  displayTime,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-                ),
-              ),
+              Expanded(child: Text(displayTime, style: TextStyle(fontSize: 14.sp, color: Colors.black87))),
               Icon(Icons.access_time, size: 18.sp, color: Colors.grey[600]),
             ],
           ),
@@ -668,18 +484,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   void _acceptTask(task) async {
-    // Call the accept task API
     await controller.acceptTask(widget.taskId);
-
-    // Show success message
-    Get.snackbar(
-      'Success',
-      'Task accepted successfully',
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
-
-    // Navigate to Task Screen
+    Get.snackbar('Success', 'Task accepted successfully', backgroundColor: Colors.green, colorText: Colors.white);
     _goToTaskScreen(task);
   }
 

@@ -57,7 +57,7 @@ class LoginScreen extends StatelessWidget {
                     controller: emailCtrl,
                     hintText: 'Enter Email',
                     keyboardType: TextInputType.emailAddress,
-
+                    inputType: AuthInputType.email,
                   ),
 
                   SizedBox(height: 16.h),
@@ -68,6 +68,7 @@ class LoginScreen extends StatelessWidget {
                     hintText: "Enter Password",
                     obscureText: true,
                     isPasswordField: true,
+                    inputType: AuthInputType.password,
                   ),
 
                   SizedBox(height: 10.h),
@@ -98,20 +99,12 @@ class LoginScreen extends StatelessWidget {
                       loading: authController.logInLoading.value,
                       title: "Login",
                       onpress: () {
-                        print("tapped login");
-
                         if (formKey.currentState!.validate()) {
                           authController.handleLogIn(
-                            emailCtrl.text,
+                            emailCtrl.text.trim(),
                             passwordCtrl.text,
                             context: context,
                           );
-
-                          // if (emailCtrl.text == "admin@gmail.com") {
-                          //   context.push("/adminBottomNavBar");
-                          // } else {
-                          //   context.push('/bottomNavBar');
-                          // }
                         }
                       },
                     ),

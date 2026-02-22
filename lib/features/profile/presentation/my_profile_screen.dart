@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -13,10 +12,6 @@ import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
-
-
-
-
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
 
@@ -27,20 +22,89 @@ class MyProfileScreen extends StatefulWidget {
 class _MyProfileScreenState extends State<MyProfileScreen> {
   late ProfileController profileController;
 
+  // Theme colors
+  static const Color primaryDark = Color(0xFF162238);
+  static const Color primaryBlue = Color(0xFF4082FB);
+
+  // Controllers
+  final TextEditingController employeeIdCtrl = TextEditingController();
+  final TextEditingController nameCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
+  final TextEditingController addressCtrl = TextEditingController();
+  final TextEditingController genderCtrl = TextEditingController(text: 'male');
+  final TextEditingController dateOfBirthCtrl = TextEditingController(text: '1 January, 2000');
+  final TextEditingController maritalCtrl = TextEditingController(text: 'male');
+
+  File? _pickedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  // Track if fields have been populated from profile
+  bool _isDataLoaded = false;
+
   @override
   void initState() {
     super.initState();
     profileController = Get.find<ProfileController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      profileController.getProfile();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await profileController.getProfile();
+      _populateFieldsFromProfile();
     });
   }
 
+  /// Fill text fields with existing profile data — no setState, pure GetX
+  void _populateFieldsFromProfile() {
+    if (_isDataLoaded) return;
+    final user = profileController.profile.value.user;
+    if (user == null) return;
 
+    _isDataLoaded = true;
+
+    nameCtrl.text    = user.firstName   ?? '';
+    emailCtrl.text   = user.email       ?? '';
+    phoneCtrl.text   = user.phoneNumber ?? '';
+    addressCtrl.text = user.address     ?? '';
+
+    if (user.gender != null && user.gender!.isNotEmpty) {
+      genderCtrl.text = user.gender!;
+    }
+    if (user.dateOfBirth != null && user.dateOfBirth!.isNotEmpty) {
+      // Convert ISO format (2000-01-01T00:00:00.000Z) → readable (1 January, 2000)
+      dateOfBirthCtrl.text = _formatDateOfBirth(user.dateOfBirth!);
+    }
+    if (user.maritalStatus != null && user.maritalStatus!.isNotEmpty) {
+      maritalCtrl.text = user.maritalStatus!;
+    }
+  }
+
+  /// Converts ISO date string OR already-formatted string to "1 January, 2000"
+  String _formatDateOfBirth(String raw) {
+    try {
+      final dt = DateTime.parse(raw);
+      return '${dt.day} ${_monthName(dt.month)}, ${dt.year}';
+    } catch (_) {
+      // Already in readable format like "1 January, 2000"
+      return raw;
+    }
+  }
+
+  @override
+  void dispose() {
+    employeeIdCtrl.dispose();
+    nameCtrl.dispose();
+    emailCtrl.dispose();
+    phoneCtrl.dispose();
+    addressCtrl.dispose();
+    genderCtrl.dispose();
+    dateOfBirthCtrl.dispose();
+    maritalCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         forceMaterialTransparency: true,
         backgroundColor: Colors.transparent,
@@ -54,279 +118,410 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.r),
               onPressed: () => Navigator.pop(context),
             ),
-
+            Text(
+              'My Profile',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
           ],
         ),
-
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: SingleChildScrollView(
+      body: Obx(() {
+        // Show full-screen loader on initial profile fetch
+        if (profileController.getProfileLoading.value && !_isDataLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          child: Obx(()=>
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+        // Once profile loads, populate fields (called once)
+        // Populate once when data arrives
+        if (!_isDataLoaded && profileController.profile.value.user != null) {
+          _populateFieldsFromProfile();
+        }
 
-                  Stack(
-                    alignment: Alignment.center,
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 24.h),
+
+                // ─── Avatar Section ───
+                Center(
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 24.h),
-                          Center(
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                GestureDetector(
-                                  onTap: _showImagePickerOptions,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(100.r),
-                                    child: _pickedImage != null
-                                        ? Image.file(
-                                      _pickedImage!,
-                                      width: 100.r,
-                                      height: 100.r,
-                                      fit: BoxFit.cover,
-                                    )
-                                        : profileController.profile.value.user?.image != null
-                                        ? Image.network(
-                                      "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
-                                      width: 100.r,
-                                      height: 100.r,
-                                      fit: BoxFit.cover,
-                                    )
-                                        : Image.asset(
-                                      "assets/images/profile.png",
-                                      width: 100.r,
-                                      height: 100.r,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: -4.h,
-                                  right: -4.w,
-                                  child: Container(
-                                    width: 24.w,
-                                    height: 24.h,
-                                    padding: EdgeInsets.fromLTRB(5.6.w, 4.h, 5.6.w, 4.h),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFFFFF),
-                                      borderRadius: BorderRadius.circular(16.r),
-                                      border: Border.all(
-                                        color: const Color(0xFFEFEFEF),
-                                        width: 0.86.w,
-                                      ),
-                                    ),
-                                    child: Assets.icons.camera.svg(
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      GestureDetector(
+                        onTap: _showImagePickerOptions,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.r),
+                          child: _pickedImage != null
+                              ? Image.file(
+                            _pickedImage!,
+                            width: 100.r,
+                            height: 100.r,
+                            fit: BoxFit.cover,
+                          )
+                              : profileController.profile.value.user?.image != null
+                              ? Image.network(
+                            _buildImageUrl(
+                              ApiConstants.imageBaseUrl,
+                              profileController.profile.value.user!.image!,
                             ),
+                            width: 100.r,
+                            height: 100.r,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _defaultAvatar(),
+                          )
+                              : _defaultAvatar(),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -4.h,
+                        right: -4.w,
+                        child: Container(
+                          width: 28.w,
+                          height: 28.h,
+                          padding: EdgeInsets.all(6.w),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.bottomLeft,
+                              end: Alignment.topRight,
+                              colors: [primaryDark, primaryBlue],
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                          SizedBox(height: 8.h),
-                          CustomText(
-                            text: profileController.profile.value.user?.firstName ?? 'N/A',
-                            fontSize: 24.sp,
-                            color: AppColor.secondaryColor,
+                          child: Assets.icons.camera.svg(
+                            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                           ),
-                          CustomText(
-                            text: profileController.profile.value.user?.role ?? 'N/A',
-                            fontSize: 14.sp,
-                            color: AppColor.textColor707070,
-                          ),
-                          SizedBox(height: 4.h),
-                          CustomText(
-                            text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
-                            fontSize: 14.sp,
-                            color: AppColor.textColor707070,
-                          ),
-                          SizedBox(height: 12.h),
-                          CustomText(
-                            text: 'My Profile',
-                            fontSize: 16.sp,
-                            color: AppColor.secondaryColor,
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
+                ),
 
-                  SizedBox(height: 12.h),
-                  CustomText(
-                    text: 'Employee ID',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: employeeIdCtrl,
-                    hintText: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                SizedBox(height: 10.h),
 
-                  ),
-
-                  SizedBox(height: 16.h),
-                  CustomText(
-                    text: 'Your Name',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: nameCtrl,
-                    hintText: profileController.profile.value.user?.firstName ?? 'N/A',
-                  ),
-
-                  SizedBox(height: 16.h),
-                  CustomText(
-                    text: 'E-mail',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: emailCtrl,
-                    hintText: profileController.profile.value.user?.email ?? 'N/A',
-                  ),
-
-
-                  SizedBox(height: 16.h),
-
-                  CustomText(
-                    text: 'Gender',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: genderCtrl,
-                    hintText: "Male",
-                    suffixIcon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Color(0xFF9E9E9E),
-                      size: 20.sp,
-                    ),
-                    onSuffixTap: _showGenderSelector,
-                  ),
-
-
-
-                  SizedBox(height: 16.h),
-
-                  CustomText(
-                    text: 'Date of Birth',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: dateOfBirthCtrl,
-                    hintText: profileController.profile.value.user?.dateOfBirth ?? 'N/A',
-                    suffixIcon: Icon(
-                      Icons.calendar_today_outlined,
-                      color: Color(0xFF9E9E9E),
-                      size: 18.sp,
-                    ),
-                    onSuffixTap: _pickDateOfBirth,
-                  ),
-
-
-                  SizedBox(height: 16.h),
-
-                  CustomText(
-                    text: 'Marital Status',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: maritalCtrl,
-                    hintText: "Unmarried",
-                    suffixIcon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Color(0xFF9E9E9E),
-                      size: 20.sp,
-                    ),
-                    onSuffixTap: _showMaritalStatusSelector,
-                  ),
-
-
-                  SizedBox(height: 16.h),
-
-                  CustomText(
-                    text: 'Phone No.',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: phoneCtrl,
-                    hintText: profileController.profile.value.user?.phoneNumber ?? 'N/A',
-                  ),
-
-
-                  SizedBox(height: 16.h),
-
-                  CustomText(
-                    text: 'Address',
-                    fontSize: 14.sp,
-                    color: AppColor.secondaryColor,
-                  ),
-                  SizedBox(height: 4.h),
-                  CustomAuthTextField(
-                    controller: addressCtrl,
-                    hintText: profileController.profile.value.user?.address ?? 'N/A',
-                  ),
-                  SizedBox(height: 24.h),
-                  Obx(() =>
-                      CustomButton(
-                        title: profileController.updateProfileLoading.value ? 'Updating...' : 'Update',
-                        onpress: () {
-                          if (!profileController.updateProfileLoading.value) {
-                            _updateProfile();
-                          }
-                        },
+                // Name + Role
+                Center(
+                  child: Column(
+                    children: [
+                      CustomText(
+                        text: profileController.profile.value.user?.firstName ?? 'N/A',
+                        fontSize: 20.sp,
+                        color: AppColor.secondaryColor,
                       ),
+                      SizedBox(height: 2.h),
+                      CustomText(
+                        text: profileController.profile.value.user?.role ?? 'N/A',
+                        fontSize: 13.sp,
+                        color: AppColor.textColor707070,
+                      ),
+                      SizedBox(height: 2.h),
+                      CustomText(
+                        text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                        fontSize: 13.sp,
+                        color: AppColor.textColor707070,
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 80.h),
-                ],
-              ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // ─── Divider ───
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                      colors: [primaryDark, primaryBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    'Edit Profile Information',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 16.h),
+
+                // ─── Form Fields ───
+                _buildLabel('Employee ID'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: employeeIdCtrl,
+                  hintText: profileController.profile.value.user?.id ?? 'N/A',
+                  readOnly: true, // ID should not be editable
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Your Name *'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: nameCtrl,
+                  hintText: 'Enter your name',
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('E-mail'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: emailCtrl,
+                  hintText: 'Enter email address',
+                  readOnly: true, // Usually email is not editable
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Gender'),
+                SizedBox(height: 4.h),
+                // Display controller shows capitalized label; actual value is lowercase for API
+                CustomAuthTextField(
+                  controller: TextEditingController(
+                    text: genderCtrl.text.isNotEmpty
+                        ? genderCtrl.text[0].toUpperCase() + genderCtrl.text.substring(1)
+                        : '',
+                  ),
+                  hintText: 'Select gender',
+                  readOnly: true,
+                  suffixIcon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: const Color(0xFF9E9E9E),
+                    size: 20.sp,
+                  ),
+                  onSuffixTap: _showGenderSelector,
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Date of Birth'),
+                SizedBox(height: 4.h),
+                // Date field - format ISO → readable on every build
+                Builder(
+                  builder: (context) {
+                    final raw = dateOfBirthCtrl.text;
+                    String display = raw;
+                    try {
+                      final dt = DateTime.parse(raw);
+                      display = '\${dt.day} \${_monthName(dt.month)}, \${dt.year}';
+                      // Also update controller so _pickDateOfBirth gets correct initialDate
+                      if (dateOfBirthCtrl.text != display) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          dateOfBirthCtrl.text = display;
+                        });
+                      }
+                    } catch (_) {}
+                    return CustomAuthTextField(
+                      controller: TextEditingController(text: display),
+                      hintText: 'Select date of birth',
+                      readOnly: true,
+                      suffixIcon: Icon(
+                        Icons.calendar_today_outlined,
+                        color: const Color(0xFF9E9E9E),
+                        size: 18.sp,
+                      ),
+                      onSuffixTap: _pickDateOfBirth,
+                    );
+                  },
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Marital Status'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: TextEditingController(
+                    text: maritalCtrl.text.isNotEmpty
+                        ? maritalCtrl.text[0].toUpperCase() + maritalCtrl.text.substring(1)
+                        : '',
+                  ),
+                  hintText: 'Select marital status',
+                  readOnly: true,
+                  suffixIcon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: const Color(0xFF9E9E9E),
+                    size: 20.sp,
+                  ),
+                  onSuffixTap: _showMaritalStatusSelector,
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Phone No. *'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: phoneCtrl,
+                  hintText: 'Enter phone number',
+                  keyboardType: TextInputType.phone,
+                ),
+
+                SizedBox(height: 16.h),
+                _buildLabel('Address'),
+                SizedBox(height: 4.h),
+                CustomAuthTextField(
+                  controller: addressCtrl,
+                  hintText: 'Enter your address',
+                ),
+
+                SizedBox(height: 28.h),
+
+                // ─── Update Button ───
+                Obx(() {
+                  final isLoading = profileController.updateProfileLoading.value;
+                  return GestureDetector(
+                    onTap: isLoading ? null : _updateProfile,
+                    child: Container(
+                      width: double.infinity,
+                      height: 48.h,
+                      decoration: BoxDecoration(
+                        gradient: isLoading
+                            ? null
+                            : const LinearGradient(
+                          begin: Alignment.bottomLeft,
+                          end: Alignment.topRight,
+                          colors: [primaryDark, primaryBlue],
+                        ),
+                        color: isLoading ? Colors.grey.shade300 : null,
+                        borderRadius: BorderRadius.circular(100.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: isLoading
+                          ? SizedBox(
+                        height: 22.h,
+                        width: 22.h,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : Text(
+                        'Update Profile',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+
+                SizedBox(height: 80.h),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
+  }
+
+  // ─── Helpers ───
+
+  Widget _buildLabel(String text) {
+    return CustomText(
+      text: text,
+      fontSize: 14.sp,
+      color: AppColor.secondaryColor,
+    );
+  }
+
+  Widget _defaultAvatar() {
+    return Image.asset(
+      'assets/images/profile.png',
+      width: 100.r,
+      height: 100.r,
+      fit: BoxFit.cover,
+    );
+  }
+
+  String _buildImageUrl(String baseUrl, String imagePath) {
+    final base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+    final path = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    return '$base$path';
+  }
+
+  // ─── Validation ───
+
+  String? _validateForm() {
+    if (nameCtrl.text.trim().isEmpty) {
+      return 'Please enter your name';
+    }
+    if (nameCtrl.text.trim().length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    if (phoneCtrl.text.trim().isEmpty) {
+      return 'Please enter your phone number';
+    }
+    if (phoneCtrl.text.trim().length < 7) {
+      return 'Please enter a valid phone number';
+    }
+    return null; // no error
+  }
+
+  // ─── Update Profile ───
+
+  Future<void> _updateProfile() async {
+    FocusScope.of(context).unfocus();
+
+    final error = _validateForm();
+    if (error != null) {
+      ToastMessageHelper.showToastMessage(error, title: 'Validation Error');
+      return;
+    }
+
+    await profileController.profileUpdate(
+      firstName: nameCtrl.text.trim(),
+      lastName: '',
+      phoneNumber: phoneCtrl.text.trim(),
+      address: addressCtrl.text.trim(),
+      gender: genderCtrl.text.trim(),
+      maritalStatus: maritalCtrl.text.trim(),
+      dateOfBirth: dateOfBirthCtrl.text.trim(),
+      file: _pickedImage,
+      screenType: 'update',
+    );
+
+    // On success show toast and go back
+    if (!profileController.updateProfileLoading.value) {
+      ToastMessageHelper.showToastMessage(
+        'Profile update successful',
+      );
+      if (mounted) Navigator.pop(context);
+    }
   }
 
 
 
-  final TextEditingController employeeIdCtrl = TextEditingController();
-  final TextEditingController nameCtrl = TextEditingController();
-  final TextEditingController emailCtrl = TextEditingController();
-  final TextEditingController phoneCtrl = TextEditingController();
-  final TextEditingController addressCtrl = TextEditingController();
-  final TextEditingController genderCtrl = TextEditingController(text: "Male");
-  final TextEditingController dateOfBirthCtrl =
-  TextEditingController(text: "1 January, 2000");
-  final TextEditingController maritalCtrl =
-  TextEditingController(text: "Unmarried");
-
-
-  File? _pickedImage;
-
-  final ImagePicker _picker = ImagePicker();
+  // ─── Image Picker ───
 
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source, imageQuality: 70);
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImage = File(pickedFile.path);
-      });
+    Navigator.pop(context); // close bottom sheet first
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _pickedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage(
+        'Failed to pick image. Please try again.',
+        title: 'Error',
+      );
     }
-    Navigator.pop(context);
   }
 
   void _showImagePickerOptions() {
@@ -335,156 +530,189 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
-      builder: (_) {
-        return Padding(
+      builder: (_) => Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 16.h),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            Text(
+              'Select Profile Photo',
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 12.h),
+            ListTile(
+              leading: Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: primaryBlue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.camera_alt, color: primaryBlue, size: 20.sp),
+              ),
+              title: Text('Take a Photo', style: TextStyle(fontSize: 14.sp)),
+              onTap: () => _pickImage(ImageSource.camera),
+            ),
+            ListTile(
+              leading: Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: primaryBlue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.photo_library, color: primaryBlue, size: 20.sp),
+              ),
+              title: Text('Choose from Gallery', style: TextStyle(fontSize: 14.sp)),
+              onTap: () => _pickImage(ImageSource.gallery),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Gender Selector ───
+
+  void _showGenderSelector() {
+    _showOptionSelector(
+      title: 'Select Gender',
+      options: ['male', 'female', 'other'],
+      displayOptions: ['Male', 'Female', 'Other'],
+      onSelect: (val) => genderCtrl.text = val,
+    );
+  }
+
+  // ─── Marital Status Selector ───
+
+  void _showMaritalStatusSelector() {
+    _showOptionSelector(
+      title: 'Select Marital Status',
+      options: ['male', 'female', 'other'],
+      displayOptions: ['Male', 'Female', 'Other'],
+      onSelect: (val) => maritalCtrl.text = val,
+    );
+  }
+
+  /// Generic option selector bottom sheet
+  /// [options] = values sent to API (e.g. 'male')
+  /// [displayOptions] = labels shown in UI (e.g. 'Male') — optional, defaults to options
+  void _showOptionSelector({
+    required String title,
+    required List<String> options,
+    List<String>? displayOptions,
+    required Function(String) onSelect,
+  }) {
+    final labels = displayOptions ?? options;
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
           padding: EdgeInsets.all(16.w),
-          child: Wrap(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Colors.black),
-                title: const Text("Take a Photo"),
-                onTap: () => _pickImage(ImageSource.camera),
+              Container(
+                width: 40.w,
+                height: 4.h,
+                margin: EdgeInsets.only(bottom: 16.h),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
-              ListTile(
-                leading: const Icon(Icons.photo, color: Colors.black),
-                title: const Text("Choose from Gallery"),
-                onTap: () => _pickImage(ImageSource.gallery),
-              ),
+              Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600)),
+              SizedBox(height: 8.h),
+              ...List.generate(options.length, (i) {
+                final value = options[i];
+                final label = labels[i];
+                final isSelected =
+                    value == genderCtrl.text || value == maritalCtrl.text;
+                return ListTile(
+                  title: Text(label, style: TextStyle(fontSize: 14.sp)),
+                  trailing: isSelected
+                      ? Icon(Icons.check, color: primaryBlue, size: 18.sp)
+                      : null,
+                  onTap: () {
+                    onSelect(value); // send lowercase to API
+                    Navigator.pop(context);
+                  },
+                );
+              }),
+              SizedBox(height: 8.h),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Date Picker ───
+
+  Future<void> _pickDateOfBirth() async {
+    // Parse existing date if possible
+    DateTime initialDate = DateTime(2000, 1, 1);
+    try {
+      final parts = dateOfBirthCtrl.text.split(' ');
+      if (parts.length >= 3) {
+        final day = int.tryParse(parts[0]) ?? 1;
+        final month = _monthIndex(parts[1].replaceAll(',', ''));
+        final year = int.tryParse(parts[2]) ?? 2000;
+        initialDate = DateTime(year, month, day);
+      }
+    } catch (_) {}
+
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: primaryBlue,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
         );
       },
     );
-  }
-
-
-  // ---- GENDER SELECT ----
-  void _showGenderSelector() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-      ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('Male'),
-              onTap: () {
-                genderCtrl.text = 'Male';
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Female'),
-              onTap: () {
-                genderCtrl.text = 'Female';
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Other'),
-              onTap: () {
-                genderCtrl.text = 'Other';
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---- MARITAL STATUS SELECT ----
-  void _showMaritalStatusSelector() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-      ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('Unmarried'),
-              onTap: () {
-                maritalCtrl.text = 'Unmarried';
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Married'),
-              onTap: () {
-                maritalCtrl.text = 'Married';
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Divorced'),
-              onTap: () {
-                maritalCtrl.text = 'Divorced';
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---- DATE PICKER ----
-  Future<void> _pickDateOfBirth() async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2000, 1, 1),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-    );
     if (pickedDate != null) {
-      final formatted = "${pickedDate.day} ${_monthName(pickedDate.month)}, ${pickedDate.year}";
-      dateOfBirthCtrl.text = formatted;
+      dateOfBirthCtrl.text =
+      '${pickedDate.day} ${_monthName(pickedDate.month)}, ${pickedDate.year}';
     }
   }
 
   String _monthName(int month) {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[month - 1];
   }
 
-  Future<void> _updateProfile() async {
-    // Validate required fields
-    if (nameCtrl.text.trim().isEmpty) {
-      ToastMessageHelper.showToastMessage(
-        "Please enter your name",
-        title: 'Error',
-      );
-      return;
-    }
-
-    if (phoneCtrl.text.trim().isEmpty) {
-      ToastMessageHelper.showToastMessage(
-        "Please enter your phone number",
-        title: 'Error',
-      );
-      return;
-    }
-
-    // Call the profile update method from the controller
-    await profileController.profileUpdate(
-      firstName: nameCtrl.text.trim(),
-      phoneNumber: phoneCtrl.text.trim(),
-      address: addressCtrl.text.trim(),
-      file: _pickedImage,
-      screenType: 'update',
-    );
+  int _monthIndex(String name) {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    final idx = months.indexWhere((m) => m.toLowerCase() == name.toLowerCase());
+    return idx >= 0 ? idx + 1 : 1;
   }
-
 }
-

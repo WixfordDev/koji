@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,7 @@ import 'package:koji/shared_widgets/custom_text.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../global/custom_assets/assets.gen.dart';
+import '../../../services/api_constants.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -29,6 +29,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       adminHomeController.getAllAttendanceSummary();
       adminHomeController.getAllTaskSummary();
+      adminHomeController.getProfile();
 
     });
   }
@@ -45,27 +46,59 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           automaticallyImplyLeading: false,
           title: Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundImage: AssetImage('assets/images/profile.png'),
-              ),
+              Obx(() {
+                String imageUrl = adminHomeController.profileData.value.user?.image ?? '';
+                String firstName = adminHomeController.profileData.value.user?.firstName ?? '';
+                String lastName = adminHomeController.profileData.value.user?.lastName ?? '';
+
+                String fullName = '$firstName $lastName'.trim();
+                if (fullName.isEmpty) fullName = 'User';
+
+                // Construct full image URL if it's a relative path
+                String fullImageUrl = '';
+                if (imageUrl.isNotEmpty) {
+                  if (imageUrl.startsWith('http')) {
+                    fullImageUrl = imageUrl;
+                  } else {
+                    // Assuming the base URL from ApiConstants
+                    fullImageUrl = '${ApiConstants.imageBaseUrl}$imageUrl';
+                  }
+                }
+
+                return CircleAvatar(
+                  radius: 22,
+                  backgroundImage: fullImageUrl.isNotEmpty
+                    ? NetworkImage(fullImageUrl)
+                    : AssetImage('assets/images/profile.png') as ImageProvider,
+                );
+              }),
               SizedBox(width: 10.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    text: "Parvej Hossain",
-                    color: AppColor.secondaryColor,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  CustomText(text:
-                  "Admin",
-                    color: AppColor.textColor4F4F4F,
-                    fontSize: 12.sp,
-                  ),
-                ],
-              ),
+              Obx(() {
+                String firstName = adminHomeController.profileData.value.user?.firstName ?? '';
+                String lastName = adminHomeController.profileData.value.user?.lastName ?? '';
+
+                String fullName = '$firstName $lastName'.trim();
+                if (fullName.isEmpty) fullName = 'User';
+
+                String role = adminHomeController.profileData.value.user?.role ?? 'User';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      text: fullName,
+                      color: AppColor.secondaryColor,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    CustomText(
+                      text: role,
+                      color: AppColor.textColor4F4F4F,
+                      fontSize: 12.sp,
+                    ),
+                  ],
+                );
+              }),
               const Spacer(),
               GestureDetector(
                 onTap: () {

@@ -24,7 +24,7 @@ class TaskModel {
   final List<Service>? services;
   final String? priority;
   final String? difficulty;
-  final String? assignTo;
+  final List<String>? assignTo;
   final int? otherAmount;
   final int? totalAmount;
   final String? status;
@@ -93,7 +93,9 @@ class TaskModel {
         : List<Service>.from((json["services"] ?? json["service"])!.map((x) => Service.fromJson(x))),
     priority: json["priority"],
     difficulty: json["difficulty"],
-    assignTo: json["assignTo"],
+    assignTo: json["assignTo"] == null
+        ? []
+        : List<String>.from(json["assignTo"]!.map((x) => x)),
     otherAmount: json["otherAmount"],
     totalAmount: json["totalAmount"],
     status: json["status"],
@@ -138,7 +140,9 @@ class TaskModel {
         : List<dynamic>.from(services!.map((x) => x.toJson())), // Alias for backward compatibility
     "priority": priority,
     "difficulty": difficulty,
-    "assignTo": assignTo,
+    "assignTo": assignTo == null
+        ? []
+        : List<dynamic>.from(assignTo!.map((x) => x)),
     "otherAmount": otherAmount,
     "totalAmount": totalAmount,
     "status": status,

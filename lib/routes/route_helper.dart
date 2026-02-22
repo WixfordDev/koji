@@ -81,6 +81,7 @@ class RouteHelper {
     context.pushNamed(RoutePaths.adminAttendanceScreen);
   }
 
+
   // Profile Navigation
   static void goToProfile(BuildContext context) {
     context.pushNamed(RoutePaths.profileScreen);

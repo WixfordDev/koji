@@ -36,6 +36,7 @@ dependencies:
   flutter_html: ^3.0.0
   syncfusion_flutter_signaturepad: ^27.1.51
   path_provider: ^2.1.4
+  url_launcher: ^6.3.0
 
   firebase_messaging:
   firebase_core: ^4.1.1
@@ -49,6 +50,16 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner: ^2.4.10
   flutter_gen_runner: ^5.1.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#4082FB"
+  adaptive_icon_foreground: "assets/images/logo.png"
+  # Remove old flutter_icons configuration
+
 
 flutter_gen:
   output: lib/global/custom_assets/ # Optional (default: lib/gen/)

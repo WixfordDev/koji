@@ -79,7 +79,7 @@ class EmployeeScheduleController extends GetxController {
           assignDate: DateTime.now(),
           deadline: DateTime.now(),
           services: [],
-          assignTo: '',
+          assignTo: [],
           otherAmount: 0,
           totalAmount: 0,
           status: '',

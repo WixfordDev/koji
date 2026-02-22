@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:koji/constants/app_color.dart';
+import 'package:koji/core/app_constants.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/shared_widgets/custom_text.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -57,8 +59,11 @@ class OnboardingScreen extends StatelessWidget {
             Expanded(
               child: IntroductionScreen(
                 pages: pages,
-                onDone: () {
-                  context.push('/sign-in');
+                onDone: () async {
+                  // Mark onboarding as completed
+                  await PrefsHelper.setBool(AppConstants.hasCompletedOnboarding, true);
+                  // Navigate to signup screen
+                  context.push('/sign-up');
                 },
                 onSkip: () {},
                 skip: Text("Skip"),

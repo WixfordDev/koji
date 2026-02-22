@@ -6,8 +6,11 @@ import '../../models/admin-model/all_attendance_model.dart';
 import '../../models/admin-model/all_attendance_list_model.dart';
 import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
+import '../../models/admin-model/billing_docs_model.dart';
 import '../../models/admin-model/get_alllist_task_model.dart';
 import '../../models/admin-model/transaction_model.dart';
+import '../../models/admin-model/profile_model.dart';
+import '../../models/admin-model/invoice_details_model.dart';
 
 
 class AdminHomeController extends GetxController {
@@ -95,7 +98,6 @@ class AdminHomeController extends GetxController {
     }
   }
 
-  /// ============================ Approve Employee  =====================================
 
 
 
@@ -189,7 +191,30 @@ class AdminHomeController extends GetxController {
   }
 
 
+// In admin_home_controller.dart
 
+  RxBool getBillingDocsLoading = false.obs;
+  Rx<BillingDocsModel> billingDocs = BillingDocsModel().obs;  // ✅ BillingDocsModel
+
+  getBillingDocs({String type = ''}) async {
+    getBillingDocsLoading(true);
+    try {
+      final String endpoint = type.isEmpty
+          ? '/info/billing-docs'
+          : '/info/billing-docs?type=$type';
+
+      var response = await ApiClient.getData(endpoint);
+
+      if (response.statusCode == 200) {
+        billingDocs.value = BillingDocsModel.fromJson(
+            response.body['data']['attributes']);  // ✅ correct parse
+      }
+    } catch (e) {
+      print('getBillingDocs error: $e');
+    } finally {
+      getBillingDocsLoading(false);
+    }
+  }
 
   /// ============================ Approve Employee  =====================================
 
@@ -226,8 +251,9 @@ class AdminHomeController extends GetxController {
   /// ============================ Create Invoice  =====================================
 
   RxBool createInvoiceLoading = false.obs;
+  String? invoicePdfPath; // Store PDF path from invoice creation response
 
-  Future<bool> createInvoice(Map<String, dynamic> requestBody) async {
+  Future<Map<String, dynamic>?> createInvoice(Map<String, dynamic> requestBody) async {
     createInvoiceLoading(true);
     try {
       var response = await ApiClient.postData(
@@ -238,26 +264,29 @@ class AdminHomeController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         createInvoiceLoading(false);
         print("Invoice created successfully");
+        // Extract and store PDF path from response
+        invoicePdfPath = response.body['data']?['attributes']?['pdfPath'];
         // Refresh transaction list after successful creation
         getTransaction();
-        return true;
+        return response.body;
       } else {
         createInvoiceLoading(false);
         print("Error creating invoice: ${response.statusCode}");
-        return false;
+        return null;
       }
     } catch (e) {
       createInvoiceLoading(false);
       print("Exception in createInvoice: $e");
-      return false;
+      return null;
     }
   }
 
   /// ============================ Create Quotation  =====================================
 
   RxBool createQuotationLoading = false.obs;
+  String? quotationPdfPath; // Store PDF path from quotation creation response
 
-  Future<bool> createQuotation(Map<String, dynamic> requestBody) async {
+  Future<Map<String, dynamic>?> createQuotation(Map<String, dynamic> requestBody) async {
     createQuotationLoading(true);
     try {
       var response = await ApiClient.postData(
@@ -268,21 +297,71 @@ class AdminHomeController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         createQuotationLoading(false);
         print("Quotation created successfully");
+        // Extract and store PDF path from response
+        quotationPdfPath = response.body['data']?['attributes']?['pdfPath'];
         // Refresh transaction list after successful creation
         getTransaction();
-        return true;
+        return response.body;
       } else {
         createQuotationLoading(false);
         print("Error creating quotation: ${response.statusCode}");
-        return false;
+        return null;
       }
     } catch (e) {
       createQuotationLoading(false);
       print("Exception in createQuotation: $e");
-      return false;
+      return null;
     }
   }
 
+
+  /// ============================ Get Profile =====================================
+
+  RxBool getProfileLoading = false.obs;
+  Rx<ProfileModel> profileData = ProfileModel().obs;
+
+  getProfile() async {
+    getProfileLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.getProfileEndPoint);
+
+      if (response.statusCode == 200) {
+        profileData.value = ProfileModel.fromJson(response.body['data']['attributes']);
+        getProfileLoading(false);
+      } else if (response.statusCode == 404) {
+        getProfileLoading(false);
+      } else {
+        getProfileLoading(false);
+      }
+    } catch (e) {
+      getProfileLoading(false);
+    }
+  }
+
+
+  /// ============================ Get Billing Details =====================================
+
+  RxBool getBillingDetailsLoading = false.obs;
+  Rx<InvoiceDetailsModel> billingDetails = InvoiceDetailsModel().obs; // Using the new model
+
+  getBillingDetails(String id) async {
+    getBillingDetailsLoading(true);
+    try {
+      String endpoint = "/info/billing/$id";
+      var response = await ApiClient.getData(endpoint);
+
+      if (response.statusCode == 200) {
+        billingDetails.value = InvoiceDetailsModel.fromJson(response.body['data']['attributes']);
+        getBillingDetailsLoading(false);
+      } else if (response.statusCode == 404) {
+        getBillingDetailsLoading(false);
+      } else {
+        getBillingDetailsLoading(false);
+      }
+    } catch (e) {
+      getBillingDetailsLoading(false);
+    }
+  }
 
 }
 

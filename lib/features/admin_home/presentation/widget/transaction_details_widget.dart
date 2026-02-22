@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class TransactionDetailWidget extends StatelessWidget {
+class InvoiceDetailsWidget extends StatelessWidget {
   final String staffName;
   final String category;
   final List<String> serviceList;
@@ -10,14 +10,18 @@ class TransactionDetailWidget extends StatelessWidget {
   final String customerAddress;
   final String assignTo;
   final String time;
-  final String priority;
-  final String difficulty;
-  final String invoiceNo;
-  final String amount;
-  final String status;
-  final List<String> attachmentImages;
+  final String invoiceNumber;
+  final String dueDate;
+  final List<String> notes;
+  final int otherAmount;
+  final int gst;
+  final int totalDue;
+  final String? priority;
+  final String? difficulty;
+  final String? status;
+  final List<String>? attachmentImages;
 
-  const TransactionDetailWidget({
+  const InvoiceDetailsWidget({
     super.key,
     required this.staffName,
     required this.category,
@@ -27,12 +31,16 @@ class TransactionDetailWidget extends StatelessWidget {
     required this.customerAddress,
     required this.assignTo,
     required this.time,
-    required this.priority,
-    required this.difficulty,
-    required this.invoiceNo,
-    required this.amount,
-    required this.status,
-    required this.attachmentImages,
+    required this.invoiceNumber,
+    required this.dueDate,
+    required this.notes,
+    required this.otherAmount,
+    required this.gst,
+    required this.totalDue,
+    this.priority,
+    this.difficulty,
+    this.status,
+    this.attachmentImages,
   });
 
   @override
@@ -94,76 +102,41 @@ class TransactionDetailWidget extends StatelessWidget {
           _buildDetailRow("Time:", time),
           SizedBox(height: 12.h),
 
-          // Priority
-          _buildDetailRow("Priority", priority),
+          // Invoice Number
+          _buildDetailRow("Invoice No.", invoiceNumber),
           SizedBox(height: 12.h),
 
-          // Difficulty
-          _buildDetailRow("Difficulty", difficulty),
+          // Due Date
+          _buildDetailRow("Due Date:", dueDate),
           SizedBox(height: 12.h),
 
-          // Invoice No
-          _buildDetailRow("Invoice No.", invoiceNo),
+          // Notes
+          if (notes.isNotEmpty) ...[
+            _buildDetailRow("Notes:", notes.join(", ")),
+            SizedBox(height: 12.h),
+          ],
+
+          // Other Amount
+          _buildDetailRow("Other Amount:", "৳${otherAmount.toString()}"),
           SizedBox(height: 12.h),
 
-          // Amount
-          _buildDetailRow("Amount", amount),
+          // GST
+          _buildDetailRow("GST:", "$gst%"),
+          SizedBox(height: 12.h),
+
+          // Total Due
+          _buildDetailRow("Total Due:", "৳${totalDue.toString()}"),
           SizedBox(height: 16.h),
 
-          // Attachments and Status Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Attachment Images
-              Row(
-                children: attachmentImages.map((image) {
-                  return Container(
-                    margin: EdgeInsets.only(right: 8.w),
-                    width: 32.r,
-                    height: 32.r,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6.r),
-                      image: DecorationImage(
-                        image: NetworkImage(image),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              // Status Badge
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(status),
-                  borderRadius: BorderRadius.circular(30.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6.r,
-                      height: 6.r,
-                      decoration: BoxDecoration(
-                        color: _getStatusDotColor(status),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 5.w),
-                    Text(
-                      status,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: _getStatusTextColor(status),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          // Priority & Difficulty (if available)
+          if (priority != null || difficulty != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (priority != null) _buildPriorityChip(priority!),
+                if (difficulty != null) _buildDifficultyChip(difficulty!),
+              ],
+            ),
         ],
       ),
     );
@@ -239,42 +212,81 @@ class TransactionDetailWidget extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Color(0x664CD964);
-      case 'pending':
-        return Color(0x66FFA726);
-      case 'cancelled':
-        return Color(0x66EF5350);
+  Widget _buildPriorityChip(String priority) {
+    Color chipColor;
+    Color textColor;
+
+    switch (priority.toLowerCase()) {
+      case 'high':
+        chipColor = Color(0x66EF5350);
+        textColor = Color(0xFFC62828);
+        break;
+      case 'medium':
+        chipColor = Color(0x66FFA726);
+        textColor = Color(0xFFE65100);
+        break;
+      case 'low':
+        chipColor = Color(0x664CD964);
+        textColor = Color(0xFF2E7D32);
+        break;
       default:
-        return Color(0x6664B5F6);
+        chipColor = Color(0x6664B5F6);
+        textColor = Color(0xFF1565C0);
     }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Text(
+        'Priority: ${priority.toUpperCase()}',
+        style: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
   }
 
-  Color _getStatusDotColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Color(0xFF4CD964);
-      case 'pending':
-        return Color(0xFFFFA726);
-      case 'cancelled':
-        return Color(0xFFEF5350);
-      default:
-        return Color(0xFF64B5F6);
-    }
-  }
+  Widget _buildDifficultyChip(String difficulty) {
+    Color chipColor;
+    Color textColor;
 
-  Color _getStatusTextColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Color(0xFF2E7D32);
-      case 'pending':
-        return Color(0xFFE65100);
-      case 'cancelled':
-        return Color(0xFFC62828);
+    switch (difficulty.toLowerCase()) {
+      case 'hard':
+        chipColor = Color(0x66EF5350);
+        textColor = Color(0xFFC62828);
+        break;
+      case 'medium':
+        chipColor = Color(0x66FFA726);
+        textColor = Color(0xFFE65100);
+        break;
+      case 'easy':
+        chipColor = Color(0x664CD964);
+        textColor = Color(0xFF2E7D32);
+        break;
       default:
-        return Color(0xFF1565C0);
+        chipColor = Color(0x6664B5F6);
+        textColor = Color(0xFF1565C0);
     }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Text(
+        'Difficulty: ${difficulty.toUpperCase()}',
+        style: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
   }
 }
