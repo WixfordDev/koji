@@ -196,10 +196,22 @@ class AuthController extends GetxController {
       logInLoading(false);
     } else {
       logInLoading(false);
-      ToastMessageHelper.showToastMessage(
-        "We've sent an OTP to your email to verify your email.",
-      );
-      if (response.body["message"] == "Email not verified") {
+
+      // Handle different error messages
+      final message = response.body["message"];
+
+      print("Login Error: $message");
+      print("Full Response: ${response.body}");
+
+      if (message == "Email not verified") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("We've sent an OTP to your email to verify your email."),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         RouteHelper.goToVerifyScreen(
           context,
           email: email.toString(),
@@ -210,12 +222,51 @@ class AuthController extends GetxController {
           AppConstants.bearerToken,
           response.body["data"]['tokens'],
         );
-      } else if (response.body["message"] == "⛔ Wrong password! ⛔") {
-        ToastMessageHelper.showToastMessage(response.body["message"]);
+      } else if (message == "⛔ Wrong password! ⛔") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Incorrect password. Please try again.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (message == "No users found with this email") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No account found with this email. Please sign up first.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (message == "Admin not approved your account yet. Please contact to admin") {
+        // Show error using ScaffoldMessenger
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Your account is pending admin approval. Please wait or contact support.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (message != null && message.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
-        ToastMessageHelper.showToastMessage(
-          response.body['message'],
-          title: 'attention',
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unable to login. Please check your credentials.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }

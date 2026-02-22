@@ -46,4 +46,7 @@ class RoutePaths {
   static const String trackingScreen = '/trackingScreen';
   static const String adminMapScreen = '/adminMapScreen';
 
+  // Invoice Routes
+  static const String adminInvoiceDetailsScreen = '/adminInvoiceDetailsScreen';
+
 }

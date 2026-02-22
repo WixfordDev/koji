@@ -3,8 +3,8 @@ class ApiConstants {
   // static const String imageBaseUrl = "http://192.168.10.80:8080";
 
   static const String baseUrl = "https://serverkoji.wixford.com/api/v1";
-  static const String imageBaseUrl = "https://socketkoji.wixford.com";
-  static const String socketUrl = "https://ws-koji.wixford.com";
+  static const String imageBaseUrl = "https://serverkoji.wixford.com";
+  static const String socketUrl = "https://socketkoji.wixford.com";
 
   // static const String baseUrl = "https://koji.sobhoy.com/api/v1/";
   // static const String imageBaseUrl = "https://koji.sobhoy.com";
@@ -39,6 +39,8 @@ class ApiConstants {
   static const String getAttendanceEndPoint = "/info/attendance/status";
   static const String invoiceEndPoint = "/info/send-invoice";
   static const String quotationEndPoint = "/info/send-quotation";
+  static const String billingDetailsEndPoint = "/info/billing/698f4c539ee9f7010ceba117";
+
 
   static const String employeeTaskList = "/tasks/employ/list";
 
@@ -54,6 +56,7 @@ class ApiConstants {
 
   static const String helpSupportEndPoint = "/info/support";
   static const String transactionsEndPoint = "/info/transactions";
+  static const String getInfoBillingDetailsEndPoint = "/billing-docs?type=quote";
   static const String privacyPolicyEndPoint = "/info/privacy-policy";
   static const String termsConditionsEndPoint = "/info/terms-condition";
   static const String aboutUsEndPoint = "/info/about-us";
@@ -74,4 +77,7 @@ class ApiConstants {
   static const String taskDetailsEndPointTemplate = "/tasks/";
   static const String notificationsEndPoint = "/info/notifications";
   static const String changePasswordEndPoint = "/auth/change-password";
+
+
+
 }

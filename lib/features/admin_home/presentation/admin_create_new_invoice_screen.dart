@@ -185,9 +185,11 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
     // Call the appropriate API
     bool success;
     if (selectedType == "invoice") {
-      success = await adminHomeController.createInvoice(requestBody);
+      final result = await adminHomeController.createInvoice(requestBody);
+      success = result != null;
     } else {
-      success = await adminHomeController.createQuotation(requestBody);
+      final result = await adminHomeController.createQuotation(requestBody);
+      success = result != null;
     }
 
     if (success) {

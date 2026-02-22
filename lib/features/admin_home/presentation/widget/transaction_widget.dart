@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../models/admin-model/transaction_model.dart';
+import '../../../../../routes/route_paths.dart';
 
 class TransactionCard extends StatelessWidget {
   final Result transaction;
@@ -13,144 +14,142 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8.r),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Icon Container
-          Container(
-            width: 40.w,
-            height: 40.h,
-            decoration: BoxDecoration(
-              color: Color(0xFFE8F5E9), // Using green for all transactions since amount is always 0
-              borderRadius: BorderRadius.circular(8.r),
+    return GestureDetector(
+      onTap: () {
+        if (transaction.taskId != null) {
+          context.pushNamed(
+            RoutePaths.adminInvoiceDetailsScreen,
+            queryParameters: {
+              'type': 'invoice',
+              'billingId': transaction.taskId!,
+            },
+          );
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
             ),
-            child: Center(
-              child: Icon(
-                Icons.receipt,
-                color: Color(0xFF4CAF50),
-                size: 24.w,
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon Container
+            Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.receipt,
+                  color: Color(0xFF4CAF50),
+                  size: 24,
+                ),
               ),
             ),
-          ),
-          SizedBox(width: 12.w),
+            SizedBox(width: 12.w),
 
-          // Transaction Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // Transaction Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Name: ${transaction.employeeId?.fullName ?? 'N/A'}",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF162238),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Transaction ID: ${transaction.transactionId ?? 'N/A'}",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                  Text(
+                    "Method: ${transaction.paymentMethod ?? 'N/A'}",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                  Text(
+                    "Invoice: ${_extractFileName(transaction.invoice) ?? 'N/A'}",
+                  ),
+                ],
+              ),
+            ),
+
+            // Amount and Date
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Name: ${transaction.employeeId?.fullName ?? 'N/A'}",
+                  "\$${transaction.amount?.toStringAsFixed(2) ?? '0.00'}",
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF162238),
+                    color: const Color(0xFF4CAF50),
                   ),
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  "Transaction ID: ${transaction.transactionId ?? 'N/A'}",
+                  transaction.createdAt != null
+                      ? "${transaction.createdAt!.day}.${transaction.createdAt!.month}.${transaction.createdAt!.year}"
+                      : 'N/A',
                   style: TextStyle(
                     fontSize: 11.sp,
-                    color: Color(0xFF9E9E9E),
+                    color: const Color(0xFF9E9E9E),
                   ),
                 ),
-                Text(
-                  "Method: ${transaction.paymentMethod ?? 'N/A'}",
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: Color(0xFF9E9E9E),
-                  ),
-                ),
-                Text(
-                  "Invoice: ${_extractFileName(transaction.invoice) ?? 'N/A'}",
-                ),
-
-                // Text(
-                //   "Status: ${transaction.paymentStatus ?? 'N/A'}",
-                //   style: TextStyle(
-                //     fontSize: 11.sp,
-                //     color: _getStatusColor(transaction.paymentStatus),
-                //   ),
-                // ),
               ],
             ),
-          ),
-
-          // Amount and Date
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "\$${transaction.amount?.toStringAsFixed(2) ?? '0.00'}",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF4CAF50),
-                ),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                transaction.createdAt != null
-                    ? "${transaction.createdAt!.day}.${transaction.createdAt!.month}.${transaction.createdAt!.year}"
-                    : 'N/A',
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Color(0xFF9E9E9E),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Color _getStatusColor(String? status) {
-    if (status == null) return Color(0xFF9E9E9E);
+    if (status == null) return const Color(0xFF9E9E9E);
     switch (status.toLowerCase()) {
       case 'completed':
       case 'paid':
-        return Color(0xFF4CAF50);
+        return const Color(0xFF4CAF50);
       case 'pending':
-        return Color(0xFFFFC107);
+        return const Color(0xFFFFC107);
       case 'failed':
       case 'cancelled':
-        return Color(0xFFE53935);
+        return const Color(0xFFE53935);
       default:
-        return Color(0xFF9E9E9E);
+        return const Color(0xFF9E9E9E);
     }
   }
 
   String? _extractFileName(String? path) {
     if (path == null) return null;
 
-    // Extract the filename from the path
-    // For example: "/uploads/invoices/invoice-692b34375185606abeddaa4a-1764483195577.pdf"
-    // should become "invoice.pdf"
     try {
-      // Get the last part after the last '/'
       String fileName = path.split('/').last;
 
-      // If it's a file with a timestamp in the name like "invoice-692b34375185606abeddaa4a-1764483195577.pdf",
-      // extract the meaningful part before the random ID
       if (fileName.contains('-')) {
         List<String> parts = fileName.split('-');
-        if (parts.length > 0) {
-          String namePart = parts[0]; // Get the first part before the ID
-          // Add the extension back
+        if (parts.isNotEmpty) {
+          String namePart = parts[0];
           if (fileName.contains('.')) {
             String extension = fileName.substring(fileName.lastIndexOf('.'));
             return "$namePart$extension";
@@ -162,7 +161,7 @@ class TransactionCard extends StatelessWidget {
 
       return fileName;
     } catch (e) {
-      return path; // Return original if extraction fails
+      return path;
     }
   }
 }

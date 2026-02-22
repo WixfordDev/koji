@@ -20,6 +20,7 @@ import '../features/admin_home/presentation/admin_create_task_screen.dart';
 import '../features/admin_home/presentation/admin_employee_request_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_home/presentation/admin_transaction_screen.dart';
+import '../features/admin_home/presentation/admin_transaction_details_screen.dart';
 import '../features/admin_schedule/presentation/admin_complete_task_screen.dart';
 import '../features/admin_schedule/presentation/admin_schedule.dart';
 import '../features/admin_schedule/presentation/admin_view_complete_task_screen.dart';
@@ -427,6 +428,18 @@ class AppRouter {
           path: '/adminCreateInvoiceScreen',
           name: 'adminCreateInvoiceScreen',
           builder: (_, _) => AdminCreateInvoiceScreen(),
+        ),
+        GoRoute(
+          path: RoutePaths.adminInvoiceDetailsScreen,
+          name: RoutePaths.adminInvoiceDetailsScreen,
+          builder: (context, state) {
+            final invoiceType = state.uri.queryParameters['type'] ?? 'invoice';
+            final billingId = state.uri.queryParameters['billingId'] ?? '';
+            return AdminInvoiceDetailsScreen(
+              invoiceType: invoiceType,
+              billingId: billingId,
+            );
+          },
         ),
 
         GoRoute(

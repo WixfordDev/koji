@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:koji/controller/employee_schedule_controller.dart';
 import 'package:koji/features/employee_schedule/presentation/task_details_screen.dart';
 import 'package:koji/models/task_model.dart' as TaskModel;
-import 'package:koji/routes/route_paths.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -27,12 +25,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<String> tabs = [];
   int selectedTab = 0;
 
+  // Theme colors matching the gradient design
+  static const Color primaryDark = Color(0xFF162238);
+  static const Color primaryBlue = Color(0xFF4082FB);
+  static const Color accentBlue = Color(0xFF125BAC);
+  static const Color completedColor = Color(0xFF4CD964);
+  static const Color pendingColor = Color(0xFFFF1414);
+
   @override
   void initState() {
     super.initState();
-    // Initialize with today's date selected
     _selectedDay = DateTime.now();
-    // Fetch tasks for the initial date
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onDaySelected(_selectedDay!, _selectedDay!);
     });
@@ -40,15 +43,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _updateTabs() {
     final allCount = _employeeScheduleController.getTaskCountByStatus('all');
-    final pendingCount = _employeeScheduleController.getTaskCountByStatus(
-      'pending',
-    );
-    final inProgressCount = _employeeScheduleController.getTaskCountByStatus(
-      'inprogress',
-    );
-    final completedCount = _employeeScheduleController.getTaskCountByStatus(
-      'complete',
-    );
+    final pendingCount = _employeeScheduleController.getTaskCountByStatus('pending');
+    final inProgressCount = _employeeScheduleController.getTaskCountByStatus('inprogress');
+    final completedCount = _employeeScheduleController.getTaskCountByStatus('complete');
 
     setState(() {
       tabs = [
@@ -66,44 +63,125 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _focusedDay = focusedDay;
     });
 
-    // Format date as YYYY-MM-DD for API
     String formattedDate =
         "${selectedDay.year}-${selectedDay.month.toString().padLeft(2, '0')}-${selectedDay.day.toString().padLeft(2, '0')}";
 
-    // Fetch tasks for the selected date
     await _employeeScheduleController.fetchTasksForDate(formattedDate);
 
-    // Update tabs in the next frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateTabs();
     });
+  }
+
+  /// Returns dot indicators for a given day based on tasks
+  Widget _buildDayDots(EmployeeScheduleController controller, DateTime day) {
+    // This is a simplified version — ideally you'd load all dates' tasks.
+    // For now dots are shown on selected day based on loaded tasks.
+    if (!isSameDay(_selectedDay, day)) return const SizedBox.shrink();
+
+    final tasks = controller.getAllTasksForSelectedDate();
+    if (tasks.isEmpty) return const SizedBox.shrink();
+
+    final completedCount = tasks
+        .where((t) =>
+    t.status?.toLowerCase() == 'complete' ||
+        t.status?.toLowerCase() == 'done' ||
+        t.status?.toLowerCase() == 'completed')
+        .length;
+    final pendingCount = tasks
+        .where((t) =>
+    t.status?.toLowerCase() == 'pending' ||
+        t.status?.toLowerCase() == 'upcoming')
+        .length;
+
+    List<Widget> dots = [];
+    if (completedCount > 0) {
+      dots.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6.w,
+              height: 6.h,
+              decoration: const BoxDecoration(
+                color: completedColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 1.w),
+            Text(
+              '•$completedCount',
+              style: TextStyle(fontSize: 8.sp, color: completedColor),
+            ),
+          ],
+        ),
+      );
+    }
+    if (pendingCount > 0) {
+      dots.add(SizedBox(width: 4.w));
+      dots.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6.w,
+              height: 6.h,
+              decoration: const BoxDecoration(
+                color: pendingColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 1.w),
+            Text(
+              '•$pendingCount',
+              style: TextStyle(fontSize: 8.sp, color: pendingColor),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (dots.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: dots,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: GetBuilder<EmployeeScheduleController>(
             builder: (controller) {
-              // The tabs will be updated via the post-frame callback outside the build method
-
               return SingleChildScrollView(
                 child: Column(
                   children: [
                     SizedBox(height: 12.h),
 
-                    /// Header Section
+                    /// Header Section with gradient text style
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          Icons.arrow_back_ios,
-                          size: 18.sp,
-                          color: Colors.black,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _focusedDay = DateTime(
+                                _focusedDay.year,
+                                _focusedDay.month - 1,
+                              );
+                            });
+                          },
+                          child: Icon(
+                            Icons.arrow_back_ios,
+                            size: 18.sp,
+                            color: Colors.black,
+                          ),
                         ),
                         Text(
                           DateFormat.yMMMM().format(_focusedDay),
@@ -113,17 +191,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             color: Colors.black,
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 18.sp,
-                          color: Colors.black,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _focusedDay = DateTime(
+                                _focusedDay.year,
+                                _focusedDay.month + 1,
+                              );
+                            });
+                          },
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18.sp,
+                            color: Colors.black,
+                          ),
                         ),
                       ],
                     ),
 
                     SizedBox(height: 8.h),
 
-                    /// Table Calendar
+                    /// Table Calendar with dot markers
                     TableCalendar(
                       focusedDay: _focusedDay,
                       firstDay: DateTime.utc(2020, 1, 1),
@@ -135,32 +223,108 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         _onDaySelected(selectedDay, focusedDay);
                       },
                       onPageChanged: (focusedDay) {
-                        _focusedDay = focusedDay;
+                        setState(() {
+                          _focusedDay = focusedDay;
+                        });
                       },
                       headerVisible: false,
+                      calendarBuilders: CalendarBuilders(
+                        // Custom day builder to add colored dot indicators
+                        defaultBuilder: (context, day, focusedDay) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${day.day}',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              _buildDayDots(controller, day),
+                            ],
+                          );
+                        },
+                        selectedBuilder: (context, day, focusedDay) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 36.w,
+                                height: 36.h,
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomLeft,
+                                    end: Alignment.topRight,
+                                    colors: [primaryDark, primaryBlue],
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${day.day}',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              _buildDayDots(controller, day),
+                            ],
+                          );
+                        },
+                        todayBuilder: (context, day, focusedDay) {
+                          final isSelected = isSameDay(_selectedDay, day);
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 36.w,
+                                height: 36.h,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? primaryBlue
+                                      : primaryBlue.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${day.day}',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : primaryBlue,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              _buildDayDots(controller, day),
+                            ],
+                          );
+                        },
+                      ),
                       calendarStyle: CalendarStyle(
-                        todayDecoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        selectedDecoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                        ),
                         outsideDaysVisible: false,
-                        cellMargin: EdgeInsets.all(4.w),
+                        cellMargin: EdgeInsets.all(2.w),
+                        cellPadding: EdgeInsets.zero,
                       ),
                       daysOfWeekStyle: DaysOfWeekStyle(
                         weekdayStyle: TextStyle(
                           fontSize: 13.sp,
-                          color: Colors.black,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
                         ),
                         weekendStyle: TextStyle(
                           fontSize: 13.sp,
-                          color: Colors.black,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
+
+                    SizedBox(height: 8.h),
 
                     /// Legend
                     Row(
@@ -172,7 +336,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               height: 8.h,
                               width: 8.w,
                               decoration: const BoxDecoration(
-                                color: Colors.green,
+                                color: completedColor,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -193,7 +357,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               height: 8.h,
                               width: 8.w,
                               decoration: const BoxDecoration(
-                                color: Colors.red,
+                                color: pendingColor,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -213,58 +377,70 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     SizedBox(height: 16.h),
 
                     /// Tab Buttons
-                    SingleChildScrollView(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(tabs.length, (index) {
-                          bool isSelected = selectedTab == index;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedTab = index;
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.blue
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(20.r),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.blue
-                                      : Colors.grey.shade400,
+                    if (tabs.isNotEmpty)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(tabs.length, (index) {
+                            bool isSelected = selectedTab == index;
+                            return Padding(
+                              padding: EdgeInsets.only(right: 8.w),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedTab = index;
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                    vertical: 9.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: isSelected
+                                        ? const LinearGradient(
+                                      begin: Alignment.bottomLeft,
+                                      end: Alignment.topRight,
+                                      colors: [primaryDark, primaryBlue],
+                                    )
+                                        : null,
+                                    color: isSelected ? null : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(24.r),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Colors.transparent
+                                          : Colors.grey.shade300,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    tabs[index],
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                      fontSize: 13.sp,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                tabs[index],
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
-                    ),
 
                     SizedBox(height: 16.h),
 
-                    /// Appointments List
+                    /// Tasks List
                     if (controller.isLoading.value)
                       const Center(child: CircularProgressIndicator())
                     else
                       _buildTaskList(controller),
+
+                    SizedBox(height: 24.h),
                   ],
                 ),
               );
@@ -276,7 +452,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildTaskCard({
-    required String taskId, // Add this parameter
+    required String taskId,
     required String title,
     required String status,
     required String priority,
@@ -285,7 +461,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     String? assignDate,
     List<TaskModel.Service>? services,
   }) {
-    // Format the date from ISO string to a readable format
     String displayDate = "No date";
     if (assignDate != null && assignDate.isNotEmpty) {
       try {
@@ -298,7 +473,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return GestureDetector(
       onTap: () {
-        print('Tapped on task with ID: $taskId');
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -309,14 +483,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Container(
         width: double.infinity,
         margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
               offset: const Offset(0, 3),
             ),
           ],
@@ -324,46 +498,78 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Title + tags
+            /// Title row
             Row(
               children: [
-                Icon(Icons.flash_on, color: Colors.blue, size: 20.sp),
-                SizedBox(width: 6.w),
+                Container(
+                  width: 28.w,
+                  height: 28.h,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                      colors: [_CalendarScreenState.primaryDark, _CalendarScreenState.primaryBlue],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.flash_on, color: Colors.white, size: 16.sp),
+                ),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14.sp,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: 6.h),
+            SizedBox(height: 8.h),
+
+            /// Status + Priority Tags
             Row(
               children: [
-                _buildTag(status, color.withOpacity(0.2), color),
+                _buildTag(status, color),
                 SizedBox(width: 8.w),
-                _buildTag(priority, Colors.blue.withOpacity(0.1), Colors.blue),
+                _buildPriorityTag(priority),
               ],
             ),
 
-            SizedBox(height: 8.h),
+            SizedBox(height: 10.h),
 
-            /// Progress bar
-            LinearProgressIndicator(
-              value: progress / 100,
-              minHeight: 6.h,
-              backgroundColor: Colors.grey.shade200,
-              color: color,
-              borderRadius: BorderRadius.circular(12.r),
+            /// Progress bar + percentage
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: LinearProgressIndicator(
+                      value: progress / 100,
+                      minHeight: 5.h,
+                      backgroundColor: Colors.grey.shade200,
+                      color: color,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  '$progress%',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
             ),
 
-            SizedBox(height: 8.h),
+            SizedBox(height: 10.h),
 
-            /// Date and service info
+            /// Services + Date row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -381,13 +587,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     Icon(
                       Icons.calendar_today_outlined,
-                      size: 16.sp,
-                      color: Colors.grey,
+                      size: 14.sp,
+                      color: Colors.grey[500],
                     ),
                     SizedBox(width: 4.w),
                     Text(
                       displayDate,
-                      style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                      style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -399,32 +605,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  // Also update the _buildTaskList method to pass the taskId
   Widget _buildTaskList(EmployeeScheduleController controller) {
     List<TaskModel.TaskModel> tasks = controller.getAllTasksForSelectedDate();
 
-    // Filter tasks based on selected tab if needed
     if (selectedTab > 0) {
       String statusFilter = tabs[selectedTab]
           .split('(')[0]
           .trim()
           .toLowerCase();
-      if (statusFilter == 'inprogress') statusFilter = 'inprogress';
-
       tasks = tasks
           .where((task) => task.status?.toLowerCase() == statusFilter)
           .toList();
     }
 
     if (tasks.isEmpty) {
-      return Container(
-        padding: EdgeInsets.all(16.w),
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 32.h),
         child: Text(
           'No tasks scheduled for this day',
           style: TextStyle(
-            fontSize: 16.sp,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+            fontSize: 15.sp,
+            color: Colors.grey[500],
+            fontWeight: FontWeight.w400,
           ),
           textAlign: TextAlign.center,
         ),
@@ -440,48 +642,72 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Color statusColor = _getStatusColor(task.status ?? '');
         int progress = task.progressPercent ?? 0;
 
-        return GestureDetector(
-          onTap: () {
-            // Navigate to task details screen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskDetailsScreen(taskId: task.id ?? ""),
-              ),
-            ).then((_) {
-              _updateTabs();
-            });
-          },
-          child: _buildTaskCard(
-            taskId: task.id ?? "", // Pass the task ID
-            title: task.customerName ?? "",
-            status: task.status ?? "",
-            priority: task.priority ?? "",
-            progress: progress,
-            color: statusColor,
-            assignDate: task.assignDate?.toIso8601String(),
-            services: task.services,
-          ),
+        return _buildTaskCard(
+          taskId: task.id ?? "",
+          title: _capitalize(task.customerName ?? ""),
+          status: task.status ?? "",
+          priority: task.priority ?? "",
+          progress: progress,
+          color: statusColor,
+          assignDate: task.assignDate?.toIso8601String(),
+          services: task.services,
         );
       },
     );
   }
 
-  /// Small Tag widget
-  Widget _buildTag(String text, Color bg, Color fg) {
+  /// Capitalize first letter of each word
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .split(' ')
+        .map((word) => word.isEmpty ? word : word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+  }
+
+  /// Status tag — #EAECF0 bg, dark text, pill shape (h:23, border-radius:100, px:8, py:4)
+  Widget _buildTag(String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      height: 23.h,
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20.r),
+        color: const Color(0xFFEAECF0),
+        borderRadius: BorderRadius.circular(100.r),
       ),
       child: Text(
-        text,
+        _capitalize(text),
         style: TextStyle(
-          color: fg,
-          fontSize: 12.sp,
+          color: const Color(0xFF344054),
+          fontSize: 11.sp,
           fontWeight: FontWeight.w500,
         ),
+      ),
+    );
+  }
+
+  /// Priority tag — #125BAC bg, white text, pill shape (h:23, border-radius:100, px:8, py:4)
+  Widget _buildPriorityTag(String text) {
+    return Container(
+      height: 23.h,
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF125BAC),
+        borderRadius: BorderRadius.circular(100.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.flag, size: 10.sp, color: Colors.white),
+          SizedBox(width: 3.w),
+          Text(
+            _capitalize(text),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -490,10 +716,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     switch (status.toLowerCase()) {
       case 'completed':
       case 'done':
-        return Colors.green;
+      case 'complete':
+        return completedColor;
       case 'inprogress':
       case 'in progress':
-        return Colors.blue;
+        return primaryBlue;
       case 'pending':
       case 'upcoming':
         return Colors.grey;

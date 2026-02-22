@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Koji needs access to your camera to take profile photos</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Koji needs access to your photo library to select profile photos</string>
 </dict>
 </plist>

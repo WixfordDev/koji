@@ -51,6 +51,10 @@ class ProfileController extends GetxController {
     File? file,
     required String screenType,
   }) async {
+    print('🔄 Starting profile update...');
+    print('📝 firstName: $firstName, phoneNumber: $phoneNumber, address: $address');
+    print('📷 File: ${file != null ? "Image selected" : "No image"}');
+
     updateProfileLoading(true);
 
     var body = {
@@ -65,27 +69,35 @@ class ProfileController extends GetxController {
       "address": address ?? "",
     };
 
+    print('📦 Request body: $body');
 
     List<MultipartBody>? multipartBody;
     if (file != null) {
       multipartBody = [MultipartBody("image", file)];
+      print('📎 Multipart body created with image');
     }
 
     try {
+      print('🌐 Sending PATCH request to: ${ApiConstants.updateProfileEndPoint}');
       var response = await ApiClient.patchMultipartData(
         ApiConstants.updateProfileEndPoint,
         body,
         multipartBody: multipartBody,
       );
 
+      print('📩 Response status: ${response.statusCode}');
+      print('📩 Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-          ToastMessageHelper.showToastMessage(
-            "Profile updated successfully",
-          );
-
-
+        print('✅ Profile update successful');
+        ToastMessageHelper.showToastMessage(
+          "Profile updated successfully",
+        );
+        // Refresh profile data after update
+        await getProfile();
         updateProfileLoading(false);
       } else {
+        print('❌ Profile update failed: ${response.body["message"]}');
         ToastMessageHelper.showToastMessage(
           "${response.body["message"]}",
           title: 'Failed',
@@ -93,6 +105,7 @@ class ProfileController extends GetxController {
         updateProfileLoading(false);
       }
     } catch (e) {
+      print('💥 Error during profile update: $e');
       ToastMessageHelper.showToastMessage(
         "An error occurred: $e",
         title: 'Error',

@@ -31,7 +31,6 @@ void main() async {
   // Print FCM Token
   await FirebaseNotificationService.initialize();
 
-  // runApp(ToastificationWrapper(child: MyApp()));
   runApp(const MyApp());
 }
 

@@ -6,6 +6,8 @@ import 'package:koji/shared_widgets/custom_auth_text_field.dart';
 import 'package:get/get.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 
+import '../../../constants/app_color.dart';
+
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -29,7 +31,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffFCFCFC),
+      backgroundColor: AppColor.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
@@ -61,12 +63,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 CustomAuthTextField(
                   controller: nameCtrl,
                   hintText: 'Full Name',
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your full name';
-                    }
-                    return null;
-                  },
+                  inputType: AuthInputType.name,
                 ),
 
                 SizedBox(height: 16.h),
@@ -76,16 +73,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   controller: emailCtrl,
                   hintText: 'Email',
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
-                    if (!emailRegex.hasMatch(value)) {
-                      return 'Enter a valid email address';
-                    }
-                    return null;
-                  },
+                  inputType: AuthInputType.email,
                 ),
 
                 SizedBox(height: 16.h),
@@ -97,14 +85,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   obscureText: true,
                   isPasswordField: true,
                   suffixIcon: const Icon(Icons.visibility_off),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    } else if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
+                  inputType: AuthInputType.password,
                 ),
 
                 SizedBox(height: 16.h),
