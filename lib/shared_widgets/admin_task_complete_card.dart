@@ -88,7 +88,20 @@ class AdminTaskCompleteCard extends StatelessWidget {
     } else if (taskDetails!.assignTo is List) {
       final assignToList = taskDetails!.assignTo as List;
       if (assignToList.isEmpty) return 'N/A';
-      return assignToList.join(', ');
+
+      // Properly extract names from list items
+      final names = assignToList.map((item) {
+        if (item is AssignTo) {
+          return item.fullName ?? 'N/A';
+        } else if (item is Map<String, dynamic>) {
+          return item['fullName'] ?? 'N/A';
+        } else if (item is String) {
+          return item;
+        }
+        return 'N/A';
+      }).toList();
+
+      return names.join(', ');
     }
     return 'N/A';
   }

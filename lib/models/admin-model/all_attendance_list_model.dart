@@ -1,16 +1,23 @@
 import 'dart:convert';
 
 AllAttendanceModel allAttendanceModelFromJson(String str) => AllAttendanceModel.fromJson(json.decode(str));
-
 String allAttendanceModelToJson(AllAttendanceModel data) => json.encode(data.toJson());
 
 class AllAttendanceModel {
   final List<Attendance>? results;
   final int? totalResults;
+  final int? totalPresent;
+  final int? totalAbsent;
+  final int? totalLateIn;
+  final int? totalEarlyOut;
 
   AllAttendanceModel({
     this.results,
     this.totalResults,
+    this.totalPresent,
+    this.totalAbsent,
+    this.totalLateIn,
+    this.totalEarlyOut,
   });
 
   factory AllAttendanceModel.fromJson(Map<String, dynamic> json) => AllAttendanceModel(
@@ -18,11 +25,19 @@ class AllAttendanceModel {
         ? []
         : List<Attendance>.from(json["results"].map((x) => Attendance.fromJson(x))),
     totalResults: json["totalResults"],
+    totalPresent: json["totalPresent"],
+    totalAbsent: json["totalAbsent"],
+    totalLateIn: json["totalLateIn"],
+    totalEarlyOut: json["totalEarlyOut"],
   );
 
   Map<String, dynamic> toJson() => {
     "results": results == null ? [] : List<dynamic>.from(results!.map((x) => x.toJson())),
     "totalResults": totalResults,
+    "totalPresent": totalPresent,
+    "totalAbsent": totalAbsent,
+    "totalLateIn": totalLateIn,
+    "totalEarlyOut": totalEarlyOut,
   };
 }
 
@@ -80,6 +95,18 @@ class Employee {
     this.image,
     this.role,
   });
+
+  // fullName থেকে "undefined" বাদ দেওয়ার helper
+  String get displayName {
+    if (fullName != null && fullName!.isNotEmpty) {
+      // "undefined" word বাদ দাও
+      return fullName!.replaceAll('undefined', '').trim();
+    }
+    // firstName + lastName থেকে build করো
+    final first = firstName ?? '';
+    final last = lastName ?? '';
+    return '$first $last'.trim();
+  }
 
   factory Employee.fromJson(Map<String, dynamic> json) => Employee(
     id: json["id"],

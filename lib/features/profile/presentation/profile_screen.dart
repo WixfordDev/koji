@@ -9,8 +9,6 @@ import 'package:shimmer/shimmer.dart';
 import '../../../constants/app_color.dart';
 import '../../../global/custom_assets/assets.gen.dart';
 import '../../../services/api_constants.dart';
-import '../../../shared_widgets/custom_button.dart';
-import '../../../shared_widgets/custom_delete_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -35,365 +33,408 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
+      backgroundColor: AppColor.textColorF4F4F5,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Profile Header Card ───
+            _buildProfileHeader(),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 24.h),
+
+                  // ─── Account Section ───
+                  _sectionLabel('Account'),
+                  SizedBox(height: 8.h),
+                  _buildMenuCard([
+                    _menuItem(
+                      icon: Assets.icons.myprofile.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'My Profile',
+                      onTap: () => context.push('/myProfileScreen'),
+                    ),
+                    _menuDivider(),
+                    _menuItem(
+                      icon: Assets.icons.changepass.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'Change Password',
+                      onTap: () => context.push('/changePasswordScreen'),
+                    ),
+                  ]),
+
+                  SizedBox(height: 20.h),
+
+                  // ─── Legal Section ───
+                  _sectionLabel('Legal'),
+                  SizedBox(height: 8.h),
+                  _buildMenuCard([
+                    _menuItem(
+                      icon: Assets.icons.terms.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'Terms & Condition',
+                      onTap: () => context.push('/termsConditionScreen'),
+                    ),
+                    _menuDivider(),
+                    _menuItem(
+                      icon: Assets.icons.privacy.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'Privacy Policy',
+                      onTap: () => context.push('/privacyPolicyScreen'),
+                    ),
+                    _menuDivider(),
+                    _menuItem(
+                      icon: Assets.icons.terms.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'About Us',
+                      onTap: () => context.push('/aboutUsScreen'),
+                    ),
+                  ]),
+
+                  SizedBox(height: 20.h),
+
+                  // ─── Support Section ───
+                  _sectionLabel('Support'),
+                  SizedBox(height: 8.h),
+                  _buildMenuCard([
+                    _menuItem(
+                      icon: Assets.icons.help.svg(
+                        width: 20.w,
+                        height: 20.h,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryColor, BlendMode.srcIn),
+                      ),
+                      label: 'Help & Support',
+                      onTap: () => context.push('/helpSupportScreen'),
+                    ),
+                  ]),
+
+                  SizedBox(height: 32.h),
+
+                  // ─── Logout Button ───
+                  _buildLogoutButton(),
+
+                  SizedBox(height: 90.h),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24.w),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Obx(() => Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+    );
+  }
+
+  // ─── Profile Header ───────────────────────────────────────────────────────
+
+  Widget _buildProfileHeader() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColor.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.borderColor.withOpacity(0.6),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 32.h),
+          child: Obx(
+            () => Column(
+              children: [
+                // Avatar with ring
+                Stack(
+                  alignment: Alignment.bottomRight,
                   children: [
-                    SizedBox(height: 24.h),
-                    Center(
+                    Container(
+                      padding: EdgeInsets.all(3.r),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColor.primaryColor,
+                          width: 2.5,
+                        ),
+                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(40.r),
-                        child:
-                        profileController.profile.value.user?.image != null
+                        borderRadius: BorderRadius.circular(44.r),
+                        child: profileController
+                                    .profile.value.user?.image !=
+                                null
                             ? CachedNetworkImage(
-                          imageUrl:
-                          "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
-                          width: 80.r,
-                          height: 80.r,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              Shimmer.fromColors(
-                                baseColor: AppColor.borderColor,
-                                highlightColor: AppColor.backgroundColor,
-                                child: Container(
-                                  width: 80.r,
-                                  height: 80.r,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                      40.r,
-                                    ),
+                                imageUrl:
+                                    "${ApiConstants.imageBaseUrl}${profileController.profile.value.user!.image!}",
+                                width: 88.r,
+                                height: 88.r,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) =>
+                                    Shimmer.fromColors(
+                                  baseColor: AppColor.borderColor,
+                                  highlightColor: AppColor.backgroundColor,
+                                  child: Container(
+                                    width: 88.r,
+                                    height: 88.r,
                                     color: AppColor.borderColor,
                                   ),
                                 ),
-                              ),
-                          errorWidget: (context, url, error) =>
-                              Assets.images.profile.image(
-                                width: 80.r,
-                                height: 80.r,
+                                errorWidget: (context, url, error) =>
+                                    Assets.images.profile.image(
+                                  width: 88.r,
+                                  height: 88.r,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Assets.images.profile.image(
+                                width: 88.r,
+                                height: 88.r,
                                 fit: BoxFit.cover,
                               ),
-                        )
-                            : Assets.images.profile.image(
-                          width: 80.r,
-                          height: 80.r,
-                          fit: BoxFit.cover,
-                        ),
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    CustomText(
-                      text:
-                      profileController.profile.value.user?.firstName ??
-                          'N/A',
-                      fontSize: 24.sp,
-                      color: AppColor.secondaryColor,
-                    ),
-                    CustomText(
-                      text: profileController.profile.value.user?.role ?? 'N/A',
-                      fontSize: 14.sp,
-                      color: AppColor.textColor707070,
-                    ),
-                    SizedBox(height: 4.h),
-                    CustomText(
-                      text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
-                      fontSize: 14.sp,
-                      color: AppColor.textColor707070,
+                    // Online dot indicator
+                    Container(
+                      width: 16.r,
+                      height: 16.r,
+                      margin: EdgeInsets.only(bottom: 2.h, right: 2.w),
+                      decoration: BoxDecoration(
+                        color: AppColor.successColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColor.backgroundColor,
+                          width: 2,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 32.h),
 
-              /// ==================================> My Profile =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/myProfileScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.myprofile.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
-                            SizedBox(width: 9.w),
-                            CustomText(
-                              text: 'My Profile',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
+                SizedBox(height: 14.h),
+
+                // Name
+                CustomText(
+                  text: profileController.profile.value.user?.firstName ??
+                      'N/A',
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.secondaryColor,
                 ),
-              ),
-              SizedBox(height: 16.h),
 
-              /// ==================================> Change password =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/changePasswordScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
+                SizedBox(height: 6.h),
+
+                // Role badge
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.changepass.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
-                            SizedBox(width: 9.w),
-                            CustomText(
-                              text: 'Change Password',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-
-              /// ==================================> Terms =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/termsConditionScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.terms.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 5.w),
-                            CustomText(
-                              text: 'Terms & Condition',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-
-              /// ==================================> Privacy Policy =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/privacyPolicyScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    // color: AppColors.backgroundColor,
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.privacy.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 9.w),
-                            CustomText(
-                              text: 'Privacy Policy',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-
-
-              /// ==================================> About Us =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/aboutUsScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    // color: AppColors.backgroundColor,
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
+                    color: AppColor.primaryColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20.r),
                     border: Border.all(
-                      color: AppColor.borderColor,
-                      width: 1.w,
+                      color: AppColor.primaryColor.withOpacity(0.25),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.terms.svg(
-                              width: 22.w,
-                              height: 22.h,
-                            ),
-                            SizedBox(width: 9.w),
-                            CustomText(text: 'About Us',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            )
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child:  Assets.icons.chevron.svg(),
-                      ),
-                    ],
+                  child: Text(
+                    (profileController.profile.value.user?.role ?? 'N/A')
+                        .toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.primaryColor,
+                      letterSpacing: 0.8,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 6.h),
+
+                // ID
+                CustomText(
+                  text:
+                      'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                  fontSize: 12.sp,
+                  color: AppColor.textColor707070,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Section Label ────────────────────────────────────────────────────────
+
+  Widget _sectionLabel(String label) {
+    return Padding(
+      padding: EdgeInsets.only(left: 4.w),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w700,
+          color: AppColor.textColor707070,
+          letterSpacing: 1.4,
+          fontFamily: 'Poppins',
+        ),
+      ),
+    );
+  }
+
+  // ─── Menu Card ────────────────────────────────────────────────────────────
+
+  Widget _buildMenuCard(List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColor.backgroundColor,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.borderColor.withOpacity(0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  // ─── Menu Item ────────────────────────────────────────────────────────────
+
+  Widget _menuItem({
+    required Widget icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.r),
+        onTap: onTap,
+        splashColor: AppColor.primaryColor.withOpacity(0.04),
+        highlightColor: AppColor.primaryColor.withOpacity(0.03),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          child: Row(
+            children: [
+              // Icon container
+              Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: AppColor.primaryColor.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                alignment: Alignment.center,
+                child: icon,
+              ),
+
+              SizedBox(width: 14.w),
+
+              // Label
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppColor.secondaryColor,
+                    fontFamily: 'Poppins',
                   ),
                 ),
               ),
-              SizedBox(height: 16.h),
 
-              /// ==================================> Help and Support  =============================>
-              GestureDetector(
-                onTap: () {
-                  context.push('/helpSupportScreen');
-                },
-                child: Container(
-                  width: 345.w,
-                  height: 54.h,
-                  margin: EdgeInsets.only(left: 2.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12.r)),
-                    border: Border.all(color: AppColor.borderColor, width: 1.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Row(
-                          children: [
-                            Assets.icons.help.svg(width: 22.w, height: 22.h),
-                            SizedBox(width: 9.w),
-                            CustomText(
-                              text: 'Help & Support',
-                              fontSize: 16.sp,
-                              color: AppColor.secondaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Assets.icons.chevron.svg(),
-                      ),
-                    ],
-                  ),
-                ),
+              // Chevron
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14.sp,
+                color: AppColor.textColor707070,
               ),
-
-              SizedBox(height: 16.h),
-
-              Divider(),
-
-              SizedBox(height: 50.h),
-
-              CustomButton(
-                title: 'Log out',
-                onpress: () {
-                  _showLogoutConfirmationDialog(context);
-                },
-                color: AppColor.redColor,
-              ),
-              SizedBox(height: 80.h),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _menuDivider() {
+    return Divider(
+      height: 1,
+      indent: 70.w,
+      endIndent: 0,
+      color: AppColor.borderColor,
+    );
+  }
+
+  // ─── Logout Button ────────────────────────────────────────────────────────
+
+  Widget _buildLogoutButton() {
+    return GestureDetector(
+      onTap: () => _showLogoutConfirmationDialog(context),
+      child: Container(
+        width: double.infinity,
+        height: 54.h,
+        decoration: BoxDecoration(
+          color: AppColor.redColor.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: AppColor.redColor.withOpacity(0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.logout_rounded,
+              color: AppColor.redColor,
+              size: 20.sp,
+            ),
+            SizedBox(width: 10.w),
+            Text(
+              'Log Out',
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.redColor,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Logout Dialog ────────────────────────────────────────────────────────
 
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(
@@ -402,43 +443,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20.r),
           ),
-          backgroundColor: AppColor.borderColor,
+          backgroundColor: AppColor.backgroundColor,
+          elevation: 8,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 28.h),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 12.h),
-                CustomText(
-                  text: 'Ready to Log out ?',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: AppColor.secondaryColor,
+                // Icon circle
+                Container(
+                  width: 60.w,
+                  height: 60.h,
+                  decoration: BoxDecoration(
+                    color: AppColor.redColor.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: AppColor.redColor,
+                    size: 26.sp,
+                  ),
                 ),
+
+                SizedBox(height: 16.h),
+
+                Text(
+                  'Log Out',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.secondaryColor,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+
+                SizedBox(height: 8.h),
+
+                Text(
+                  'Are you sure you want to\nlog out of your account?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColor.textColor707070,
+                    fontFamily: 'Poppins',
+                    height: 1.6,
+                  ),
+                ),
+
                 SizedBox(height: 24.h),
+
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: CustomDeleteTwoButton(
-                        title: 'Cancel',
-                        bgColor: AppColor.borderColor,
-                        textColor: AppColor.secondaryColor,
+                      child: GestureDetector(
                         onTap: () => Navigator.pop(context),
+                        child: Container(
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            color: AppColor.borderColor,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.textColor4F4F4F,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(width: 16.w),
+                    SizedBox(width: 12.w),
                     Expanded(
-                      child: CustomDeleteTwoButton(
-                        title: 'Log Out',
-                        bgColor: AppColor.successColor,
-                        textColor: AppColor.backgroundColor,
+                      child: GestureDetector(
                         onTap: () async {
                           RouteHelper.goToSignIn(context);
                         },
+                        child: Container(
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            color: AppColor.redColor,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Log Out',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.backgroundColor,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
