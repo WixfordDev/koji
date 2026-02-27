@@ -142,20 +142,42 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               ),
               SizedBox(height: 20.h),
 
-              /// Summary Cards
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                crossAxisSpacing: 12.w,
-                mainAxisSpacing: 12.h,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildSummaryCard("22", "Present", const Color(0xFFC4EAD5), const Color(0xFF31712B)),
-                  _buildSummaryCard("03", "Absent", const Color(0xFFD2E8F8), const Color(0xFF0B59A1)),
-                  _buildSummaryCard("04", "Late In", const Color(0xFFF3E8C1), const Color(0xFFE3A607)),
-                  _buildSummaryCard("02", "Early Out", const Color(0xFFFCCCCC), const Color(0xFFEE3E3E)),
-                ],
-              ),
+              Obx(() {
+                final data = adminHomeController.allAttendance.value;
+                return GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  crossAxisSpacing: 12.w,
+                  mainAxisSpacing: 12.h,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildSummaryCard(
+                      "${data.totalPresent ?? 0}",
+                      "Present",
+                      const Color(0xFFC4EAD5),
+                      const Color(0xFF31712B),
+                    ),
+                    _buildSummaryCard(
+                      "${data.totalAbsent ?? 0}",
+                      "Absent",
+                      const Color(0xFFD2E8F8),
+                      const Color(0xFF0B59A1),
+                    ),
+                    _buildSummaryCard(
+                      "${data.totalLateIn ?? 0}",
+                      "Late In",
+                      const Color(0xFFF3E8C1),
+                      const Color(0xFFE3A607),
+                    ),
+                    _buildSummaryCard(
+                      "${data.totalEarlyOut ?? 0}",
+                      "Early Out",
+                      const Color(0xFFFCCCCC),
+                      const Color(0xFFEE3E3E),
+                    ),
+                  ],
+                );
+              }),
 
               SizedBox(height: 20.h),
 

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../controller/admincontroller/schedule_controller.dart';
 import '../../../models/admin-model/task_details_model.dart';
+import '../../../services/api_constants.dart';
 import '../../../shared_widgets/admin_task_complete_card.dart';
 import '../../../shared_widgets/custom_text.dart';
 
@@ -167,8 +169,19 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      onPressed: () {
-                        // Add download functionality
+                      onPressed: () async {
+                        final path = taskDetails.invoicePath!;
+                        final fullUrl = path.startsWith('http')
+                            ? path
+                            : '${ApiConstants.imageBaseUrl}$path';
+                        final uri = Uri.parse(fullUrl);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not open the file')),
+                          );
+                        }
                       },
                     ),
                   ),

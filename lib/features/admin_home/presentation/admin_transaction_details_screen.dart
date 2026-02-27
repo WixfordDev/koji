@@ -5,6 +5,7 @@ import 'package:koji/features/admin_home/presentation/widget/transaction_details
 import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
+import '../../../services/api_constants.dart';
 
 class AdminInvoiceDetailsScreen extends StatefulWidget {
   final String? invoiceType; // "invoice" or "quote"
@@ -178,7 +179,10 @@ class _AdminInvoiceDetailsScreenState
                       final pdfPath = billing.pdfPath;
 
                       if (pdfPath != null && pdfPath.isNotEmpty) {
-                        final uri = Uri.tryParse(pdfPath);
+                        final fullUrl = pdfPath.startsWith('http')
+                            ? pdfPath
+                            : '${ApiConstants.imageBaseUrl}$pdfPath';
+                        final uri = Uri.tryParse(fullUrl);
                         if (uri != null && await canLaunchUrl(uri)) {
                           await launchUrl(
                               uri, mode: LaunchMode.externalApplication);
