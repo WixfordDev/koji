@@ -979,7 +979,9 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
             );
           }
 
-          return Padding(
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+            child: Padding(
             padding: EdgeInsets.all(20.w),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1010,7 +1012,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                   ),
                 ),
                 SizedBox(height: 16.h),
-                ...categories.map((cat) {
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: categories.map((cat) {
                   bool isSelected = selectedCategory == cat.name;
                   return GestureDetector(
                     onTap: () {
@@ -1030,26 +1035,28 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                cat.name ?? "",
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  color: isSelected ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              if (cat.description != null)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  cat.description!,
+                                  cat.name ?? "",
                                   style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: isSelected ? Colors.white70 : Colors.grey,
+                                    fontSize: 15.sp,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                    color: isSelected ? Colors.white : Colors.black,
                                   ),
                                 ),
-                            ],
+                                if (cat.description != null)
+                                  Text(
+                                    cat.description!,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: isSelected ? Colors.white70 : Colors.grey,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                           Row(
                             children: [
@@ -1085,9 +1092,13 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       ),
                     ),
                   );
-                }).toList(),
+                  }).toList(),
+                ),
+              ),
+            ),
                 SizedBox(height: 20.h),
               ],
+            ),
             ),
           );
         });

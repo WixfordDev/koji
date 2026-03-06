@@ -123,6 +123,88 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
 
                 _buildAssigneeInfo(taskDetails.assignTo),
 
+                // Attachments Section
+                if (taskDetails.attachments != null && taskDetails.attachments!.isNotEmpty) ...[
+                  SizedBox(height: 24.h),
+                  Text(
+                    'Attachments',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Wrap(
+                    spacing: 10.w,
+                    runSpacing: 10.h,
+                    children: taskDetails.attachments!.map((path) {
+                      final fullUrl = path.startsWith('http')
+                          ? path
+                          : '${ApiConstants.imageBaseUrl}$path';
+                      final fileName = path.split('/').last;
+                      final isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+                          .any((ext) => fileName.toLowerCase().endsWith(ext));
+
+                      return GestureDetector(
+                        onTap: () async {
+                          final uri = Uri.parse(fullUrl);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Could not open the file')),
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 100.w,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(color: Colors.grey[300]!, width: 1),
+                          ),
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                                child: isImage
+                                    ? Image.network(
+                                        fullUrl,
+                                        width: 100.w,
+                                        height: 80.h,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => SizedBox(
+                                          width: 100.w,
+                                          height: 80.h,
+                                          child: Icon(Icons.broken_image, color: Colors.grey, size: 32.sp),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 100.w,
+                                        height: 80.h,
+                                        color: const Color(0xFFE8EEF9),
+                                        child: Icon(Icons.insert_drive_file, color: const Color(0xFF007AFF), size: 36.sp),
+                                      ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(6.w),
+                                child: Text(
+                                  fileName,
+                                  style: TextStyle(fontSize: 10.sp, color: Colors.black87),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+
                 SizedBox(height: 24.h),
 
                 // Notes Section

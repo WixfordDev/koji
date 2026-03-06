@@ -87,7 +87,7 @@ class EmployeeTaskData {
   final int? totalPendingTask;
   final int? totalProgressTask;
   final int? totalCompliteTask;
-  final List<String>? touches;
+  final List<Touch>? touches;
   final int? touchesCount;
 
   EmployeeTaskData({
@@ -117,7 +117,7 @@ class EmployeeTaskData {
         totalCompliteTask: json["totalCompliteTask"],
         touches: json["touches"] == null
             ? []
-            : List<String>.from(json["touches"]),
+            : List<Touch>.from(json["touches"].map((x) => Touch.fromJson(x))),
         touchesCount: json["touchesCount"],
       );
 
@@ -132,8 +132,28 @@ class EmployeeTaskData {
         "totalCompliteTask": totalCompliteTask,
         "touches": touches == null
             ? []
-            : List<dynamic>.from(touches!),
+            : List<dynamic>.from(touches!.map((x) => x.toJson())),
         "touchesCount": touchesCount,
+      };
+}
+
+class Touch {
+  final String? time;
+  final String? customerNumber;
+  final String? customerAddress;
+
+  Touch({this.time, this.customerNumber, this.customerAddress});
+
+  factory Touch.fromJson(Map<String, dynamic> json) => Touch(
+        time: json["time"]?.toString(),
+        customerNumber: json["customerNumber"]?.toString(),
+        customerAddress: json["customerAddress"]?.toString(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "time": time,
+        "customerNumber": customerNumber,
+        "customerAddress": customerAddress,
       };
 }
 

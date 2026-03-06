@@ -77,6 +77,7 @@ class ApiConstants {
   static const String taskDetailsEndPointTemplate = "/tasks/";
   static const String notificationsEndPoint = "/info/notifications";
   static const String changePasswordEndPoint = "/auth/change-password";
+  static const String locationUpdateEndPoint = "/users/location/update";
 
 
 

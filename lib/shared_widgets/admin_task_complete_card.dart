@@ -257,7 +257,7 @@ class AdminTaskCompleteCard extends StatelessWidget {
 
           // Invoice and Amount if available
           if (taskDetails?.invoicePath != null && taskDetails!.invoicePath!.isNotEmpty)
-            _buildInfoRow('Invoice No.:', taskDetails?.invoicePath ?? 'N/A'),
+            _buildInfoRow('Invoice No.:', _extractInvoiceNo(taskDetails!.invoicePath!)),
 
           if (taskDetails?.totalAmount != null)
             _buildInfoRow('Amount:', '৳${taskDetails?.totalAmount}'),
@@ -369,6 +369,17 @@ class AdminTaskCompleteCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _extractInvoiceNo(String path) {
+    final fileName = path.split('/').last; // invoice-692b34375185606abeddaa4a-1764483195577.pdf
+    final withoutExt = fileName.replaceAll(RegExp(r'\.[^.]+$'), ''); // invoice-692b34375185606abeddaa4a-1764483195577
+    final parts = withoutExt.split('-');
+    // Remove first part (invoice) and last part (timestamp), keep the ID
+    if (parts.length >= 3) {
+      return 'INV-${parts.sublist(1, parts.length - 1).join('-')}';
+    }
+    return withoutExt;
   }
 
   Widget _buildInfoRow(String label, String value, {bool isMultiline = false}) {

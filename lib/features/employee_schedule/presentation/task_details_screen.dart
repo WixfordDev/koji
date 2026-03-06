@@ -484,9 +484,16 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   void _acceptTask(task) async {
-    await controller.acceptTask(widget.taskId);
-    Get.snackbar('Success', 'Task accepted successfully', backgroundColor: Colors.green, colorText: Colors.white);
-    _goToTaskScreen(task);
+    final success = await controller.acceptTask(widget.taskId);
+    if (success && mounted) {
+      Get.snackbar(
+        'Accepted',
+        'Task accepted successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      Navigator.pop(context); // go back to CalendarScreen
+    }
   }
 
   void _goToTaskScreen(task) {

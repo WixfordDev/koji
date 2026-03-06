@@ -84,14 +84,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     final completedCount = tasks
         .where((t) =>
-    t.status?.toLowerCase() == 'complete' ||
-        t.status?.toLowerCase() == 'done' ||
-        t.status?.toLowerCase() == 'completed')
+            t.isSubmited == true ||
+            t.status?.toLowerCase() == 'complete' ||
+            t.status?.toLowerCase() == 'done' ||
+            t.status?.toLowerCase() == 'completed')
         .length;
     final pendingCount = tasks
         .where((t) =>
-    t.status?.toLowerCase() == 'pending' ||
-        t.status?.toLowerCase() == 'upcoming')
+            t.isSubmited != true &&
+            (t.status?.toLowerCase() == 'pending' ||
+                t.status?.toLowerCase() == 'upcoming'))
         .length;
 
     List<Widget> dots = [];
@@ -478,7 +480,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
           MaterialPageRoute(
             builder: (context) => TaskDetailsScreen(taskId: taskId),
           ),
-        );
+        ).then((_) {
+          // Refresh tasks when returning from TaskDetailsScreen
+          if (_selectedDay != null) {
+            final formatted =
+                "${_selectedDay!.year}-${_selectedDay!.month.toString().padLeft(2, '0')}-${_selectedDay!.day.toString().padLeft(2, '0')}";
+            _employeeScheduleController
+                .fetchTasksForDate(formatted)
+                .then((_) {
+              if (mounted) _updateTabs();
+            });
+          }
+        });
       },
       child: Container(
         width: double.infinity,
@@ -609,12 +622,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     List<TaskModel.TaskModel> tasks = controller.getAllTasksForSelectedDate();
 
     if (selectedTab > 0) {
-      String statusFilter = tabs[selectedTab]
+      final statusFilter = tabs[selectedTab]
           .split('(')[0]
           .trim()
           .toLowerCase();
       tasks = tasks
-          .where((task) => task.status?.toLowerCase() == statusFilter)
+          .where((task) => _effectiveStatus(task).toLowerCase() == statusFilter)
           .toList();
     }
 
@@ -639,13 +652,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        Color statusColor = _getStatusColor(task.status ?? '');
-        int progress = task.progressPercent ?? 0;
+        final effectiveStatus = _effectiveStatus(task);
+        Color statusColor = _getStatusColor(effectiveStatus);
+        int progress = task.isSubmited == true
+            ? 100
+            : (task.progressPercent ?? 0);
 
         return _buildTaskCard(
           taskId: task.id ?? "",
           title: _capitalize(task.customerName ?? ""),
-          status: task.status ?? "",
+          status: effectiveStatus,
           priority: task.priority ?? "",
           progress: progress,
           color: statusColor,
@@ -654,6 +670,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         );
       },
     );
+  }
+
+  /// Returns effective display status:
+  /// if isSubmited == true → always show as "complete"
+  String _effectiveStatus(TaskModel.TaskModel task) {
+    if (task.isSubmited == true) return 'complete';
+    return task.status ?? '';
   }
 
   /// Capitalize first letter of each word

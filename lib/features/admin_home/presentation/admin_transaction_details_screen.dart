@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:koji/features/admin_home/presentation/widget/transaction_details_widget.dart';
 import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -98,10 +99,10 @@ class _AdminInvoiceDetailsScreenState
                 customerAddress: billing.customerAddress ?? '-',
                 assignTo: billing.createdBy ?? '-',
                 time: billing.invoiceDate != null
-                    ? '${billing.invoiceDate} – ${billing.dueDate ?? ''}'
+                    ? '${_formatDate(billing.invoiceDate)} – ${_formatDate(billing.dueDate)}'
                     : '-',
                 invoiceNumber: billing.invoiceNumber ?? '-',
-                dueDate: billing.dueDate ?? '-',
+                dueDate: _formatDate(billing.dueDate),
                 notes: billing.notes ?? [],
                 otherAmount: billing.otherAmount ?? 0,
                 gst: billing.gst ?? 0,
@@ -235,6 +236,16 @@ class _AdminInvoiceDetailsScreenState
         );
       }),
     );
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '-';
+    try {
+      final dt = DateTime.parse(raw);
+      return DateFormat('dd-MM-yyyy').format(dt);
+    } catch (_) {
+      return raw;
+    }
   }
 
   Widget _bankRow(String label, String? value) {
