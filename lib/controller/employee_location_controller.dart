@@ -1,6 +1,4 @@
-import 'package:get/get.dart';
-import 'package:koji/services/location_service.dart';
-import 'package:koji/services/socket_services.dart';
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,120 +7,121 @@ import 'package:koji/services/location_service.dart';
 class EmployeeLocationController extends GetxController {
   final LocationService _locationService = LocationService();
 
-  final RxBool _isTrackingActive = false.obs;
-  final RxString _lastLocationUpdate = ''.obs;
+  final RxBool isTrackingActive = false.obs;
   RxString currentAddressName = ''.obs;
 
-  RxBool get isTrackingActive => _isTrackingActive;
-  String get lastLocationUpdate => _lastLocationUpdate.value;
+  StreamSubscription<Position>? _positionSubscription;
+  Position? _lastSentPosition;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Initialize location service when the controller is initialized
-    _initializeLocationTracking();
-  }
+  // Update when moved at least 10 meters (~0.0001 degree)
+  static const double _distanceThresholdMeters = 10.0;
 
-  /// Initialize location tracking for the employee
-  Future<void> _initializeLocationTracking() async {
-    try {
-      await _locationService.initializeLocationUpdates();
-      _isTrackingActive.value = true;
-      _lastLocationUpdate.value = "Location tracking started";
-    } catch (e) {
-      _isTrackingActive.value = false;
-      _lastLocationUpdate.value = "Error starting location tracking: $e";
+  /// Start location tracking — call this on check-in
+  Future<void> startLocationTracking() async {
+    if (isTrackingActive.value) return;
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
     }
+    if (permission == LocationPermission.deniedForever) return;
+
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10, // Only fires when device moves ≥10 meters
+    );
+
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen((position) => _onPositionUpdate(position));
+
+    isTrackingActive.value = true;
+
+    // Send initial position immediately after check-in
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      await _onPositionUpdate(position);
+    } catch (_) {}
   }
 
-  /// Get address name from coordinates using reverse geocoding
-  Future<void> _updateAddressName(double latitude, double longitude) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latitude,
-        longitude,
+  /// Called on every position update from the stream
+  Future<void> _onPositionUpdate(Position position) async {
+    if (_lastSentPosition != null) {
+      final distance = Geolocator.distanceBetween(
+        _lastSentPosition!.latitude,
+        _lastSentPosition!.longitude,
+        position.latitude,
+        position.longitude,
       );
+      if (distance < _distanceThresholdMeters) return;
+    }
 
+    _lastSentPosition = position;
+
+    final locationName = await _getAddressName(
+      position.latitude,
+      position.longitude,
+    );
+    currentAddressName.value = locationName;
+
+    await _locationService.sendLocationUpdate(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      locationName: locationName,
+    );
+  }
+
+  Future<String> _getAddressName(double latitude, double longitude) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-
-        // Format the address - customize based on your needs
+        final place = placemarks[0];
         String address = '';
 
-        if (place.street != null && place.street!.isNotEmpty) {
-          address += place.street!;
+        if (place.street?.isNotEmpty == true) address += place.street!;
+        if (place.subLocality?.isNotEmpty == true) {
+          address +=
+              address.isEmpty ? place.subLocality! : ', ${place.subLocality}';
         }
-
-        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-          address += address.isEmpty
-              ? place.subLocality!
-              : ', ${place.subLocality}';
+        if (place.locality?.isNotEmpty == true) {
+          address +=
+              address.isEmpty ? place.locality! : ', ${place.locality}';
         }
-
-        if (place.locality != null && place.locality!.isNotEmpty) {
-          address += address.isEmpty ? place.locality! : ', ${place.locality}';
-        }
-
-        if (place.administrativeArea != null &&
-            place.administrativeArea!.isNotEmpty) {
+        if (place.administrativeArea?.isNotEmpty == true) {
           address += address.isEmpty
               ? place.administrativeArea!
               : ', ${place.administrativeArea}';
         }
-
-        if (place.country != null && place.country!.isNotEmpty) {
-          address += address.isEmpty ? place.country! : ', ${place.country}';
+        if (place.country?.isNotEmpty == true) {
+          address +=
+              address.isEmpty ? place.country! : ', ${place.country}';
         }
 
-        currentAddressName.value = address.isNotEmpty
-            ? address
-            : 'Unknown location';
-        print("Address updated: $address");
-      } else {
-        currentAddressName.value = 'Address not found';
+        return address.isNotEmpty ? address : 'Unknown location';
       }
     } catch (e) {
-      print("Error getting address: $e");
-      currentAddressName.value = 'Error getting address';
+      print("Geocoding error: $e");
     }
+    return 'Lat: ${latitude.toStringAsFixed(4)}, Lng: ${longitude.toStringAsFixed(4)}';
   }
 
-  /// Manually start location tracking
-  Future<void> startLocationTracking() async {
-    try {
-      await _locationService.initializeLocationUpdates();
-      _isTrackingActive.value = true;
-      _lastLocationUpdate.value = "Location tracking started";
-      print("Location tracking started for employee");
-    } catch (e) {
-      _isTrackingActive.value = false;
-      _lastLocationUpdate.value = "Error starting location tracking: $e";
-      print("Error starting location tracking: $e");
-    }
-  }
-
-  /// Stop location tracking
+  /// Stop location tracking — call this on check-out
   void stopLocationTracking() {
-    _locationService.stopLocationUpdates();
-    _isTrackingActive.value = false;
-    _lastLocationUpdate.value = "Location tracking stopped";
-  }
-
-  /// Get the last known position coordinates
-  String getLastKnownLocation() {
-    final position = _locationService.lastKnownPosition;
-    if (position != null) {
-      return "Lat: ${position.latitude}, Lng: ${position.longitude}";
-    }
-    return "No location data available";
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
+    _lastSentPosition = null;
+    isTrackingActive.value = false;
   }
 
   @override
   void onClose() {
-    // Stop location updates when the controller is disposed
-    if (_isTrackingActive.value) {
-      stopLocationTracking();
-    }
+    stopLocationTracking();
     super.onClose();
   }
 }

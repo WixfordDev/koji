@@ -23,6 +23,7 @@ class EmployeeScheduleController extends GetxController {
 
   // Method to fetch tasks for a specific date
   Future<void> fetchTasksForDate(String date) async {
+    _selectedDate.value = date; // track the last fetched date
     _isLoading.value = true;
     try {
       final response = await ApiClient.getData(
@@ -117,11 +118,28 @@ class EmployeeScheduleController extends GetxController {
     }
   }
 
-  // Accept task method (for TaskDetailsScreen)
-  Future<void> acceptTask(String taskId) async {
+  // Accept task method — calls POST /tasks/:id/accept
+  Future<bool> acceptTask(String taskId) async {
     try {
-      // Implementation would be in TaskDetailsController
-      print('Accepting task: $taskId');
+      final response = await ApiClient.postData(
+        '/tasks/$taskId/accept',
+        {},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (_selectedDate.value.isNotEmpty) {
+          await fetchTasksForDate(_selectedDate.value);
+        }
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          response.statusText ?? 'Failed to accept task',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
     } catch (e) {
       print('Error accepting task: $e');
       Get.snackbar(
@@ -130,8 +148,8 @@ class EmployeeScheduleController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: Duration(seconds: 3),
       );
+      return false;
     }
   }
 
@@ -164,13 +182,22 @@ class EmployeeScheduleController extends GetxController {
   }
 
   // Get count of tasks by status for tab display
+  // isSubmited == true tasks are always counted as "complete"
   int getTaskCountByStatus(String status) {
-    if (status.toLowerCase() == 'all') {
-      return _tasks.length;
+    if (status.toLowerCase() == 'all') return _tasks.length;
+
+    if (status.toLowerCase() == 'complete') {
+      return _tasks.where((task) {
+        if (task.isSubmited == true) return true;
+        final s = task.status?.toLowerCase() ?? '';
+        return s == 'complete' || s == 'completed' || s == 'done';
+      }).length;
     }
-    return _tasks
-        .where((task) => task.status?.toLowerCase() == status.toLowerCase())
-        .length;
+
+    return _tasks.where((task) {
+      if (task.isSubmited == true) return false; // submitted = complete, skip
+      return task.status?.toLowerCase() == status.toLowerCase();
+    }).length;
   }
 
   // Get all tasks for selected date regardless of status

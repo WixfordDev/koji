@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
+import 'package:koji/models/admin-model/all_employee_task_model.dart';
 
 class AdminScheduleScreen extends StatelessWidget {
   const AdminScheduleScreen({super.key});
@@ -80,6 +81,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
             DateTime date = DateTime.parse(item.date!);
             _events[date] = {
               'completed': item.complitTaskCount ?? 0,
+              'inProgress': item.totalProgressCount ?? 0,
               'pending': item.pandingtaskCount ?? 0,
             };
           }
@@ -126,7 +128,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     });
   }
 
-  List<Map<String, String>> _formatTimeSlots(List<String>? timeSlots) {
+  List<Map<String, String>> _formatTimeSlots(List<Touch>? timeSlots) {
     if (timeSlots == null || timeSlots.isEmpty) {
       return [
         {'time': 'No scheduled tasks', 'type': 'empty'}
@@ -134,9 +136,12 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     }
 
     List<Map<String, String>> formattedSlots = [];
-    for (var slot in timeSlots) {
+    final limitedSlots = timeSlots.take(3).toList();
+    for (var slot in limitedSlots) {
       formattedSlots.add({
-        'time': _formatTimeRange(slot),
+        'time': _formatTimeRange(slot.time ?? ''),
+        'customerNumber': slot.customerNumber ?? '',
+        'customerAddress': slot.customerAddress ?? '',
         'type': 'work'
       });
     }
@@ -173,36 +178,35 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
 
     List<Widget> markers = [];
 
-    // Show completed count in green
-    if (events['completed'] != null && events['completed']! > 0) {
-      markers.add(
-        Text(
-          '+${events['completed']}',
-          style: TextStyle(
-            fontSize: 9.sp,
-            color: const Color(0xFF4CD964),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
+    // Completed - green dot
+    if ((events['completed'] ?? 0) > 0) {
+      markers.add(_buildDot(const Color(0xFF4CD964)));
     }
 
-    // Show pending count in red
-    if (events['pending'] != null && events['pending']! > 0) {
-      if (markers.isNotEmpty) markers.add(SizedBox(width: 2.w));
-      markers.add(
-        Text(
-          '●${events['pending']}',
-          style: TextStyle(
-            fontSize: 9.sp,
-            color: const Color(0xFFFF1414),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
+    // In Progress - yellow dot
+    if ((events['inProgress'] ?? 0) > 0) {
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
+      markers.add(_buildDot(const Color(0xFFFFB509)));
+    }
+
+    // Pending - red dot
+    if ((events['pending'] ?? 0) > 0) {
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
+      markers.add(_buildDot(const Color(0xFFFF1414)));
     }
 
     return markers;
+  }
+
+  Widget _buildDot(Color color) {
+    return Container(
+      width: 6.w,
+      height: 6.w,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
   }
 
   @override
@@ -543,66 +547,122 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                                     ],
                                   ),
 
-                                  SizedBox(height: 12.h),
-
-                                  /// Location
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Current Location: ',
-                                        style: TextStyle(
-                                          fontSize: 13.sp,
-                                          color: Colors.grey[600],
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          member['location'],
-                                          style: TextStyle(
-                                            fontSize: 13.sp,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  // SizedBox(height: 12.h),
+                                  //
+                                  // /// Location
+                                  // Row(
+                                  //   children: [
+                                  //     Text(
+                                  //       'Current Location: ',
+                                  //       style: TextStyle(
+                                  //         fontSize: 13.sp,
+                                  //         color: Colors.grey[600],
+                                  //         fontWeight: FontWeight.w400,
+                                  //       ),
+                                  //     ),
+                                  //     Expanded(
+                                  //       child: Text(
+                                  //         member['location'],
+                                  //         style: TextStyle(
+                                  //           fontSize: 13.sp,
+                                  //           color: Colors.black,
+                                  //           fontWeight: FontWeight.w600,
+                                  //         ),
+                                  //         overflow: TextOverflow.ellipsis,
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // ),
 
                                   SizedBox(height: 14.h),
 
                                   /// Time Slots
                                   if (member['timeSlots'].isNotEmpty &&
                                       member['timeSlots'][0]['type'] != 'empty')
-                                    Wrap(
-                                      spacing: 8.w,
-                                      runSpacing: 8.h,
+                                    Column(
                                       children: member['timeSlots'].map<Widget>((slot) {
                                         return Container(
+                                          margin: EdgeInsets.only(bottom: 8.h),
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 14.w,
-                                            vertical: 8.h,
+                                            vertical: 10.h,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: team['teamColor'],
-                                            borderRadius: BorderRadius.circular(100.r),
+                                            color: team['teamColor'].withOpacity(0.08),
+                                            borderRadius: BorderRadius.circular(12.r),
+                                            border: Border.all(
+                                              color: team['teamColor'].withOpacity(0.3),
+                                              width: 1,
+                                            ),
                                           ),
                                           child: Row(
-                                            mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(
-                                                Icons.access_time,
-                                                size: 14.sp,
-                                                color: Colors.white,
+                                              Container(
+                                                width: 36.w,
+                                                height: 36.w,
+                                                decoration: BoxDecoration(
+                                                  color: team['teamColor'].withOpacity(0.15),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  Icons.access_time,
+                                                  size: 18.sp,
+                                                  color: team['teamColor'],
+                                                ),
                                               ),
-                                              SizedBox(width: 6.w),
-                                              Text(
-                                                slot['time'],
-                                                style: TextStyle(
-                                                  fontSize: 12.sp,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.white,
+                                              SizedBox(width: 12.w),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      slot['time'],
+                                                      style: TextStyle(
+                                                        fontSize: 13.sp,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: team['teamColor'],
+                                                      ),
+                                                    ),
+                                                    if ((slot['customerNumber'] as String).isNotEmpty)
+                                                      Padding(
+                                                        padding: EdgeInsets.only(top: 3.h),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.phone, size: 11.sp, color: Colors.grey[600]),
+                                                            SizedBox(width: 4.w),
+                                                            Text(
+                                                              slot['customerNumber']!,
+                                                              style: TextStyle(
+                                                                fontSize: 12.sp,
+                                                                color: Colors.grey[700],
+                                                                fontWeight: FontWeight.w400,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    if ((slot['customerAddress'] as String).isNotEmpty)
+                                                      Padding(
+                                                        padding: EdgeInsets.only(top: 3.h),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.location_on, size: 11.sp, color: Colors.grey[600]),
+                                                            SizedBox(width: 4.w),
+                                                            Expanded(
+                                                              child: Text(
+                                                                slot['customerAddress']!,
+                                                                style: TextStyle(
+                                                                  fontSize: 12.sp,
+                                                                  color: Colors.grey[700],
+                                                                  fontWeight: FontWeight.w400,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
                                             ],

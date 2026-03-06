@@ -14,9 +14,8 @@ import 'package:koji/models/attendance.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/core/app_constants.dart';
 import 'package:koji/controller/employee_location_controller.dart';
+import 'package:koji/services/api_client.dart';
 import 'package:get/get.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 
 class EmployeeHomeScreen extends StatefulWidget {
   const EmployeeHomeScreen({super.key});
@@ -48,8 +47,6 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       _initializeLocationTracking();
       _fetchAttendanceList();
       _loadUserName();
-      // Get the current location immediately
-      await _getCurrentLocation();
     });
     _now = DateTime.now();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -57,110 +54,14 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
     });
   }
 
-  /// Initialize location tracking for the employee
+  /// Setup location controller listener only — tracking starts on check-in
   void _initializeLocationTracking() {
-    // Get the location controller to start location updates
     final locationController = Get.put(EmployeeLocationController());
-
-    // Listen to location updates
     locationController.currentAddressName.listen((address) {
-      if (address.isNotEmpty) {
-        setState(() {
-          currentLocationName = address;
-        });
+      if (address.isNotEmpty && mounted) {
+        setState(() => currentLocationName = address);
       }
     });
-
-    // Start location tracking
-    locationController.startLocationTracking();
-  }
-
-  /// Get the current location from the device
-  Future<void> _getCurrentLocation() async {
-    try {
-      // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        setState(() {
-          currentLocationName = 'Location services are disabled';
-        });
-        return;
-      }
-
-      // Check location permissions
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          setState(() {
-            currentLocationName = 'Location permissions are denied';
-          });
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          currentLocationName = 'Location permissions are permanently denied';
-        });
-        return;
-      }
-
-      // Get the current position
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      // Convert the position to an address using reverse geocoding
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-
-        // Format the address
-        String address = '';
-
-        if (place.street != null && place.street!.isNotEmpty) {
-          address += place.street!;
-        }
-
-        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-          address += address.isEmpty
-              ? place.subLocality!
-              : ', ${place.subLocality}';
-        }
-
-        if (place.locality != null && place.locality!.isNotEmpty) {
-          address += address.isEmpty ? place.locality! : ', ${place.locality}';
-        }
-
-        if (place.administrativeArea != null &&
-            place.administrativeArea!.isNotEmpty) {
-          address += address.isEmpty
-              ? place.administrativeArea!
-              : ', ${place.administrativeArea}';
-        }
-
-        if (place.country != null && place.country!.isNotEmpty) {
-          address += address.isEmpty ? place.country! : ', ${place.country}';
-        }
-
-        setState(() {
-          currentLocationName = address.isNotEmpty ? address : 'Unknown location';
-        });
-      } else {
-        setState(() {
-          currentLocationName = 'Address not found';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        currentLocationName = 'Error getting location: $e';
-      });
-    }
   }
 
   Future<void> _loadUserName() async {
@@ -172,6 +73,27 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
           userName = name.isNotEmpty ? name : '';
           userImage = image.isNotEmpty ? image : '';
         });
+      }
+
+      // If image not in prefs (old session), fetch from profile API and save
+      if (image.isEmpty) {
+        _fetchAndSaveProfileImage();
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  Future<void> _fetchAndSaveProfileImage() async {
+    try {
+      final response = await ApiClient.getData(ApiConstants.getProfileEndPoint);
+      if (response.statusCode == 200) {
+        final img =
+            response.body?['data']?['attributes']?['image']?.toString() ?? '';
+        if (img.isNotEmpty) {
+          await PrefsHelper.setString(AppConstants.image, img);
+          if (mounted) setState(() => userImage = img);
+        }
       }
     } catch (_) {
       // ignore
@@ -232,6 +154,11 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
               isCheckedOutComplete = false;
             }
           });
+
+          // Resume tracking if employee is already checked in
+          if (isCheckedIn) {
+            Get.find<EmployeeLocationController>().startLocationTracking();
+          }
         }
       }
     } catch (e) {
@@ -265,14 +192,22 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
                     children: [
                       Row(
                         children: [
-                          CustomNetworkImage(
-                            imageUrl: userImage.isNotEmpty
-                                ? "${ApiConstants.imageBaseUrl}$userImage"
-                                : "https://example.com/image.jpg",
-                            height: 40.h,
-                            width: 40.w,
-                            boxShape: BoxShape.circle,
-                          ),
+                          userImage.isNotEmpty
+                              ? CustomNetworkImage(
+                                  imageUrl: _buildImageUrl(userImage),
+                                  height: 40.h,
+                                  width: 40.w,
+                                  boxShape: BoxShape.circle,
+                                )
+                              : CircleAvatar(
+                                  radius: 20.r,
+                                  backgroundColor: Colors.grey.shade300,
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 22.sp,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
                           SizedBox(width: 10.w),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,6 +436,16 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
     }
   }
 
+  /// Safely builds full image URL — handles leading slash
+  String _buildImageUrl(String imagePath) {
+    final base = ApiConstants.imageBaseUrl.endsWith('/')
+        ? ApiConstants.imageBaseUrl
+        : '${ApiConstants.imageBaseUrl}/';
+    final path =
+        imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    return '$base$path';
+  }
+
   String _greeting() {
     final hour = _now.hour;
     if (hour < 12) return 'Good Morning,';
@@ -699,6 +644,8 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       final resp = await AttendanceService.checkIn(clockIn: nowIso);
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         setState(() => isCheckedIn = true);
+        // Start location tracking now that employee is checked in
+        Get.find<EmployeeLocationController>().startLocationTracking();
         final msg = resp.body != null && resp.body["message"] != null
             ? resp.body["message"]
             : 'Checked in successfully';
@@ -743,6 +690,8 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
           isCheckedIn = false;
           isCheckedOutComplete = true;
         });
+        // Stop location tracking on check-out
+        Get.find<EmployeeLocationController>().stopLocationTracking();
         final msg = resp.body != null && resp.body["message"] != null
             ? resp.body["message"]
             : 'Checked out successfully';

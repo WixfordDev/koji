@@ -372,9 +372,11 @@ class _TaskScreenState extends State<TaskScreen> {
               // View List — gradient button
               GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  // Close dialog → pop TaskScreen → pop TaskDetailsScreen → CalendarScreen
+                  Navigator.of(context)
+                    ..pop() // close success dialog
+                    ..pop() // pop TaskScreen
+                    ..pop(); // pop TaskDetailsScreen → back to CalendarScreen
                 },
                 child: Container(
                   width: double.infinity,
