@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:koji/features/admin_home/presentation/widget/adjustments_widget.dart';
 import 'package:koji/features/admin_home/presentation/widget/amount_details_widget.dart';
 import 'package:koji/features/admin_home/presentation/widget/bank_details_widgets.dart';
 import 'package:koji/features/admin_home/presentation/widget/customer_details_widgets.dart';
@@ -54,6 +55,9 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
   final TextEditingController _qrCodeController = TextEditingController(
       text: "https://raw.githubusercontent.com/u2hhzgf0/image-server/refs/heads/main/Koji%20Engineering%20Pte%20Ltd%20QRCode.jpg");
 
+  // Adjustments (Deposit/Discount)
+  List<Map<String, dynamic>> adjustments = [];
+
   // Notes (only for quotation)
   List<String> notes = [
     "The price stated in this quotation is final.",
@@ -85,7 +89,32 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
     _accountNumberController.dispose();
     _swiftCodeController.dispose();
     _qrCodeController.dispose();
+    for (var adj in adjustments) {
+      (adj['controller'] as TextEditingController).dispose();
+    }
     super.dispose();
+  }
+
+  void _addAdjustment() {
+    setState(() {
+      adjustments.add({
+        'type': 'discount',
+        'controller': TextEditingController(text: '0'),
+      });
+    });
+  }
+
+  void _removeAdjustment(int index) {
+    setState(() {
+      (adjustments[index]['controller'] as TextEditingController).dispose();
+      adjustments.removeAt(index);
+    });
+  }
+
+  void _onAdjustmentTypeChanged(int index, String type) {
+    setState(() {
+      adjustments[index]['type'] = type;
+    });
   }
 
   double _calculateSubtotal() {
@@ -98,12 +127,22 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
     return subtotal;
   }
 
+  double _calculateAdjustmentTotal() {
+    return adjustments.fold(0.0, (sum, adj) {
+      return sum +
+          (double.tryParse(
+                  (adj['controller'] as TextEditingController).text) ??
+              0.0);
+    });
+  }
+
   double _calculateTotal() {
     double subtotal = _calculateSubtotal();
     double otherAmount = double.tryParse(_otherAmountController.text) ?? 0.0;
     double gst = double.tryParse(_gstController.text) ?? 0.0;
     double gstAmount = (subtotal + otherAmount) * (gst / 100);
-    return subtotal + otherAmount + gstAmount;
+    double adjustmentTotal = _calculateAdjustmentTotal();
+    return subtotal + otherAmount + gstAmount - adjustmentTotal;
   }
 
   void _addServiceItem(Map<String, dynamic> service) {
@@ -168,6 +207,13 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
       "services": serviceItems,
       "otherAmount": _otherAmountController.text.trim(),
       "gst": _gstController.text.trim(),
+      "adjustments": adjustments
+          .map((adj) => {
+                "type": adj['type'],
+                "amount":
+                    (adj['controller'] as TextEditingController).text.trim(),
+              })
+          .toList(),
       "bankDetails": {
         "bank": _bankNameController.text.trim(),
         "accountName": _accountNameController.text.trim(),
@@ -213,6 +259,10 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
       serviceItems.clear();
       _otherAmountController.text = "0";
       _gstController.text = "9";
+      for (var adj in adjustments) {
+        (adj['controller'] as TextEditingController).dispose();
+      }
+      adjustments.clear();
     });
   }
 
@@ -302,6 +352,16 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
               onAmountChanged: () {
                 setState(() {});
               },
+            ),
+            SizedBox(height: 24.h),
+
+            // Adjustments
+            AdjustmentsWidget(
+              adjustments: adjustments,
+              onAdd: _addAdjustment,
+              onRemove: _removeAdjustment,
+              onTypeChanged: _onAdjustmentTypeChanged,
+              onChanged: () => setState(() {}),
             ),
             SizedBox(height: 24.h),
 

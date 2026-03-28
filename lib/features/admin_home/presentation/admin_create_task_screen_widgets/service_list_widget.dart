@@ -115,7 +115,7 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
                       controller: priceController,
                       decoration: InputDecoration(
                         hintText: "Enter price",
-                        prefixText: "₦",
+                        prefixText: "\$",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -333,7 +333,7 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
                             ),
                             SizedBox(height: 2.h),
                             CustomText(
-                              text: "Qty: ${item.quantity} x ₦${service.price} = ₦$total",
+                              text: "Qty: ${item.quantity} x ${service.price} = $total",
                               color: Colors.grey.shade600,
                               fontSize: 11.sp,
                               fontWeight: FontWeight.w400,
@@ -461,7 +461,7 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
                                 ),
                                 SizedBox(height: 4.h),
                                 CustomText(
-                                  text: "₦${service.price}",
+                                  text: "${service.price}",
                                   color: Colors.grey.shade600,
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.w400,
@@ -469,7 +469,7 @@ class _ServiceListDropdownWidgetState extends State<ServiceListDropdownWidget> {
                                 if (isAdded) ...[
                                   SizedBox(height: 4.h),
                                   CustomText(
-                                    text: "Qty: ${addedService!.quantity} | Total: ₦${(double.tryParse(addedService.serviceItem.price ?? '0') ?? 0) * addedService.quantity}",
+                                    text: "Qty: ${addedService!.quantity} | Total: ${(double.tryParse(addedService.serviceItem.price ?? '0') ?? 0) * addedService.quantity}",
                                     color: AppColor.primaryColor,
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,

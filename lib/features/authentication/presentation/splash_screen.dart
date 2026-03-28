@@ -25,6 +25,15 @@ class _SplashScreenState extends State<SplashScreen>
       var role = await PrefsHelper.getString(AppConstants.role);
 
       if (token != null && token.isNotEmpty) {
+        // Init socket with token + userId so server accepts the connection
+        final userId = await PrefsHelper.getString(AppConstants.userId);
+        final fcmToken = await PrefsHelper.getString(AppConstants.fcmToken);
+        await SocketServices().init(
+          userId: userId,
+          fcmToken: fcmToken,
+          bearerToken: token,
+        );
+
         if (role == 'admin') {
           RouteHelper.goToAdminBottomNav(context);
           return;
@@ -36,8 +45,6 @@ class _SplashScreenState extends State<SplashScreen>
         context.push('/onboarding');
       }
     });
-    SocketServices socket = SocketServices();
-    socket.init();
 
     _controller = AnimationController(
       duration: const Duration(seconds: 2),

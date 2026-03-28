@@ -286,21 +286,23 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 SizedBox(height: 16.h),
                 _buildLabel('Gender'),
                 SizedBox(height: 4.h),
-                // Display controller shows capitalized label; actual value is lowercase for API
-                CustomAuthTextField(
-                  controller: TextEditingController(
-                    text: genderCtrl.text.isNotEmpty
-                        ? genderCtrl.text[0].toUpperCase() + genderCtrl.text.substring(1)
-                        : '',
+                GestureDetector(
+                  onTap: _showGenderSelector,
+                  child: CustomAuthTextField(
+                    controller: TextEditingController(
+                      text: genderCtrl.text.isNotEmpty
+                          ? genderCtrl.text[0].toUpperCase() + genderCtrl.text.substring(1)
+                          : '',
+                    ),
+                    hintText: 'Select gender',
+                    readOnly: true,
+                    suffixIcon: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: const Color(0xFF9E9E9E),
+                      size: 20.sp,
+                    ),
+                    onSuffixTap: _showGenderSelector,
                   ),
-                  hintText: 'Select gender',
-                  readOnly: true,
-                  suffixIcon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: const Color(0xFF9E9E9E),
-                    size: 20.sp,
-                  ),
-                  onSuffixTap: _showGenderSelector,
                 ),
 
                 SizedBox(height: 16.h),
@@ -338,20 +340,23 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 SizedBox(height: 16.h),
                 _buildLabel('Marital Status'),
                 SizedBox(height: 4.h),
-                CustomAuthTextField(
-                  controller: TextEditingController(
-                    text: maritalCtrl.text.isNotEmpty
-                        ? maritalCtrl.text[0].toUpperCase() + maritalCtrl.text.substring(1)
-                        : '',
+                GestureDetector(
+                  onTap: _showMaritalStatusSelector,
+                  child: CustomAuthTextField(
+                    controller: TextEditingController(
+                      text: maritalCtrl.text.isNotEmpty
+                          ? maritalCtrl.text[0].toUpperCase() + maritalCtrl.text.substring(1)
+                          : '',
+                    ),
+                    hintText: 'Select marital status',
+                    readOnly: true,
+                    suffixIcon: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: const Color(0xFF9E9E9E),
+                      size: 20.sp,
+                    ),
+                    onSuffixTap: _showMaritalStatusSelector,
                   ),
-                  hintText: 'Select marital status',
-                  readOnly: true,
-                  suffixIcon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: const Color(0xFF9E9E9E),
-                    size: 20.sp,
-                  ),
-                  onSuffixTap: _showMaritalStatusSelector,
                 ),
 
                 SizedBox(height: 16.h),
@@ -589,7 +594,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       title: 'Select Gender',
       options: ['male', 'female', 'other'],
       displayOptions: ['Male', 'Female', 'Other'],
-      onSelect: (val) => genderCtrl.text = val,
+      currentValue: genderCtrl.text,
+      onSelect: (val) {
+        genderCtrl.text = val;
+        setState(() {});
+      },
     );
   }
 
@@ -598,19 +607,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   void _showMaritalStatusSelector() {
     _showOptionSelector(
       title: 'Select Marital Status',
-      options: ['male', 'female', 'other'],
-      displayOptions: ['Male', 'Female', 'Other'],
-      onSelect: (val) => maritalCtrl.text = val,
+      options: ['married', 'unmarried'],
+      displayOptions: ['Married', 'Unmarried'],
+      currentValue: maritalCtrl.text,
+      onSelect: (val) {
+        maritalCtrl.text = val;
+        setState(() {});
+      },
     );
   }
 
   /// Generic option selector bottom sheet
-  /// [options] = values sent to API (e.g. 'male')
-  /// [displayOptions] = labels shown in UI (e.g. 'Male') — optional, defaults to options
   void _showOptionSelector({
     required String title,
     required List<String> options,
     List<String>? displayOptions,
+    String? currentValue,
     required Function(String) onSelect,
   }) {
     final labels = displayOptions ?? options;
@@ -619,42 +631,41 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
-      builder: (_) => StatefulBuilder(
-        builder: (context, setSheetState) => Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40.w,
-                height: 4.h,
-                margin: EdgeInsets.only(bottom: 16.h),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
+      builder: (_) => Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 16.h),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2.r),
               ),
-              Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600)),
-              SizedBox(height: 8.h),
-              ...List.generate(options.length, (i) {
-                final value = options[i];
-                final label = labels[i];
-                final isSelected =
-                    value == genderCtrl.text || value == maritalCtrl.text;
-                return ListTile(
-                  title: Text(label, style: TextStyle(fontSize: 14.sp)),
-                  trailing: isSelected
-                      ? Icon(Icons.check, color: primaryBlue, size: 18.sp)
-                      : null,
-                  onTap: () {
-                    onSelect(value); // send lowercase to API
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-              SizedBox(height: 8.h),
-            ],
-          ),
+            ),
+            Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600)),
+            SizedBox(height: 8.h),
+            ...List.generate(options.length, (i) {
+              final value = options[i];
+              final label = labels[i];
+              final isSelected = value.toLowerCase() == (currentValue ?? '').toLowerCase();
+              return ListTile(
+                title: Text(label, style: TextStyle(fontSize: 14.sp)),
+                trailing: isSelected
+                    ? Icon(Icons.check_circle, color: primaryBlue, size: 20.sp)
+                    : null,
+                tileColor: isSelected ? primaryBlue.withOpacity(0.06) : null,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                onTap: () {
+                  onSelect(value);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            SizedBox(height: 8.h),
+          ],
         ),
       ),
     );

@@ -318,7 +318,7 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
             ),
             SizedBox(width: 12.w),
             Text(
-              '৳${service.price?.toStringAsFixed(2) ?? '0.00'}',
+              '\$${service.price?.toStringAsFixed(2) ?? '0.00'}',
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,

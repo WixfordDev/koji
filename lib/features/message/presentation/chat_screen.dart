@@ -34,8 +34,11 @@ class _ChatScreenState extends State<ChatScreen> {
           : conversation!.sender;
 
       Future.delayed(Duration.zero, () {
+        // conversation.id → for message filtering
+        // otherUser.id   → sent to server as receiver
         chatController.getMessagesForConversation(
-          conversation!.receiver?.id ?? "",
+          conversation!.id ?? "",
+          receiverId: otherUser?.id ?? "",
         );
       });
     } else {

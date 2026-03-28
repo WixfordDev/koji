@@ -471,7 +471,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                       controller: priceController,
                       decoration: InputDecoration(
                         hintText: "Enter price",
-                        prefixText: "₦",
+                        prefixText: "\$",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),

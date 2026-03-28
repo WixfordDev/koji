@@ -17,7 +17,8 @@ class ChatController extends GetxController {
   String? currentUserId;
 
   // Track which conversation is currently requesting messages
-  String? _currentConversationId;
+  String? _currentConversationId;     // actual conversation document ID
+  String? _pendingReceiverId;         // receiver user ID for pending message-page emit
 
   @override
   void onInit() {
@@ -62,14 +63,19 @@ class ChatController extends GetxController {
       print('Socket ID: ${socket!.id}');
 
       String token = await PrefsHelper.getString('bearerToken');
-      // Emit user connection with token
       socket!.emit("user-connected", {
         "userId": currentUserId,
-        "token": token, // Include token for authentication
+        "token": token,
       });
 
-      // Request conversation list after connection
       socket!.emit("conversation-list", {"currentUserId": currentUserId});
+
+      // If a conversation was requested before socket was ready, send it now
+      if (_pendingReceiverId != null) {
+        print('📨 Re-emitting pending message-page for $_pendingReceiverId');
+        socket!.emit("message-page", {"receiver": _pendingReceiverId});
+        _pendingReceiverId = null;
+      }
     });
 
     socket!.onConnectError((err) {
@@ -173,6 +179,7 @@ class ChatController extends GetxController {
             );
 
             // Ensure the message has the correct conversationId
+            // Use _currentConversationId (actual conversation doc ID) for filtering
             if (newMessage.conversationId == null ||
                 newMessage.conversationId!.isEmpty) {
               newMessage = Message(
@@ -187,10 +194,6 @@ class ChatController extends GetxController {
                 videoUrl: newMessage.videoUrl,
                 fileUrl: newMessage.fileUrl,
                 linkUrl: newMessage.linkUrl,
-              );
-
-              print(
-                'Updated message with conversationId: $_currentConversationId',
               );
             }
 
@@ -280,20 +283,22 @@ class ChatController extends GetxController {
     print("=====================================> get chant user called");
   }
 
-  /// Request messages for a specific conversation
-  void getMessagesForConversation(String conversationId) {
-    print(
-      '++++++++++++++++++++++Requesting messages for conversation: $conversationId',
-    );
+  /// Request messages for a specific conversation.
+  /// [conversationId] = actual conversation document ID (for filtering).
+  /// [receiverId] = the other user's ID (sent to server as receiver).
+  void getMessagesForConversation(String conversationId, {required String receiverId}) {
+    print('📨 getMessagesForConversation: conv=$conversationId, receiver=$receiverId');
 
-    // Set the current conversation ID before requesting messages
     _currentConversationId = conversationId;
-
-    // Clear previous messages to avoid mix-up
     messages.clear();
 
-    // Emit event to request messages for the specific conversation
-    socket?.emit("message-page", {"receiver": conversationId});
+    if (socket?.connected == true) {
+      socket!.emit("message-page", {"receiver": receiverId});
+    } else {
+      // Socket not ready yet — will emit in onConnect
+      print('⏳ Socket not connected, queuing message-page for $receiverId');
+      _pendingReceiverId = receiverId;
+    }
   }
 
   Future<void> loadConversations() async {

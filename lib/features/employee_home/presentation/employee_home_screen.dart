@@ -13,6 +13,7 @@ import 'package:koji/helpers/toast_message_helper.dart';
 import 'package:koji/models/attendance.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/core/app_constants.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:koji/controller/employee_location_controller.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:get/get.dart';
@@ -54,7 +55,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
     });
   }
 
-  /// Setup location controller listener only — tracking starts on check-in
+  /// Setup location controller + request permission + start 5s periodic emit
   void _initializeLocationTracking() {
     final locationController = Get.put(EmployeeLocationController());
     locationController.currentAddressName.listen((address) {
@@ -62,6 +63,144 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
         setState(() => currentLocationName = address);
       }
     });
+    _requestLocationPermissionAndStart(locationController);
+  }
+
+  Future<void> _requestLocationPermissionAndStart(
+    EmployeeLocationController locationController,
+  ) async {
+    print('🔍 [HomeScreen] Checking location permission...');
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('❌ [HomeScreen] Location service disabled');
+      if (mounted) _showLocationServiceDialog();
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    print('🔍 [HomeScreen] Permission status: $permission');
+
+    if (permission == LocationPermission.denied) {
+      if (mounted) {
+        final shouldRequest = await _showPermissionRationaleDialog();
+        if (!shouldRequest) {
+          print('❌ [HomeScreen] User declined permission rationale');
+          return;
+        }
+      }
+      permission = await Geolocator.requestPermission();
+      print('🔍 [HomeScreen] After request: $permission');
+      if (permission == LocationPermission.denied) return;
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('❌ [HomeScreen] Permission permanently denied');
+      if (mounted) _showPermissionDeniedForeverDialog();
+      return;
+    }
+
+    print('✅ [HomeScreen] Permission granted — starting periodic emit');
+    locationController.startPeriodicEmit();
+  }
+
+  Future<bool> _showPermissionRationaleDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            title: Row(
+              children: [
+                Icon(Icons.location_on, color: AppColor.primaryColor, size: 24.r),
+                SizedBox(width: 8.w),
+                Text(
+                  'Location Access',
+                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            content: Text(
+              'We need your location to track attendance and show your position to the admin. Your location is only shared while the app is in use.',
+              style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Deny', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('Allow', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  void _showLocationServiceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text('Location Disabled', style: TextStyle(fontSize: 16.sp)),
+        content: Text(
+          'Please enable location services on your device to continue.',
+          style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.primaryColor,
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDeniedForeverDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text('Permission Required', style: TextStyle(fontSize: 16.sp)),
+        content: Text(
+          'Location permission is permanently denied. Please enable it from app settings.',
+          style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.primaryColor,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.openAppSettings();
+            },
+            child: Text('Open Settings', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadUserName() async {
@@ -103,6 +242,9 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   @override
   void dispose() {
     _clockTimer?.cancel();
+    if (Get.isRegistered<EmployeeLocationController>()) {
+      Get.find<EmployeeLocationController>().stopPeriodicEmit();
+    }
     super.dispose();
   }
 
@@ -639,7 +781,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       return;
     }
 
-    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final nowIso = DateTime.now().toIso8601String();
     try {
       final resp = await AttendanceService.checkIn(clockIn: nowIso);
       if (resp.statusCode == 200 || resp.statusCode == 201) {
@@ -679,7 +821,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       return;
     }
 
-    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final nowIso = DateTime.now().toIso8601String();
     try {
       final resp = await AttendanceService.checkOut(
         clockOut: nowIso,

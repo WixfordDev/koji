@@ -10,6 +10,7 @@ import 'package:koji/routes/route_helper.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
 import 'package:koji/services/firebase_notification_service.dart';
+import 'package:koji/services/socket_services.dart';
 
 class AuthController extends GetxController {
   RxBool signUpLoading = false.obs;
@@ -179,13 +180,20 @@ class AuthController extends GetxController {
       );
       await PrefsHelper.setString(AppConstants.email, email);
       await PrefsHelper.setString(AppConstants.name, data['fullName'] ?? '');
-      await PrefsHelper.setString(AppConstants.userId, data['id'] ?? '');
+      await PrefsHelper.setString(AppConstants.userId, data['id'] ?? data['_id'] ?? '');
       await PrefsHelper.setString(AppConstants.image, data['image'] ?? '');
 
       var role = data['role'];
 
-      // context.go(AppRoutes.customerBottomNavBar);
       await PrefsHelper.setBool(AppConstants.isLogged, true);
+
+      // Init socket with token + userId so server accepts the connection
+      final accessToken = response.body["data"]["attributes"]["tokens"]["access"]["token"];
+      await SocketServices().init(
+        userId: data['id'],
+        fcmToken: fcmToken,
+        bearerToken: accessToken,
+      );
 
       if (role == "employee") {
         RouteHelper.goToEmployeeBottomNav(context);

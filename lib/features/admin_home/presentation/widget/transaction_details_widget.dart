@@ -117,7 +117,7 @@ class InvoiceDetailsWidget extends StatelessWidget {
           ],
 
           // Other Amount
-          _buildDetailRow("Other Amount:", "৳${otherAmount.toString()}"),
+          _buildDetailRow("Other Amount:", "\$${otherAmount.toString()}"),
           SizedBox(height: 12.h),
 
           // GST
@@ -125,7 +125,7 @@ class InvoiceDetailsWidget extends StatelessWidget {
           SizedBox(height: 12.h),
 
           // Total Due
-          _buildDetailRow("Total Due:", "৳${totalDue.toString()}"),
+          _buildDetailRow("Total Due:", "\$${totalDue.toString()}"),
           SizedBox(height: 16.h),
 
           // Priority & Difficulty (if available)

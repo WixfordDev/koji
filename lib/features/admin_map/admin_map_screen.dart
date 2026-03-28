@@ -18,7 +18,7 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
-  double _radius = 2.0; // miles
+  double _radius = 10000.0; // miles — effectively show all by default
 
   LatLng _currentLocation = const LatLng(23.8103, 90.4125); // default Dhaka
   List<Employee> _employees = [];
@@ -27,12 +27,16 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
   bool _showSuggestions = false;
   String? _trackedEmployeeId; // which employee is currently being tracked
   final Map<String, BitmapDescriptor> _markerIcons = {}; // cached custom icons
+  final Set<String> _subscribedEmployeeIds = {};
+  final Map<String, Map<String, String?>> _allEmployeesMeta = {};
+  Timer? _retryTimer;
+  Timer? _refreshTimer;
+  bool _isLoading = true;
+  bool _cameraInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    SocketServices().socket.emit('employee-live-location');
-    _getCurrentLocation();
     _connectToSocket();
 
     _searchFocus.addListener(() {
@@ -40,12 +44,36 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
         setState(() => _showSuggestions = false);
       }
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _emitSnapshot();
+      // Retry once after 2s if no data
+      _retryTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted && _employees.isEmpty) _emitSnapshot();
+      });
+      // Periodic refresh every 30s to catch newly added employees
+      _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (mounted) _emitSnapshot();
+      });
+    });
+
+    _getCurrentLocation();
+  }
+
+  void _emitSnapshot() {
+    SocketServices().socket.emit('employee-live-location');
   }
 
   @override
   void dispose() {
+    _retryTimer?.cancel();
+    _refreshTimer?.cancel();
+    _unsubscribeAllEmployeeListeners();
     try {
       SocketServices().socket.off('employee-live-location::snapshot');
+      SocketServices().socket.off('employee-live-location');
+      SocketServices().socket.off('connect');
     } catch (_) {}
     _searchController.dispose();
     _searchFocus.dispose();
@@ -54,8 +82,106 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
 
   void _connectToSocket() {
     SocketServices().socket.on('employee-live-location::snapshot', (data) {
+      print('🗺️ [AdminMap] Got snapshot: $data');
       _updateEmployeeLocations(data);
     });
+
+    // fallback — some servers emit back with same event name
+    SocketServices().socket.on('employee-live-location', (data) {
+      if (data is List) {
+        print('🗺️ [AdminMap] Got employee-live-location (no suffix): $data');
+        _updateEmployeeLocations(data);
+      }
+    });
+
+    // Re-emit on reconnect
+    SocketServices().socket.on('connect', (_) {
+      print('🗺️ [AdminMap] Reconnected — re-emitting employee-live-location');
+      _emitSnapshot();
+    });
+  }
+
+  void _subscribeToEmployeeLocations(List<String> ids) {
+    _unsubscribeAllEmployeeListeners();
+    for (final id in ids) {
+      if (id.isEmpty) continue;
+      _subscribedEmployeeIds.add(id);
+      SocketServices().socket.on('location::$id', (data) {
+        _onEmployeeLocationUpdate(id, data);
+      });
+    }
+  }
+
+  void _unsubscribeAllEmployeeListeners() {
+    for (final id in _subscribedEmployeeIds) {
+      SocketServices().socket.off('location::$id');
+    }
+    _subscribedEmployeeIds.clear();
+  }
+
+  void _onEmployeeLocationUpdate(String employeeId, dynamic data) {
+    if (!mounted) return;
+    if (data is! Map<String, dynamic>) return;
+
+    double lat = 0.0, lng = 0.0;
+
+    // Format 1: GeoJSON — {coordinates: [lng, lat]}
+    final coords = data['coordinates'] as List<dynamic>?;
+    if (coords != null && coords.length >= 2) {
+      lng = coords[0]?.toDouble() ?? 0.0;
+      lat = coords[1]?.toDouble() ?? 0.0;
+    }
+
+    // Format 2: direct — {latitude: x, longitude: y}
+    if (lat == 0.0 && lng == 0.0) {
+      lat = (data['latitude'] as num?)?.toDouble() ?? 0.0;
+      lng = (data['longitude'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    print('📍 [AdminMap] location::$employeeId → lat=$lat, lng=$lng | raw=$data');
+    if (lat == 0.0 && lng == 0.0) return;
+
+    final idx = _employees.indexWhere((e) => e.id == employeeId);
+    if (idx != -1) {
+      final old = _employees[idx];
+      final updated = Employee(
+        id: old.id,
+        name: old.name,
+        location: LatLng(lat, lng),
+        image: old.image,
+      );
+      setState(() {
+        _employees[idx] = updated;
+        _applyFilter(_searchController.text);
+      });
+    } else {
+      // Was [0,0] in snapshot — now has real location, add to map
+      final meta = _allEmployeesMeta[employeeId];
+      final name = meta?['name'] ?? 'Employee';
+      final newEmp = Employee(
+        id: employeeId,
+        name: name,
+        location: LatLng(lat, lng),
+        image: meta?['image'],
+      );
+      // Generate icon for newly checked-in employee
+      final key = employeeId;
+      if (!_markerIcons.containsKey(key)) {
+        _buildEmployeeMarkerIcon(name, isTracked: false).then((icon) {
+          _markerIcons[key] = icon;
+          if (mounted) setState(() {});
+        });
+      }
+      setState(() {
+        _employees.add(newEmp);
+        _applyFilter(_searchController.text);
+      });
+    }
+
+    // Keep camera on tracked employee
+    if (_trackedEmployeeId == employeeId) {
+      _moveCameraTo(LatLng(lat, lng));
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -82,14 +208,16 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
       desiredAccuracy: LocationAccuracy.high,
     );
 
+    final adminLatLng = LatLng(position.latitude, position.longitude);
     setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
+      _currentLocation = adminLatLng;
     });
 
+    // Move camera to admin's location immediately
     if (_controller.isCompleted) {
       final controller = await _controller.future;
       controller.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentLocation, 14),
+        CameraUpdate.newLatLngZoom(adminLatLng, 14),
       );
     }
   }
@@ -98,27 +226,40 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     if (data is! List) return;
 
     final List<Employee> newEmployees = [];
-    for (var item in data) {
-      if (item is Map<String, dynamic>) {
-        final locationData = item['location'] as Map<String, dynamic>?;
-        final coordinates = locationData?['coordinates'] as List<dynamic>?;
+    final List<String> allIds = [];
 
-        if (coordinates != null && coordinates.length >= 2) {
-          final double lng = coordinates[0]?.toDouble() ?? 0.0;
-          final double lat = coordinates[1]?.toDouble() ?? 0.0;
-          if (lat != 0.0 || lng != 0.0) {
-            newEmployees.add(Employee(
-              id: item['id'] ?? '',
-              name: item['fullName'] ?? 'Unknown',
-              location: LatLng(lat, lng),
-              image: item['image'],
-            ));
-          }
-        }
+    for (var item in data) {
+      if (item is! Map<String, dynamic>) continue;
+
+      final String id = item['id'] ?? '';
+      final String name = item['fullName'] ?? 'Unknown';
+      final String? image = item['image'];
+
+      // Save meta for ALL employees (even [0,0]) for when they check in later
+      if (id.isNotEmpty) {
+        _allEmployeesMeta[id] = {'name': name, 'image': image};
+        allIds.add(id);
+      }
+
+      final locationData = item['location'] as Map<String, dynamic>?;
+      final coordinates = locationData?['coordinates'] as List<dynamic>?;
+      if (coordinates == null || coordinates.length < 2) continue;
+
+      final double lng = coordinates[0]?.toDouble() ?? 0.0;
+      final double lat = coordinates[1]?.toDouble() ?? 0.0;
+
+      // Only add to visible map if has real location
+      if (lat != 0.0 || lng != 0.0) {
+        newEmployees.add(Employee(
+          id: id,
+          name: name,
+          location: LatLng(lat, lng),
+          image: image,
+        ));
       }
     }
 
-    // Generate custom marker icons for new employees
+    // Generate custom marker icons for visible employees
     for (final emp in newEmployees) {
       final key = emp.id.isNotEmpty ? emp.id : emp.name;
       if (!_markerIcons.containsKey(key)) {
@@ -131,17 +272,17 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
 
     setState(() {
       _employees = newEmployees;
+      _isLoading = false;
       _applyFilter(_searchController.text);
     });
 
-    // If we are tracking a specific employee, keep camera on them
-    if (_trackedEmployeeId != null) {
-      final tracked = _employees
-          .where((e) => e.id == _trackedEmployeeId)
-          .toList();
-      if (tracked.isNotEmpty) {
-        _moveCameraTo(tracked.first.location);
-      }
+    // Subscribe to location::{id} for ALL employees (including [0,0] ones)
+    _subscribeToEmployeeLocations(allIds);
+
+    // Fit camera only on first load — not on every 5s refresh
+    if (!_cameraInitialized && newEmployees.isNotEmpty) {
+      _cameraInitialized = true;
+      _fitCameraToEmployees(newEmployees);
     }
   }
 
@@ -150,9 +291,9 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     String name, {
     bool isTracked = false,
   }) async {
-    const double size = 120;
-    const double circleR = 36;
-    const double pinTip = 12;
+    const double size = 160;
+    const double circleR = 42;
+    const double pinTip = 14;
     const double labelPad = 6;
 
     final Color bg = isTracked ? const Color(0xFFF48201) : AppColor.primaryColor;
@@ -209,15 +350,16 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     );
 
     // ── Name label below pin ──────────────────────────────────────
+    final displayName = name.split(' ').take(2).join(' '); // first + last name
     final namePainter = TextPainter(
       text: TextSpan(
-        text: name.split(' ').first, // first name only
+        text: displayName,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
           shadows: [
-            Shadow(color: Colors.black54, blurRadius: 3),
+            Shadow(color: Colors.black87, blurRadius: 4),
           ],
         ),
       ),
@@ -248,7 +390,10 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
     final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
-    return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
+    return BitmapDescriptor.bytes(
+      bytes!.buffer.asUint8List(),
+      width: size / 2, // scale down for proper map size
+    );
   }
 
   String _initialsFrom(String name) {
@@ -320,6 +465,38 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     }
   }
 
+  Future<void> _fitCameraToEmployees(List<Employee> employees) async {
+    if (!_controller.isCompleted) return;
+    if (employees.isEmpty) return;
+
+    if (employees.length == 1) {
+      // Single employee — zoom to them
+      await _moveCameraTo(employees.first.location, zoom: 14);
+      return;
+    }
+
+    // Multiple employees — fit bounds to show all
+    double minLat = employees.first.location.latitude;
+    double maxLat = employees.first.location.latitude;
+    double minLng = employees.first.location.longitude;
+    double maxLng = employees.first.location.longitude;
+
+    for (final emp in employees) {
+      if (emp.location.latitude < minLat) minLat = emp.location.latitude;
+      if (emp.location.latitude > maxLat) maxLat = emp.location.latitude;
+      if (emp.location.longitude < minLng) minLng = emp.location.longitude;
+      if (emp.location.longitude > maxLng) maxLng = emp.location.longitude;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat - 0.01, minLng - 0.01),
+      northeast: LatLng(maxLat + 0.01, maxLng + 0.01),
+    );
+
+    final controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+  }
+
   void _clearSearch() {
     _searchController.clear();
     _searchFocus.unfocus();
@@ -367,8 +544,8 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
                 ),
                 Slider(
                   min: 1,
-                  max: 20,
-                  divisions: 19,
+                  max: 10000,
+                  divisions: 100,
                   activeColor: AppColor.primaryColor,
                   value: tempRadius,
                   onChanged: (value) =>
@@ -499,6 +676,14 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            tooltip: 'Refresh employees',
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _emitSnapshot();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.white),
             onPressed: _openFilterScreen,
           ),
@@ -520,6 +705,15 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
               myLocationButtonEnabled: true,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
+                // Move to admin's location if already obtained
+                final isDefaultLocation =
+                    _currentLocation.latitude == 23.8103 &&
+                    _currentLocation.longitude == 90.4125;
+                if (!isDefaultLocation) {
+                  controller.animateCamera(
+                    CameraUpdate.newLatLngZoom(_currentLocation, 14),
+                  );
+                }
               },
               onTap: (_) {
                 // dismiss suggestions when tapping map
@@ -685,6 +879,44 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
               ),
             ),
 
+            // ── Loading indicator ─────────────────────────────────
+            if (_isLoading)
+              Positioned(
+                bottom: 52.h,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 14.r,
+                          height: 14.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColor.primaryColor,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Loading employees...',
+                          style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
             // ── Employee count chip ───────────────────────────────
             Positioned(
               bottom: 20.h,
@@ -705,9 +937,11 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
                     ],
                   ),
                   child: Text(
-                    _trackedEmployeeId != null
-                        ? "Tracking: ${_filteredEmployees.firstOrNull?.name ?? ''}"
-                        : "${_filteredEmployees.length} employee${_filteredEmployees.length == 1 ? '' : 's'} in view",
+                    _isLoading
+                        ? 'Connecting...'
+                        : _trackedEmployeeId != null
+                            ? "Tracking: ${_filteredEmployees.firstOrNull?.name ?? ''}"
+                            : "${_filteredEmployees.length} employee${_filteredEmployees.length == 1 ? '' : 's'} in view",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 12.sp,
