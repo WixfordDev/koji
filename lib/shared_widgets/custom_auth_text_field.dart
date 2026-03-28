@@ -127,7 +127,7 @@ class _CustomAuthTextFieldState extends State<CustomAuthTextField> {
         obscureText: _isObscured,
         keyboardType: widget.keyboardType,
         maxLines: widget.maxLines,
-        readOnly: widget.readOnly && widget.onSuffixTap == null,
+        readOnly: widget.readOnly,
         validator: _validateInput,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(

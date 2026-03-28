@@ -87,7 +87,7 @@ class _AdminTaskListScreenState extends State<AdminTaskListScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.currency_lira),
+                              Icon(Icons.attach_money),
                               Text("In Progress",style: TextStyle(fontSize: 17.sp),)
                             ],
                           ),
@@ -109,7 +109,7 @@ class _AdminTaskListScreenState extends State<AdminTaskListScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.currency_lira,color: Colors.white,),
+                              Icon(Icons.attach_money,color: Colors.white,),
                               Text("In Progress",style: TextStyle(fontSize: 17.sp,color: Colors.white),)
                             ],
                           ),

@@ -5,9 +5,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:koji/services/socket_services.dart';
-import 'package:koji/helpers/prefs_helper.dart';
-import 'package:koji/models/task_model.dart';
-import 'dart:convert';
 
 class TrackingScreen extends StatefulWidget {
   @override
@@ -22,81 +19,150 @@ class _TrackingScreenState extends State<TrackingScreen> {
   LatLng _currentLocation = LatLng(23.8103, 90.4125); // default Dhaka
   List<Employee> _employees = [];
   List<Employee> _filteredEmployees = [];
-  List<TaskModel> _allTasks = []; // Store all tasks for search
-  String _searchType = 'All'; // Current search type
-  List<String> _searchTypes = ['All', 'Name', 'Location', 'Department', 'Task Status'];
+  String _searchType = 'All';
+  final List<String> _searchTypes = ['All', 'Name'];
+  final Set<String> _subscribedEmployeeIds = {};
+  // Stores name/image for ALL employees (including [0,0]) for when they check in
+  final Map<String, Map<String, String?>> _allEmployeesMeta = {};
+  Timer? _retryTimer;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    SocketServices().socket.emit('employee-live-location');
-    _getCurrentLocation();
     _connectToSocket();
-    _loadAllTasks(); // Load all tasks for search
+    _getCurrentLocation();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _requestEmployeeLocations();
+      _retryTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted && _employees.isEmpty) _requestEmployeeLocations();
+      });
+      _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (mounted) _requestEmployeeLocations();
+      });
+    });
   }
 
   @override
   void dispose() {
+    _retryTimer?.cancel();
+    _refreshTimer?.cancel();
+    _unsubscribeAllEmployeeListeners();
     try {
-      // Remove all socket listeners
-      if (SocketServices().socket != null) {
-        SocketServices().socket.off('employee-live-location::snapshot');
-        SocketServices().socket.off('connect');
-        SocketServices().socket.off('disconnect');
-        SocketServices().socket.off('error');
-      }
+      SocketServices().socket.off('employee-live-location::snapshot');
+      SocketServices().socket.off('employee-live-location');
+      SocketServices().socket.off('connect');
     } catch (e) {
-      print('Error disconnecting from socket: $e');
+      print('Error removing socket listeners: $e');
     }
     _searchController.dispose();
     super.dispose();
   }
 
+  void _requestEmployeeLocations() {
+    print('🗺️ [Tracking] Socket connected: ${SocketServices().socket.connected}');
+    print('🗺️ [Tracking] Emitting employee-live-location...');
+    SocketServices().socket.emit('employee-live-location');
+  }
+
   void _connectToSocket() {
-    // Listen for the location snapshot updates
+    // Listen to both possible response event names (debug)
     SocketServices().socket.on('employee-live-location::snapshot', (data) {
+      print('🗺️ [Tracking] Got employee-live-location::snapshot → $data');
       _updateEmployeeLocations(data);
+    });
+
+    SocketServices().socket.on('employee-live-location', (data) {
+      print('🗺️ [Tracking] Got employee-live-location (no suffix) → $data');
+      _updateEmployeeLocations(data);
+    });
+
+    // Re-request on reconnect
+    SocketServices().socket.on('connect', (_) {
+      print('🗺️ [Tracking] Socket reconnected — re-emitting employee-live-location');
+      SocketServices().socket.emit('employee-live-location');
     });
   }
 
-  Future<void> _loadAllTasks() async {
-    // This would typically load tasks from the API
-    // For now, we'll simulate loading tasks
-    // In a real implementation, you would call an API endpoint
-    // Example: final response = await ApiClient.getData(ApiConstants.getAllTaskEndPoint);
-    // Then parse the response to populate _allTasks
-    
-    // Simulated tasks for demonstration
+  void _subscribeToEmployeeLocations(List<Employee> employees) {
+    _unsubscribeAllEmployeeListeners();
+    for (final employee in employees) {
+      if (employee.id.isEmpty) continue;
+      _subscribedEmployeeIds.add(employee.id);
+      SocketServices().socket.on('location::${employee.id}', (data) {
+        _onEmployeeLocationUpdate(employee.id, data);
+      });
+    }
+  }
+
+  void _unsubscribeAllEmployeeListeners() {
+    for (final id in _subscribedEmployeeIds) {
+      SocketServices().socket.off('location::$id');
+    }
+    _subscribedEmployeeIds.clear();
+  }
+
+  void _onEmployeeLocationUpdate(String employeeId, dynamic data) {
+    if (!mounted) return;
+    if (data is! Map<String, dynamic>) return;
+
+    double lat = 0.0, lng = 0.0;
+
+    // Format 1: GeoJSON — {coordinates: [lng, lat]}
+    final coords = data['coordinates'] as List<dynamic>?;
+    if (coords != null && coords.length >= 2) {
+      lng = coords[0]?.toDouble() ?? 0.0;
+      lat = coords[1]?.toDouble() ?? 0.0;
+    }
+
+    // Format 2: direct — {latitude: x, longitude: y}
+    if (lat == 0.0 && lng == 0.0) {
+      lat = (data['latitude'] as num?)?.toDouble() ?? 0.0;
+      lng = (data['longitude'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    print('📍 [Tracking] location::$employeeId → lat=$lat, lng=$lng | raw=$data');
+    if (lat == 0.0 && lng == 0.0) return;
+
     setState(() {
-      _allTasks = [];
+      final idx = _employees.indexWhere((e) => e.id == employeeId);
+      if (idx != -1) {
+        // Existing employee — update location
+        final old = _employees[idx];
+        _employees[idx] = Employee(
+          id: old.id,
+          name: old.name,
+          location: LatLng(lat, lng),
+          image: old.image,
+        );
+      } else {
+        // Employee was [0,0] in snapshot (not yet checked in) — add to map now
+        final meta = _allEmployeesMeta[employeeId];
+        _employees.add(Employee(
+          id: employeeId,
+          name: meta?['name'] ?? 'Employee',
+          location: LatLng(lat, lng),
+          image: meta?['image'],
+        ));
+      }
+      _applyFilter();
     });
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _showLocationServiceDisabledDialog();
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _showPermissionDeniedDialog();
-        return;
-      }
+      if (permission == LocationPermission.denied) return;
     }
+    if (permission == LocationPermission.deniedForever) return;
 
-    if (permission == LocationPermission.deniedForever) {
-      _showPermissionDeniedForeverDialog();
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
+    final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
 
@@ -104,357 +170,162 @@ class _TrackingScreenState extends State<TrackingScreen> {
       _currentLocation = LatLng(position.latitude, position.longitude);
     });
 
-    // Update map position if controller is available
-    if (_controller.isCompleted) {
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(
+    if (!_controller.isCompleted) return;
+
+    // If employees already loaded, don't override their camera position
+    if (_employees.isNotEmpty) {
+      setState(() => _applyFilter());
+    } else {
+      final mapController = await _controller.future;
+      mapController.animateCamera(
         CameraUpdate.newLatLngZoom(_currentLocation, 14),
       );
     }
   }
 
-  // Helper method to get user ID from preferences
-  Future<String?> _getUserId() async {
-    try {
-      return await PrefsHelper.getString('userId');
-    } catch (e) {
-      print('Error getting user ID: $e');
-      return null;
-    }
-  }
-
-  // Helper method to get FCM token
-  Future<String?> _getFcmToken() async {
-    try {
-      return await PrefsHelper.getString('fcmToken');
-    } catch (e) {
-      print('Error getting FCM token: $e');
-      return null;
-    }
-  }
-
   void _updateEmployeeLocations(dynamic data) {
-    if (data is List) {
-      List<Employee> newEmployees = [];
+    print('🗺️ [Tracking] _updateEmployeeLocations called, data type: ${data.runtimeType}, data: $data');
+    if (data is! List) {
+      print('🗺️ [Tracking] Data is NOT a List — skipping');
+      return;
+    }
 
-      for (var item in data) {
-        if (item is Map<String, dynamic>) {
-          // Extract coordinates from the location object
-          var locationData = item['location'] as Map<String, dynamic>?;
-          var coordinates = locationData?['coordinates'] as List<dynamic>?;
+    final newEmployees = <Employee>[];
+    final allEmployeesForSubscription = <Employee>[];
 
-          if (coordinates != null && coordinates.length >= 2) {
-            double lng = coordinates[0]?.toDouble() ?? 0.0; // Longitude is the first element
-            double lat = coordinates[1]?.toDouble() ?? 0.0; // Latitude is the second element
-            String fullName = item['fullName'] ?? 'Unknown Employee';
+    for (final item in data) {
+      if (item is! Map<String, dynamic>) continue;
+      final id = item['id'] ?? '';
+      final name = item['fullName'] ?? 'Unknown';
+      final image = item['image'];
 
-            // Only add employees with valid coordinates (not 0,0 which indicates default location)
-            if (lat != 0.0 || lng != 0.0) {
-              newEmployees.add(
-                Employee(
-                  id: item['id'] ?? '',
-                  name: fullName,
-                  location: LatLng(lat, lng),
-                  image: item['image'],
-                  department: item['department'] ?? '', // Assuming department is available in the data
-                  status: item['status'] ?? 'active', // Assuming status is available in the data
-                ),
-              );
-            }
-          }
-        }
+      final locationData = item['location'] as Map<String, dynamic>?;
+      final coordinates = locationData?['coordinates'] as List<dynamic>?;
+
+      double lng = 0.0;
+      double lat = 0.0;
+      if (coordinates != null && coordinates.length >= 2) {
+        lng = coordinates[0]?.toDouble() ?? 0.0;
+        lat = coordinates[1]?.toDouble() ?? 0.0;
       }
 
-      setState(() {
-        _employees = newEmployees;
-        _filteredEmployees = _employees.where((employee) {
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            employee.location.latitude,
-            employee.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          return distanceInMiles <= _radius;
-        }).toList();
-      });
+      final employee = Employee(
+        id: id,
+        name: name,
+        // Use default off-screen location for unset coords — will update on check-in
+        location: LatLng(lat, lng),
+        image: image,
+      );
+
+      allEmployeesForSubscription.add(employee);
+
+      // Save meta for all employees so we can add them to map when they check in
+      if (id.isNotEmpty) {
+        _allEmployeesMeta[id] = {'name': name, 'image': image};
+      }
+
+      // Only show on map if has real location (not 0,0)
+      if (lat != 0.0 || lng != 0.0) {
+        newEmployees.add(employee);
+      }
     }
-  }
 
-  void _filterEmployees() {
     setState(() {
-      _filteredEmployees = _employees.where((employee) {
-        double distanceInMeters = Geolocator.distanceBetween(
-          _currentLocation.latitude,
-          _currentLocation.longitude,
-          employee.location.latitude,
-          employee.location.longitude,
-        );
-        double distanceInMiles = distanceInMeters / 1609.34;
-        return distanceInMiles <= _radius;
-      }).toList();
+      _employees = newEmployees;
+      _applyFilter();
     });
+
+    // Subscribe to ALL employees (including [0,0] ones) so we catch check-ins
+    _subscribeToEmployeeLocations(allEmployeesForSubscription);
   }
 
-  void _openFilterScreen() {
+  void _applyFilter() {
+    final query = _searchController.text.toLowerCase();
+    _filteredEmployees = _employees.where((e) {
+      final withinRadius = _isWithinRadius(e.location);
+      if (!withinRadius) return false;
+      if (query.isEmpty) return true;
+      return e.name.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  bool _isWithinRadius(LatLng location) {
+    final distanceMeters = Geolocator.distanceBetween(
+      _currentLocation.latitude,
+      _currentLocation.longitude,
+      location.latitude,
+      location.longitude,
+    );
+    return (distanceMeters / 1609.34) <= _radius;
+  }
+
+  void _openFilterSheet() {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          height: 320,
-          child: Column(
-            children: [
-              Text('Filter', style: TextStyle(fontSize: 20)),
-              Divider(),
-
-              SizedBox(height: 20.h),
-              Text('Miles From Me: ${_radius.toStringAsFixed(1)}'),
-              Slider(
-                min: 1,
-                max: 20,
-                value: _radius,
-                onChanged: (value) {
-                  setState(() {
-                    _radius = value;
-                    _filterEmployees(); // Update filter when slider changes
-                  });
-                },
-              ),
-
-              Spacer(),
-
-              CustomButton(
-                boderColor: Colors.transparent,
-                color: Colors.redAccent,
-                title: "Apply",
-                onpress: () {
-                  _filterEmployees();
-                  Navigator.pop(context);
-                },
-              ),
-
-              SizedBox(height: 50.h),
-            ],
-          ),
-        );
+        return StatefulBuilder(builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.all(16),
+            height: 300,
+            child: Column(
+              children: [
+                Text('Filter', style: TextStyle(fontSize: 20)),
+                Divider(),
+                SizedBox(height: 20.h),
+                Text('Miles From Me: ${_radius.toStringAsFixed(1)}'),
+                Slider(
+                  min: 1,
+                  max: 20,
+                  value: _radius,
+                  onChanged: (value) {
+                    setSheetState(() => _radius = value);
+                    setState(() => _applyFilter());
+                  },
+                ),
+                Spacer(),
+                CustomButton(
+                  boderColor: Colors.transparent,
+                  color: Colors.redAccent,
+                  title: "Apply",
+                  onpress: () => Navigator.pop(context),
+                ),
+                SizedBox(height: 50.h),
+              ],
+            ),
+          );
+        });
       },
     );
   }
 
-  void _showLocationServiceDisabledDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Location Services Disabled"),
-        content: Text("Please enable location services to use this feature."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Location Permission Denied"),
-        content: Text(
-          "Location permission is needed to show your location on the map.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPermissionDeniedForeverDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Location Permission Permanently Denied"),
-        content: Text(
-          "Location permission is permanently denied. Please enable it in app settings.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Enhanced search functionality
-  void _performSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredEmployees = _employees.where((employee) {
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            employee.location.latitude,
-            employee.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          return distanceInMiles <= _radius;
-        }).toList();
-      });
-      return;
-    }
-
-    List<Employee> searchResults = [];
-
-    switch (_searchType) {
-      case 'All':
-        searchResults = _employees.where((e) {
-          bool matchesName = e.name.toLowerCase().contains(query.toLowerCase());
-          bool matchesDepartment = e.department.toLowerCase().contains(query.toLowerCase());
-          bool matchesStatus = e.status.toLowerCase().contains(query.toLowerCase());
-          
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          
-          return (matchesName || matchesDepartment || matchesStatus) && distanceInMiles <= _radius;
-        }).toList();
-        break;
-        
-      case 'Name':
-        searchResults = _employees.where((e) {
-          bool matchesName = e.name.toLowerCase().contains(query.toLowerCase());
-          
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          
-          return matchesName && distanceInMiles <= _radius;
-        }).toList();
-        break;
-        
-      case 'Location':
-        // For location search, we could match against location names if available
-        // For now, we'll just match against the coordinates
-        searchResults = _employees.where((e) {
-          // In a real implementation, you might have location names stored
-          // For now, we'll just return all employees within the radius
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          
-          return distanceInMiles <= _radius;
-        }).toList();
-        break;
-        
-      case 'Department':
-        searchResults = _employees.where((e) {
-          bool matchesDepartment = e.department.toLowerCase().contains(query.toLowerCase());
-          
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          
-          return matchesDepartment && distanceInMiles <= _radius;
-        }).toList();
-        break;
-        
-      case 'Task Status':
-        searchResults = _employees.where((e) {
-          bool matchesStatus = e.status.toLowerCase().contains(query.toLowerCase());
-          
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          
-          return matchesStatus && distanceInMiles <= _radius;
-        }).toList();
-        break;
-        
-      default:
-        searchResults = _employees.where((e) {
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation.latitude,
-            _currentLocation.longitude,
-            e.location.latitude,
-            e.location.longitude,
-          );
-          double distanceInMiles = distanceInMeters / 1609.34;
-          return distanceInMiles <= _radius;
-        }).toList();
-        break;
-    }
-
-    setState(() {
-      _filteredEmployees = searchResults;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    Set<Marker> markers = _filteredEmployees
-        .map(
-          (e) => Marker(
-            markerId: MarkerId(e.id.isNotEmpty ? e.id : e.name),
-            position: e.location,
-            infoWindow: InfoWindow(
-              title: e.name,
-              snippet: 'Department: ${e.department}\nStatus: ${e.status}',
-            ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueGreen,
-            ),
-          ),
-        )
-        .toSet();
-
-    // Add current location marker
-    markers.add(
+    final markers = <Marker>{
+      // Admin's current location
       Marker(
-        markerId: MarkerId("current_location"),
+        markerId: const MarkerId('current_location'),
         position: _currentLocation,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: InfoWindow(title: "You"),
+        infoWindow: const InfoWindow(title: 'You'),
       ),
-    );
+      // Employee markers
+      ..._filteredEmployees.map((e) => Marker(
+            markerId: MarkerId(e.id.isNotEmpty ? e.id : e.name),
+            position: e.location,
+            infoWindow: InfoWindow(title: e.name),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+          )),
+    };
 
-    // Add radius circle around user's location
-    Set<Circle> circles = {
+    final circles = <Circle>{
       Circle(
-        circleId: CircleId("radius_circle"),
+        circleId: const CircleId('radius_circle'),
         center: _currentLocation,
-        radius: _radius * 1609.34, // convert miles → meters
+        radius: _radius * 1609.34,
         fillColor: Colors.blue.withOpacity(0.15),
         strokeColor: Colors.blueAccent,
         strokeWidth: 2,
@@ -463,20 +334,23 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: SizedBox(),
-        title: Text("Employee Tracking"),
+        leading: const SizedBox(),
+        title: const Text('Employee Tracking'),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: _openFilterScreen,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh employees',
+            onPressed: _requestEmployeeLocations,
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: _openFilterSheet,
           ),
         ],
       ),
       body: Stack(
-        clipBehavior: Clip.none,
         children: [
-          // Google Map with radius circle
           GoogleMap(
             mapType: MapType.normal,
             initialCameraPosition: CameraPosition(
@@ -487,12 +361,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
             circles: circles,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
-            onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
-            },
+            onMapCreated: (c) => _controller.complete(c),
           ),
 
-          // Search Field (Floating Style) with enhanced search options
+          // Search bar
           SafeArea(
             child: Positioned(
               top: 100.h,
@@ -503,7 +375,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 6,
@@ -511,63 +383,28 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     ),
                   ],
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Search type selector
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                      ),
-                      child: DropdownButton<String>(
-                        value: _searchType,
-                        isExpanded: true,
-                        underline: Container(color: Colors.transparent),
-                        items: _searchTypes.map((String type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _searchType = newValue!;
-                            _performSearch(_searchController.text);
-                          });
-                        },
-                      ),
-                    ),
-                    
-                    // Search input field
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        hintText: "Search by ${_searchType.toLowerCase()}...",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        _performSearch(value);
-                      },
-                    ),
-                  ],
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search by name...',
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                  onChanged: (_) => setState(() => _applyFilter()),
                 ),
               ),
             ),
           ),
 
-          // Status indicator
+          // Live / Offline badge
           Positioned(
             top: 10,
             right: 10,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: SocketServices().socket.connected
                     ? Colors.green
@@ -575,11 +412,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                SocketServices().socket.connected ? "Live" : "Offline",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                SocketServices().socket.connected ? 'Live' : 'Offline',
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -594,15 +429,11 @@ class Employee {
   final String name;
   final LatLng location;
   final String? image;
-  final String department;
-  final String status;
 
-  Employee({
+  const Employee({
     required this.id,
     required this.name,
     required this.location,
     this.image,
-    this.department = '',
-    this.status = 'active',
   });
 }

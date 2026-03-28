@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:koji/services/location_service.dart';
+import 'package:koji/services/socket_services.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 
 class EmployeeLocationController extends GetxController {
   final LocationService _locationService = LocationService();
@@ -11,28 +13,59 @@ class EmployeeLocationController extends GetxController {
   RxString currentAddressName = ''.obs;
 
   StreamSubscription<Position>? _positionSubscription;
-  Position? _lastSentPosition;
+  Timer? _periodicTimer;
+  String? _myUserId;
 
-  // Update when moved at least 10 meters (~0.0001 degree)
-  static const double _distanceThresholdMeters = 10.0;
+  // ─── Periodic emit every 5s (home screen) ───────────────────────────────
 
-  /// Start location tracking — call this on check-in
+  /// Start emitting location every 5 seconds — call on home screen load
+  Future<void> startPeriodicEmit() async {
+    _myUserId = await PrefsHelper.getString('userId');
+    print('🚀 [Location] startPeriodicEmit called | userId=$_myUserId');
+    _subscribeToOwnLocation();
+
+    // Emit immediately, then every 5 seconds
+    await _emitCurrentPosition();
+    _periodicTimer?.cancel();
+    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      print('⏱️ [Location] Timer tick — emitting location...');
+      _emitCurrentPosition();
+    });
+    print('✅ [Location] Periodic timer started');
+  }
+
+  /// Stop periodic emit — call on home screen dispose
+  void stopPeriodicEmit() {
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
+    print('🛑 [Location] Periodic emit stopped');
+  }
+
+  Future<void> _emitCurrentPosition() async {
+    try {
+      print('📡 [Location] Getting current position...');
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      print('📍 [Location] Got position: lat=${position.latitude}, lng=${position.longitude}');
+      await _onPositionUpdate(position);
+    } catch (e) {
+      print('❌ [Location] _emitCurrentPosition error: $e');
+    }
+  }
+
+  // ─── Continuous tracking (check-in) ─────────────────────────────────────
+
+  /// Start GPS stream tracking — call this on check-in
   Future<void> startLocationTracking() async {
     if (isTrackingActive.value) return;
 
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
-    }
-    if (permission == LocationPermission.deniedForever) return;
+    _myUserId ??= await PrefsHelper.getString('userId');
+    _subscribeToOwnLocation();
 
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // Only fires when device moves ≥10 meters
+      distanceFilter: 10,
     );
 
     _positionSubscription = Geolocator.getPositionStream(
@@ -41,7 +74,7 @@ class EmployeeLocationController extends GetxController {
 
     isTrackingActive.value = true;
 
-    // Send initial position immediately after check-in
+    // Send initial position immediately
     try {
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -50,31 +83,47 @@ class EmployeeLocationController extends GetxController {
     } catch (_) {}
   }
 
-  /// Called on every position update from the stream
-  Future<void> _onPositionUpdate(Position position) async {
-    if (_lastSentPosition != null) {
-      final distance = Geolocator.distanceBetween(
-        _lastSentPosition!.latitude,
-        _lastSentPosition!.longitude,
-        position.latitude,
-        position.longitude,
-      );
-      if (distance < _distanceThresholdMeters) return;
+  /// Stop GPS stream — call on check-out
+  void stopLocationTracking() {
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
+    isTrackingActive.value = false;
+
+    if (_myUserId != null && _myUserId!.isNotEmpty) {
+      SocketServices().socket.off('location::$_myUserId');
     }
+  }
 
-    _lastSentPosition = position;
+  // ─── Shared helpers ──────────────────────────────────────────────────────
 
+  /// Listen to location::{userId} — server broadcasts our location back
+  void _subscribeToOwnLocation() {
+    if (_myUserId == null || _myUserId!.isEmpty) return;
+    SocketServices().socket.off('location::$_myUserId'); // avoid duplicates
+    SocketServices().socket.on('location::$_myUserId', (data) {
+      if (data is Map<String, dynamic>) {
+        final name = data['locationName'];
+        if (name != null && name.toString().isNotEmpty) {
+          currentAddressName.value = name.toString();
+        }
+      }
+    });
+  }
+
+  Future<void> _onPositionUpdate(Position position) async {
     final locationName = await _getAddressName(
       position.latitude,
       position.longitude,
     );
     currentAddressName.value = locationName;
 
+    print('📤 [Location] Emitting location-update → lat=${position.latitude}, lng=${position.longitude}, name=$locationName');
     await _locationService.sendLocationUpdate(
       latitude: position.latitude,
       longitude: position.longitude,
       locationName: locationName,
     );
+    print('✅ [Location] Emit done');
   }
 
   Future<String> _getAddressName(double latitude, double longitude) async {
@@ -83,26 +132,19 @@ class EmployeeLocationController extends GetxController {
       if (placemarks.isNotEmpty) {
         final place = placemarks[0];
         String address = '';
-
         if (place.street?.isNotEmpty == true) address += place.street!;
         if (place.subLocality?.isNotEmpty == true) {
-          address +=
-              address.isEmpty ? place.subLocality! : ', ${place.subLocality}';
+          address += address.isEmpty ? place.subLocality! : ', ${place.subLocality}';
         }
         if (place.locality?.isNotEmpty == true) {
-          address +=
-              address.isEmpty ? place.locality! : ', ${place.locality}';
+          address += address.isEmpty ? place.locality! : ', ${place.locality}';
         }
         if (place.administrativeArea?.isNotEmpty == true) {
-          address += address.isEmpty
-              ? place.administrativeArea!
-              : ', ${place.administrativeArea}';
+          address += address.isEmpty ? place.administrativeArea! : ', ${place.administrativeArea}';
         }
         if (place.country?.isNotEmpty == true) {
-          address +=
-              address.isEmpty ? place.country! : ', ${place.country}';
+          address += address.isEmpty ? place.country! : ', ${place.country}';
         }
-
         return address.isNotEmpty ? address : 'Unknown location';
       }
     } catch (e) {
@@ -111,16 +153,9 @@ class EmployeeLocationController extends GetxController {
     return 'Lat: ${latitude.toStringAsFixed(4)}, Lng: ${longitude.toStringAsFixed(4)}';
   }
 
-  /// Stop location tracking — call this on check-out
-  void stopLocationTracking() {
-    _positionSubscription?.cancel();
-    _positionSubscription = null;
-    _lastSentPosition = null;
-    isTrackingActive.value = false;
-  }
-
   @override
   void onClose() {
+    stopPeriodicEmit();
     stopLocationTracking();
     super.onClose();
   }

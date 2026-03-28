@@ -260,7 +260,7 @@ class AdminTaskCompleteCard extends StatelessWidget {
             _buildInfoRow('Invoice No.:', _extractInvoiceNo(taskDetails!.invoicePath!)),
 
           if (taskDetails?.totalAmount != null)
-            _buildInfoRow('Amount:', '৳${taskDetails?.totalAmount}'),
+            _buildInfoRow('Amount:', '\$${taskDetails?.totalAmount}'),
 
           SizedBox(height: 12.h),
 

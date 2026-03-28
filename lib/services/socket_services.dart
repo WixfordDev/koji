@@ -15,29 +15,28 @@ class SocketServices {
 
   SocketServices._internal();
 
-  Future<void> init({String? userId, fcmToken}) async {
-    // if(socket.connected){
-    //   disconnect(isManual: true);
-    // }
+  Future<void> init({String? userId, fcmToken, String? bearerToken}) async {
+    final authToken = bearerToken ?? token ?? '';
 
     socket = IO.io(
       ApiConstants.socketUrl,
-      // '${ApiConstants.imageBaseUrl}?token=$token',
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableReconnection()
           .setTimeout(45000)
           .enableForceNew()
+          .setAuth({'token': authToken})
+          .setExtraHeaders({'Authorization': 'Bearer $authToken'})
           .build(),
     );
 
-    _setupSocketListeners(token.toString());
+    _setupSocketListeners(authToken);
     socket.onConnect((_) {
       socket.emit("user-connected", {
         "userId": "$userId",
         "fcmToken": "$fcmToken",
       });
-    }); // Ensure connection starts
+    });
   }
 
   void _setupSocketListeners(String token) {

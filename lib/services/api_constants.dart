@@ -2,13 +2,13 @@ class ApiConstants {
   // static const String baseUrl = "http://192.168.10.80:8080/api/v1";
   // static const String imageBaseUrl = "http://192.168.10.80:8080";
 
-  static const String baseUrl = "https://serverkoji.wixford.com/api/v1";
-  static const String imageBaseUrl = "https://serverkoji.wixford.com";
-  static const String socketUrl = "https://socketkoji.wixford.com";
+  // static const String baseUrl = "https://serverkoji.wixford.com/api/v1";
+  // static const String imageBaseUrl = "https://serverkoji.wixford.com";
+  // static const String socketUrl = "https://socketkoji.wixford.com";
 
-  // static const String baseUrl = "https://koji.sobhoy.com/api/v1/";
-  // static const String imageBaseUrl = "https://koji.sobhoy.com";
-  // static const String socketUrl = "https://koji.sobhoy.com";
+  static const String baseUrl = "https://api-koji.wixford.com/api/v1";
+  static const String imageBaseUrl = "https://api-koji.wixford.com";
+  static const String socketUrl = "https://ws-koji.wixford.com";
 
   static const String signUpEndPoint = "/auth/register";
   static const String loginUpEndPoint = "/auth/login";
