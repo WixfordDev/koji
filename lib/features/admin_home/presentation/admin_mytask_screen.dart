@@ -14,6 +14,8 @@ class AdminMyTaskScreen extends StatefulWidget {
 
 class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
   late AdminHomeController adminHomeController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -22,6 +24,15 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       adminHomeController.getAllListTasks();
     });
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   // Status enum values as requested
@@ -37,7 +48,9 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
           children: [
             const SizedBox(height: 8),
             _buildAppBar(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
+            _buildSearchField(),
+            const SizedBox(height: 14),
             _buildTabs(),
             const SizedBox(height: 20),
             Expanded(child: _buildTaskList()),
@@ -72,6 +85,37 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
           const Spacer(),
           const SizedBox(width: 20),
         ],
+      ),
+    );
+  }
+
+  // ------------------------------ SEARCH FIELD ------------------------------
+  Widget _buildSearchField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: const Color(0xffF3F4F6),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: const TextStyle(fontSize: 15),
+          decoration: InputDecoration(
+            hintText: 'Search by customer, priority...',
+            hintStyle: const TextStyle(color: Color(0xff9CA3AF), fontSize: 14),
+            prefixIcon: const Icon(Icons.search, color: Color(0xff9CA3AF), size: 20),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => _searchController.clear(),
+                    child: const Icon(Icons.close, color: Color(0xff9CA3AF), size: 18),
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
       ),
     );
   }
@@ -131,73 +175,87 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
 
   // ------------------------------ TASK LIST ------------------------------
   Widget _buildTaskList() {
-    return GetBuilder<AdminHomeController>(
-      builder: (controller) {
-        if (controller.getAllListTaskLoading.value) {
-          return const Center(child: CustomLoader());
-        }
+    return Obx(() {
+      if (adminHomeController.getAllListTaskLoading.value) {
+        return const Center(child: CustomLoader());
+      }
 
-        if (controller.getAllListTask.value.results == null ||
-            controller.getAllListTask.value.results!.isEmpty) {
-          return const Center(child: Text("No tasks found"));
-        }
+      if (adminHomeController.getAllListTask.value.results == null ||
+          adminHomeController.getAllListTask.value.results!.isEmpty) {
+        return const Center(child: Text("No tasks found"));
+      }
 
-        List<Result> filteredTasks = _filterTasks(controller.getAllListTask.value.results!);
+      List<Result> filteredTasks =
+          _filterTasks(adminHomeController.getAllListTask.value.results!);
 
-        if (filteredTasks.isEmpty) {
-          return const Center(child: Text("No tasks found for this status"));
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async {
-            await controller.getAllListTasks();
-          },
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            itemCount: filteredTasks.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final task = filteredTasks[index];
-              final progress = (task.progressPercent ?? 0) / 100.0;
-
-              return _taskCard(
-                title: task.customerName ?? 'Task',
-                status: _formatStatus(task.status ?? 'pending'),
-                statusColor: _getStatusColor(task.status ?? 'pending'),
-                priority: _formatPriority(task.priority ?? 'medium'),
-                progress: progress,
-                date: task.assignDate != null
-                    ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
-                    : 'No date',
-              );
-            },
+      if (filteredTasks.isEmpty) {
+        return Center(
+          child: Text(
+            _searchQuery.isNotEmpty ? 'No results for "$_searchQuery"' : 'No tasks found for this status',
+            style: const TextStyle(color: Colors.grey),
           ),
         );
-      },
-    );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          await adminHomeController.getAllListTasks();
+        },
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          itemCount: filteredTasks.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final task = filteredTasks[index];
+            final progress = (task.progressPercent ?? 0) / 100.0;
+
+            return _taskCard(
+              task: task,
+              title: task.customerName ?? 'Task',
+              status: _formatStatus(task.status ?? 'pending'),
+              statusColor: _getStatusColor(task.status ?? 'pending'),
+              priority: _formatPriority(task.priority ?? 'medium'),
+              progress: progress,
+              date: task.assignDate != null
+                  ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
+                  : 'No date',
+            );
+          },
+        ),
+      );
+    });
   }
 
-  // Filter tasks based on selected status tab
+  // Filter tasks based on selected status tab and search query
   List<Result> _filterTasks(List<Result> tasks) {
-    if (selectedTab == 0) { // All tab
-      return tasks;
+    List<Result> filtered = tasks;
+
+    // Status filter
+    if (selectedTab != 0) {
+      String selectedStatus = statusFilters[selectedTab].toLowerCase();
+      filtered = filtered.where((task) {
+        String taskStatus = (task.status ?? 'pending').toLowerCase();
+        if (taskStatus == "submited" && selectedStatus == "submitted") return true;
+        if (taskStatus == "submitted" && selectedStatus == "submited") return true;
+        return taskStatus == selectedStatus;
+      }).toList();
     }
 
-    String selectedStatus = statusFilters[selectedTab].toLowerCase();
+    // Search filter
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((task) {
+        final name = (task.customerName ?? '').toLowerCase();
+        final priority = (task.priority ?? '').toLowerCase();
+        final status = (task.status ?? '').toLowerCase();
+        final address = (task.customerAddress ?? '').toLowerCase();
+        return name.contains(_searchQuery) ||
+            priority.contains(_searchQuery) ||
+            status.contains(_searchQuery) ||
+            address.contains(_searchQuery);
+      }).toList();
+    }
 
-    return tasks.where((task) {
-      String taskStatus = (task.status ?? 'pending').toLowerCase();
-
-      // Handle submitted vs submited
-      if (taskStatus == "submited" && selectedStatus == "submitted") {
-        return true;
-      }
-      if (taskStatus == "submitted" && selectedStatus == "submited") {
-        return true;
-      }
-
-      return taskStatus == selectedStatus;
-    }).toList();
+    return filtered;
   }
 
   // Format status for display
@@ -251,6 +309,7 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
 
   // ------------------------------ CARD COMPONENT ------------------------------
   Widget _taskCard({
+    required Result task,
     required String title,
     required String status,
     required Color statusColor,
@@ -280,6 +339,17 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => context.pushNamed('adminEditTaskScreen', extra: task),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF234176).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF234176)),
                 ),
               ),
             ],

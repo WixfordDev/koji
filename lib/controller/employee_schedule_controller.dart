@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:koji/models/task_model.dart';
 import 'package:koji/services/api_client.dart';
-import 'package:koji/services/employee_task_service.dart';
 
 class EmployeeScheduleController extends GetxController {
   final RxList<TaskModel> _tasks = <TaskModel>[].obs;
@@ -10,8 +9,12 @@ class EmployeeScheduleController extends GetxController {
   final RxString _selectedDate = ''.obs;
   final Rx<TaskModel?> _selectedTask = Rx<TaskModel?>(null);
 
+  // Cache: date string -> task list (used for calendar indicators on all dates)
+  final Map<String, List<TaskModel>> _tasksByDate = {};
+  final Set<String> _fetchedMonths = {};
+
   RxList<TaskModel> get tasks => _tasks;
-  RxBool get isLoading => _isLoading.value.obs;
+  RxBool get isLoading => _isLoading;
   String get selectedDate => _selectedDate.value;
   Rx<TaskModel?> get selectedTask => _selectedTask;
 
@@ -21,52 +24,105 @@ class EmployeeScheduleController extends GetxController {
     _selectedDate.value = DateTime.now().toString().split(' ')[0];
   }
 
-  // Method to fetch tasks for a specific date
+  // Fetch tasks for a specific date (selected day)
   Future<void> fetchTasksForDate(String date) async {
-    _selectedDate.value = date; // track the last fetched date
+    _selectedDate.value = date;
     _isLoading.value = true;
+    update();
     try {
       final response = await ApiClient.getData(
-        "/tasks/employ/list?date=${date}",
+        "/tasks/employ/list?date=$date",
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        var data = List<TaskModel>.from(
+        final data = List<TaskModel>.from(
           response.body["data"]['attributes']["results"].map(
             (x) => TaskModel.fromJson(x),
           ),
         );
-
         _tasks.assignAll(data);
+        _tasksByDate[date] = data; // cache for calendar indicators
       } else {
+        _tasks.clear();
+        _tasksByDate[date] = [];
         Get.snackbar(
           'Error',
           'Failed to load tasks for date: $date',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         );
       }
     } catch (e) {
-      print('Error fetching tasks for date $date: $e');
+      _tasks.clear();
+      _tasksByDate[date] = [];
       Get.snackbar(
         'Error',
         'Failed to load tasks: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       );
     } finally {
       _isLoading.value = false;
+      update();
+    }
+  }
+
+  // Fetch all dates of a month in background for calendar indicators
+  Future<void> fetchMonthTasks(int year, int month) async {
+    final monthKey = '$year-${month.toString().padLeft(2, '0')}';
+    if (_fetchedMonths.contains(monthKey)) return;
+    _fetchedMonths.add(monthKey);
+
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final List<String> datesToFetch = [];
+
+    for (int day = 1; day <= daysInMonth; day++) {
+      final date =
+          '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+      if (!_tasksByDate.containsKey(date)) {
+        datesToFetch.add(date);
+      }
+    }
+
+    // Fetch in batches of 5 to avoid overwhelming server
+    for (int i = 0; i < datesToFetch.length; i += 5) {
+      final batch = datesToFetch.sublist(
+        i,
+        i + 5 > datesToFetch.length ? datesToFetch.length : i + 5,
+      );
+      await Future.wait(batch.map((d) => _fetchAndCacheDate(d)));
+      update();
+    }
+  }
+
+  Future<void> _fetchAndCacheDate(String date) async {
+    try {
+      final response = await ApiClient.getData(
+        '/tasks/employ/list?date=$date',
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = List<TaskModel>.from(
+          response.body['data']['attributes']['results'].map(
+            (x) => TaskModel.fromJson(x),
+          ),
+        );
+        _tasksByDate[date] = data;
+      } else {
+        _tasksByDate[date] = [];
+      }
+    } catch (_) {
+      _tasksByDate[date] = [];
     }
   }
 
   // New method to fetch single task details (for TaskDetailsScreen)
   Future<void> fetchTaskById(String taskId) async {
     _isLoading.value = true;
+    update();
     try {
-      // Find the task from the loaded tasks list
       final task = _tasks.firstWhere(
         (element) => element.id == taskId,
         orElse: () => TaskModel(
@@ -98,33 +154,26 @@ class EmployeeScheduleController extends GetxController {
 
       if (task.id!.isNotEmpty) {
         _selectedTask.value = task;
-      } else {
-        // If task is not found locally, try to fetch it from API
-        // This would require an API endpoint to fetch individual task
-        print("Task with ID $taskId not found locally");
       }
     } catch (e) {
-      print('Error fetching task details: $e');
       Get.snackbar(
         'Error',
         'Failed to load task details: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       );
     } finally {
       _isLoading.value = false;
+      update();
     }
   }
 
-  // Accept task method — calls POST /tasks/:id/accept
+  // Accept task method
   Future<bool> acceptTask(String taskId) async {
     try {
-      final response = await ApiClient.postData(
-        '/tasks/$taskId/accept',
-        {},
-      );
+      final response = await ApiClient.postData('/tasks/$taskId/accept', {});
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (_selectedDate.value.isNotEmpty) {
           await fetchTasksForDate(_selectedDate.value);
@@ -141,7 +190,6 @@ class EmployeeScheduleController extends GetxController {
         return false;
       }
     } catch (e) {
-      print('Error accepting task: $e');
       Get.snackbar(
         'Error',
         'Failed to accept task: ${e.toString()}',
@@ -153,36 +201,29 @@ class EmployeeScheduleController extends GetxController {
     }
   }
 
-  // Submit task method (for TaskDetailsScreen)
+  // Submit task method
   Future<void> submitTask(String taskId) async {
     try {
-      // Implementation would be in TaskDetailsController
       print('Submitting task: $taskId');
     } catch (e) {
-      print('Error submitting task: $e');
       Get.snackbar(
         'Error',
         'Failed to submit task: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       );
     }
   }
 
-  // Helper method to filter tasks by status
   List<TaskModel> getFilteredTasks(String status) {
-    if (status.toLowerCase() == 'all') {
-      return _tasks.toList();
-    }
+    if (status.toLowerCase() == 'all') return _tasks.toList();
     return _tasks
         .where((task) => task.status?.toLowerCase() == status.toLowerCase())
         .toList();
   }
 
-  // Get count of tasks by status for tab display
-  // isSubmited == true tasks are always counted as "complete"
   int getTaskCountByStatus(String status) {
     if (status.toLowerCase() == 'all') return _tasks.length;
 
@@ -195,13 +236,17 @@ class EmployeeScheduleController extends GetxController {
     }
 
     return _tasks.where((task) {
-      if (task.isSubmited == true) return false; // submitted = complete, skip
+      if (task.isSubmited == true) return false;
       return task.status?.toLowerCase() == status.toLowerCase();
     }).length;
   }
 
-  // Get all tasks for selected date regardless of status
-  List<TaskModel> getAllTasksForSelectedDate() {
-    return _tasks.toList();
+  List<TaskModel> getAllTasksForSelectedDate() => _tasks.toList();
+
+  // Uses cache so all calendar dates show indicators
+  List<TaskModel> getTasksForDay(DateTime day) {
+    final formattedDate =
+        '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+    return _tasksByDate[formattedDate] ?? [];
   }
 }

@@ -138,16 +138,26 @@ class ApiClient extends GetxService {
       );
       request.headers.addAll(headers ?? mainHeaders);
       for (MultipartBody element in multipartBody) {
+        final bytes = await element.file.readAsBytes();
+        final filename = element.file.path.split('/').last;
+        String? mimeType = mime(element.file.path);
         request.files.add(
-          await http.MultipartFile.fromPath(element.key, element.file.path),
+          http.MultipartFile.fromBytes(
+            element.key,
+            bytes,
+            filename: filename,
+            contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+          ),
         );
       }
       request.fields.addAll(body);
       http.Response _response = await http.Response.fromStream(
-        await request.send(),
+        await request.send().timeout(const Duration(seconds: timeoutInSeconds)),
       );
+      print('====> API Response [POST Multipart]: [${_response.statusCode}] $uri\n${_response.body}');
       return handleResponse(_response, uri);
     } catch (e) {
+      print('====> postMultipartData error: $e');
       return const Response(statusCode: 1, statusText: noInternetMessage);
     }
   }
@@ -206,7 +216,7 @@ class ApiClient extends GetxService {
       );
       request.fields.addAll(body);
 
-      if (multipartBody!.isNotEmpty) {
+      if (multipartBody != null && multipartBody.isNotEmpty) {
         multipartBody.forEach((element) async {
           debugPrint("path : ${element.file.path}");
           String? mimeType = mime(element.file.path);
@@ -263,7 +273,7 @@ class ApiClient extends GetxService {
       );
       request.fields.addAll(body);
 
-      if (multipartBody!.isNotEmpty) {
+      if (multipartBody != null && multipartBody.isNotEmpty) {
         multipartBody.forEach((element) async {
           debugPrint("path : ${element.file.path}");
           String? mimeType = mime(element.file.path);

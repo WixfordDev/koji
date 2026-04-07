@@ -337,27 +337,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   },
                 ),
 
-                SizedBox(height: 16.h),
-                _buildLabel('Marital Status'),
-                SizedBox(height: 4.h),
-                GestureDetector(
-                  onTap: _showMaritalStatusSelector,
-                  child: CustomAuthTextField(
-                    controller: TextEditingController(
-                      text: maritalCtrl.text.isNotEmpty
-                          ? maritalCtrl.text[0].toUpperCase() + maritalCtrl.text.substring(1)
-                          : '',
-                    ),
-                    hintText: 'Select marital status',
-                    readOnly: true,
-                    suffixIcon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: const Color(0xFF9E9E9E),
-                      size: 20.sp,
-                    ),
-                    onSuffixTap: _showMaritalStatusSelector,
-                  ),
-                ),
+                // SizedBox(height: 16.h),
+                // _buildLabel('Marital Status'),
+                // SizedBox(height: 4.h),
+                // GestureDetector(
+                //   onTap: _showMaritalStatusSelector,
+                //   child: CustomAuthTextField(
+                //     controller: TextEditingController(
+                //       text: maritalCtrl.text.isNotEmpty
+                //           ? maritalCtrl.text[0].toUpperCase() + maritalCtrl.text.substring(1)
+                //           : '',
+                //     ),
+                //     hintText: 'Select marital status',
+                //     readOnly: true,
+                //     suffixIcon: Icon(
+                //       Icons.keyboard_arrow_down_rounded,
+                //       color: const Color(0xFF9E9E9E),
+                //       size: 20.sp,
+                //     ),
+                //     onSuffixTap: _showMaritalStatusSelector,
+                //   ),
+                // ),
 
                 SizedBox(height: 16.h),
                 _buildLabel('Phone No. *'),

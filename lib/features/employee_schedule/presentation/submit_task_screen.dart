@@ -176,17 +176,35 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> _pickImages() async {
     if (_selectedImages.length >= 3) {
-      Get.snackbar('Maximum Limit', 'You can only select up to 3 images', backgroundColor: Colors.orange, colorText: Colors.white);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You can only select up to 3 images'), backgroundColor: Colors.orange),
+      );
       return;
     }
-    final List<XFile>? images = await _picker.pickMultiImage(maxWidth: 1080, maxHeight: 1080, imageQuality: 85);
+    // No maxWidth/imageQuality — avoids image_picker creating scaled_ temp files
+    // that get deleted before we can use them
+    final List<XFile>? images = await _picker.pickMultiImage();
     if (images != null) {
       int remainingSlots = 3 - _selectedImages.length;
       if (images.length > remainingSlots) {
-        Get.snackbar('Limit Exceeded', 'Only $remainingSlots more images allowed', backgroundColor: Colors.orange, colorText: Colors.white);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Only $remainingSlots more images allowed'), backgroundColor: Colors.orange),
+        );
+      }
+      final dir = await getApplicationDocumentsDirectory();
+      final List<File> permanentFiles = [];
+      for (int i = 0; i < images.take(remainingSlots).length; i++) {
+        final image = images[i];
+        // Read bytes immediately while XFile is still valid, then write to permanent storage
+        final bytes = await image.readAsBytes();
+        final ext = image.path.contains('.') ? '.${image.path.split('.').last}' : '.jpg';
+        final fileName = 'submit_${DateTime.now().millisecondsSinceEpoch}_$i$ext';
+        final permanent = File('${dir.path}/$fileName');
+        await permanent.writeAsBytes(bytes);
+        permanentFiles.add(permanent);
       }
       setState(() {
-        _selectedImages.addAll(images.take(remainingSlots).map((image) => File(image.path)));
+        _selectedImages.addAll(permanentFiles);
       });
     }
   }
@@ -194,10 +212,6 @@ class _TaskScreenState extends State<TaskScreen> {
   void _removeImage(int index) => setState(() => _selectedImages.removeAt(index));
 
   Future<void> _submitTask() async {
-    if (_selectedImages.isEmpty) {
-      Get.snackbar('Signature Required', 'Please add customer signature before submitting', backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
     _showCustomerSignatureDialog();
   }
 
@@ -254,7 +268,9 @@ class _TaskScreenState extends State<TaskScreen> {
                         : () async {
                       final signatureImage = await signatureKey.currentState?.toImage();
                       if (signatureImage == null) {
-                        Get.snackbar('Required', 'Please add customer signature', backgroundColor: Colors.red, colorText: Colors.white);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please add customer signature'), backgroundColor: Colors.red),
+                        );
                         return;
                       }
                       setDialogState(() => isUploading = true);
@@ -262,8 +278,9 @@ class _TaskScreenState extends State<TaskScreen> {
                         final ByteData? byteData = await signatureImage.toByteData(format: ImageByteFormat.png);
                         if (byteData == null) return;
                         final Uint8List pngBytes = byteData.buffer.asUint8List();
-                        final tempDir = await getTemporaryDirectory();
-                        final file = await File('${tempDir.path}/signature.png').create();
+                        // Use permanent dir for signature too (not temp which can be cleared)
+                        final docsDir = await getApplicationDocumentsDirectory();
+                        final file = File('${docsDir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png');
                         await file.writeAsBytes(pngBytes);
 
                         final acceptResponse = await ApiClient.postMultipartData(
@@ -283,13 +300,21 @@ class _TaskScreenState extends State<TaskScreen> {
                             Navigator.pop(dialogContext);
                             _showSuccessDialog();
                           } else {
-                            Get.snackbar('Error', 'Failed to submit task', backgroundColor: Colors.red, colorText: Colors.white);
+                            final err = submitResponse.statusText ?? 'Failed to submit task';
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(err), backgroundColor: Colors.red),
+                            );
                           }
                         } else {
-                          Get.snackbar('Error', 'Failed to accept task', backgroundColor: Colors.red, colorText: Colors.white);
+                          final err = acceptResponse.statusText ?? 'Failed to accept task';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err), backgroundColor: Colors.red),
+                          );
                         }
                       } catch (e) {
-                        Get.snackbar('Error', 'Failed to process: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to process: $e'), backgroundColor: Colors.red),
+                        );
                       } finally {
                         setDialogState(() => isUploading = false);
                       }

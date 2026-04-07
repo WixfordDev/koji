@@ -419,19 +419,28 @@ class DepartmentController extends GetxController {
         return "success";
       } else {
         createNewLoading(false);
-        ToastMessageHelper.showToastMessage(
-          "Failed to create task. Please try again.",
-          title: "Attention",
-        );
-        return null;
+        // Extract clearest possible error from response
+        String serverError;
+        if (response.body is Map) {
+          serverError = response.body['message']?.toString() ??
+              response.body['error']?.toString() ??
+              response.statusText ??
+              'Server error (${response.statusCode})';
+        } else {
+          serverError = response.statusText?.isNotEmpty == true
+              ? response.statusText!
+              : 'Server error (${response.statusCode})';
+        }
+        print('====> createNewTask failed [${ response.statusCode}]: $serverError');
+        return 'error:$serverError'; // prefix so caller can detect API error
       }
     } catch (e) {
       createNewLoading(false);
-      ToastMessageHelper.showToastMessage(
-        "An error occurred: ${e.toString()}",
-        title: "Error",
-      );
-      return null;
+      print('====> createNewTask exception: $e');
+      final msg = e.toString().contains('SocketException') || e.toString().contains('Connection')
+          ? 'No internet connection. Please try again.'
+          : 'Something went wrong. Please try again.';
+      return 'error:$msg';
     }
   }
 
@@ -603,56 +612,32 @@ class DepartmentController extends GetxController {
     required String customerAddress,
     required String notes,
   }) {
-    // if (selectedDepartment.value.isEmpty) {
-    //   return 'Please select a department';
-    // }
+    if (selectedDepartmentId.value.isEmpty) {
+      return 'department'; // field key — screen shows friendly message
+    }
+    if (selectedCategoryId.value.isEmpty) {
+      return 'category';
+    }
+    if (customerName.trim().isEmpty) {
+      return 'customerName';
+    }
+    if (customerNumber.trim().isEmpty) {
+      return 'customerNumber';
+    }
+    if (customerNumber.trim().length < 10) {
+      return 'customerNumberLength';
+    }
+    if (customerAddress.trim().isEmpty) {
+      return 'customerAddress';
+    }
+    if (selectedServiceList.isEmpty) {
+      return 'services';
+    }
+    if (selectedPriority.value.isEmpty) {
+      return 'priority';
+    }
 
-    // if (selectedCategory.value.isEmpty) {
-    //   return 'Please select a service category';
-    // }
-
-    // if (selectedVehicle.value.isEmpty) {
-    //   // New validation for vehicle
-    //   return 'Please select a vehicle';
-    // }
-
-    // if (customerName.trim().isEmpty) {
-    //   return 'Please enter customer name';
-    // }
-
-    // if (customerNumber.trim().isEmpty) {
-    //   return 'Please enter customer number';
-    // }
-
-    // if (customerAddress.trim().isEmpty) {
-    //   return 'Please enter customer address';
-    // }
-
-    // if (selectedRoles.isEmpty) {
-    //   return 'Please select at least one employee to assign to';
-    // }
-
-    // if (startDate.value == null || startTime.value == null) {
-    //   return 'Please select assign date and time';
-    // }
-
-    // if (endDate.value == null || endTime.value == null) {
-    //   return 'Please select deadline date and time';
-    // }
-
-    // if (selectedPriority.value.isEmpty) {
-    //   return 'Please select a priority';
-    // }
-
-    // if (selectedDifficulty.value.isEmpty) {
-    //   return 'Please select a difficulty level';
-    // }
-
-    // if (selectedServiceList.isEmpty) {
-    //   return 'Please select at least one service';
-    // }
-
-    return null; // No validation errors
+    return null;
   }
 
   /// ====== Task Creation Logic ======
