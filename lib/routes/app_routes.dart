@@ -11,12 +11,14 @@ import 'package:koji/features/authentication/presentation/signup_screen.dart';
 import 'package:koji/features/authentication/presentation/splash_screen.dart';
 import 'package:koji/features/authentication/presentation/verify_screen/verify_screen.dart';
 import 'package:koji/models/chat_model.dart';
+import '../models/admin-model/get_alllist_task_model.dart';
 
 // Admin Screens
 import '../features/admin_bottom_navbar/admin_bottom_navbar.dart';
 import '../features/admin_home/presentation/admin_attendance_screen.dart';
 import '../features/admin_home/presentation/admin_create_new_invoice_screen.dart';
 import '../features/admin_home/presentation/admin_create_task_screen.dart';
+import '../features/admin_home/presentation/admin_edit_task_screen.dart';
 import '../features/admin_home/presentation/admin_employee_request_screen.dart';
 import '../features/admin_home/presentation/admin_mytask_screen.dart';
 import '../features/admin_home/presentation/admin_transaction_screen.dart';
@@ -410,6 +412,14 @@ class AppRouter {
           path: '/adminCreateTaskScreen',
           name: 'adminCreateTaskScreen',
           builder: (_, _) => AdminCreateTaskScreen(),
+        ),
+        GoRoute(
+          path: '/adminEditTaskScreen',
+          name: 'adminEditTaskScreen',
+          builder: (context, state) {
+            final task = state.extra as Result;
+            return AdminEditTaskScreen(task: task);
+          },
         ),
 
         GoRoute(

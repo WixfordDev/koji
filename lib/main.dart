@@ -57,11 +57,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: _getPhoneDesignSize(),
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'Koji',
-        // theme: AppThemes.defaultTheme,
-        routerConfig: _router,
+      child: ToastificationWrapper(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'Koji',
+          // theme: AppThemes.defaultTheme,
+          routerConfig: _router,
+        ),
       ),
     );
   }

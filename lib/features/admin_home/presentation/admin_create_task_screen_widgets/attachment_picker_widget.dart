@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AttachmentPickerWidget extends StatefulWidget {
   final List<File?> selectedImages;
@@ -21,9 +22,17 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(int index) async {
+    // No quality params — avoids scaled_ temp files that get deleted before upload
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      widget.onImagePicked(index, File(image.path));
+      // Read bytes immediately, then write to permanent storage
+      final bytes = await image.readAsBytes();
+      final dir = await getApplicationDocumentsDirectory();
+      final ext = image.path.contains('.') ? '.${image.path.split('.').last}' : '.jpg';
+      final fileName = 'attachment_${DateTime.now().millisecondsSinceEpoch}$ext';
+      final permanent = File('${dir.path}/$fileName');
+      await permanent.writeAsBytes(bytes);
+      widget.onImagePicked(index, permanent);
     }
   }
 

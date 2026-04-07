@@ -6,6 +6,9 @@ class CustomerInfoWidget extends StatelessWidget {
   final TextEditingController customerNumberController;
   final TextEditingController customerAddressController;
   final TextEditingController notesController;
+  final String? nameError;
+  final String? numberError;
+  final String? addressError;
 
   const CustomerInfoWidget({
     Key? key,
@@ -13,6 +16,9 @@ class CustomerInfoWidget extends StatelessWidget {
     required this.customerNumberController,
     required this.customerAddressController,
     required this.notesController,
+    this.nameError,
+    this.numberError,
+    this.addressError,
   }) : super(key: key);
 
   @override
@@ -23,16 +29,21 @@ class CustomerInfoWidget extends StatelessWidget {
           label: "Customer Name",
           hint: "Enter Customer Name",
           controller: customerNameController,
+          errorText: nameError,
+          keyboardType: TextInputType.name,
         ),
         _buildTextField(
           label: "Customer Number",
           hint: "Enter Customer Number",
           controller: customerNumberController,
+          errorText: numberError,
+          keyboardType: TextInputType.phone,
         ),
         _buildTextField(
           label: "Customer Address",
           hint: "Enter Customer Address",
           controller: customerAddressController,
+          errorText: addressError,
           maxLines: 3,
         ),
         _buildTextField(
@@ -50,7 +61,11 @@ class CustomerInfoWidget extends StatelessWidget {
     required String hint,
     required TextEditingController? controller,
     int maxLines = 1,
+    String? errorText,
+    TextInputType? keyboardType,
   }) {
+    final hasError = errorText != null && errorText.isNotEmpty;
+
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
       child: Column(
@@ -61,24 +76,35 @@ class CustomerInfoWidget extends StatelessWidget {
           TextField(
             controller: controller,
             maxLines: maxLines,
+            keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey.shade400),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: hasError ? Colors.red.shade400 : Colors.grey.shade300),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: hasError ? Colors.red.shade400 : Colors.grey.shade300),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: Color(0xFFAC87C5)),
+                borderSide: BorderSide(color: hasError ? Colors.red.shade400 : Color(0xFFAC87C5)),
               ),
               contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
             ),
           ),
+          if (hasError) ...[
+            SizedBox(height: 4.h),
+            Row(
+              children: [
+                Icon(Icons.error_outline, size: 12.sp, color: Colors.red.shade600),
+                SizedBox(width: 4.w),
+                Text(errorText, style: TextStyle(fontSize: 11.sp, color: Colors.red.shade600)),
+              ],
+            ),
+          ],
         ],
       ),
     );

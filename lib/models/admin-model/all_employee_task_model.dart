@@ -139,19 +139,25 @@ class EmployeeTaskData {
 
 class Touch {
   final String? time;
+  final String? assignDate;
+  final String? deadline;
   final String? customerNumber;
   final String? customerAddress;
 
-  Touch({this.time, this.customerNumber, this.customerAddress});
+  Touch({this.time, this.assignDate, this.deadline, this.customerNumber, this.customerAddress});
 
   factory Touch.fromJson(Map<String, dynamic> json) => Touch(
         time: json["time"]?.toString(),
+        assignDate: json["assignDate"]?.toString(),
+        deadline: json["deadline"]?.toString(),
         customerNumber: json["customerNumber"]?.toString(),
         customerAddress: json["customerAddress"]?.toString(),
       );
 
   Map<String, dynamic> toJson() => {
         "time": time,
+        "assignDate": assignDate,
+        "deadline": deadline,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
       };

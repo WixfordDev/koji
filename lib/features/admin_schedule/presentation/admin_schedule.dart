@@ -138,14 +138,31 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     List<Map<String, String>> formattedSlots = [];
     final limitedSlots = timeSlots.take(3).toList();
     for (var slot in limitedSlots) {
+      String timeDisplay = '';
+      if (slot.assignDate != null && slot.deadline != null) {
+        timeDisplay = '${_formatDateTime(slot.assignDate!)} - ${_formatDateTime(slot.deadline!)}';
+      } else if (slot.assignDate != null) {
+        timeDisplay = _formatDateTime(slot.assignDate!);
+      } else if (slot.time != null && slot.time!.isNotEmpty) {
+        timeDisplay = _formatTimeRange(slot.time!);
+      }
       formattedSlots.add({
-        'time': _formatTimeRange(slot.time ?? ''),
+        'time': timeDisplay,
         'customerNumber': slot.customerNumber ?? '',
         'customerAddress': slot.customerAddress ?? '',
         'type': 'work'
       });
     }
     return formattedSlots;
+  }
+
+  String _formatDateTime(String isoString) {
+    try {
+      DateTime dt = DateTime.parse(isoString).toLocal();
+      return DateFormat('hh:mm a').format(dt).toUpperCase();
+    } catch (e) {
+      return isoString;
+    }
   }
 
   String _formatTimeRange(String timeRange) {

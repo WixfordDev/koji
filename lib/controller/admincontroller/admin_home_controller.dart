@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import '../../../helpers/toast_message_helper.dart';
 import '../../../services/api_client.dart';
 import '../../../services/api_constants.dart';
 import '../../models/admin-model/all_attendance_model.dart';
@@ -165,6 +168,82 @@ class AdminHomeController extends GetxController {
 
 
 
+  /// ============================ Update Task =====================================
+
+  RxBool updateTaskLoading = false.obs;
+
+  Future<String?> updateTask({
+    required String taskId,
+    required String departmentId,
+    required String serviceCategoryId,
+    String? vehicleId,
+    required String customerName,
+    required String customerNumber,
+    required String customerAddress,
+    required List<String> assignTo,
+    required String assignDate,
+    required String deadline,
+    required List<Map<String, dynamic>> services,
+    required double otherAmount,
+    required double totalAmount,
+    required String notes,
+    required String priority,
+    required String difficulty,
+    File? attachmentFile,
+  }) async {
+    updateTaskLoading(true);
+    try {
+      Map<String, String> body = {
+        "department": departmentId,
+        "serviceCategory": serviceCategoryId,
+        if (vehicleId != null && vehicleId.isNotEmpty) "vehicle": vehicleId,
+        "customerName": customerName,
+        "customerNumber": customerNumber,
+        "customerAddress": customerAddress,
+        "assignDate": assignDate,
+        "deadline": deadline,
+        "services": jsonEncode(services),
+        "otherAmount": otherAmount.toString(),
+        "totalAmount": totalAmount.toString(),
+        "notes": notes,
+        "priority": priority,
+        "difficulty": difficulty,
+      };
+
+      // Send assignTo as indexed fields (assignTo[0], assignTo[1], ...)
+      // because the update endpoint uses Object.assign directly without JSON.parse
+      for (int i = 0; i < assignTo.length; i++) {
+        body['assignTo[$i]'] = assignTo[i].trim();
+      }
+
+      List<MultipartBody> multipartBody = [];
+      if (attachmentFile != null) {
+        multipartBody.add(MultipartBody("attachments", attachmentFile));
+      }
+
+      var response = await ApiClient.patchMultipartData(
+        ApiConstants.updateTaskEndPoint(taskId),
+        body,
+        multipartBody: multipartBody.isEmpty ? null : multipartBody,
+      );
+
+      updateTaskLoading(false);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessageHelper.showToastMessage("Task updated successfully!");
+        getAllListTasks();
+        return "success";
+      } else {
+        String serverError = response.body is Map
+            ? response.body['message']?.toString() ?? 'Server error (${response.statusCode})'
+            : 'Server error (${response.statusCode})';
+        return 'error:$serverError';
+      }
+    } catch (e) {
+      updateTaskLoading(false);
+      return 'error:${e.toString()}';
+    }
+  }
+
   /// ============================ Get Transactions  =====================================
 
 
@@ -200,8 +279,8 @@ class AdminHomeController extends GetxController {
     getBillingDocsLoading(true);
     try {
       final String endpoint = type.isEmpty
-          ? '/info/billing-docs'
-          : '/info/billing-docs?type=$type';
+          ? '/info/billing-docs?sortBy=createdAt:desc'
+          : '/info/billing-docs?type=$type&sortBy=createdAt:desc';
 
       var response = await ApiClient.getData(endpoint);
 

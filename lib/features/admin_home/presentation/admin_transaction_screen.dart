@@ -16,6 +16,8 @@ class AdminTransactionScreen extends StatefulWidget {
 
 class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
   late AdminHomeController adminHomeController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   /// 0 = All, 1 = Invoices, 2 = Quotes
   int _selectedTabIndex = 0;
@@ -27,14 +29,37 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
   void initState() {
     super.initState();
     adminHomeController = Get.find<AdminHomeController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      adminHomeController.getBillingDocs(); // load "All" on first open
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adminHomeController.getBillingDocs();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _onTabTap(int index) {
     setState(() => _selectedTabIndex = index);
     adminHomeController.getBillingDocs(type: _tabTypes[index]);
+  }
+
+  List<BillingDocResult> _applySearch(List<BillingDocResult> items) {
+    if (_searchQuery.isEmpty) return items;
+    return items.where((doc) {
+      final name = (doc.customerName ?? '').toLowerCase();
+      final number = (doc.customerNumber ?? '').toLowerCase();
+      final invoice = (doc.invoiceNumber ?? '').toLowerCase();
+      final quote = (doc.quoteNumber ?? '').toLowerCase();
+      return name.contains(_searchQuery) ||
+          number.contains(_searchQuery) ||
+          invoice.contains(_searchQuery) ||
+          quote.contains(_searchQuery);
+    }).toList();
   }
 
   @override
@@ -77,8 +102,9 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                   SizedBox(width: 3.w),
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Search',
+                        hintText: 'Search by name, number, invoice no...',
                         hintStyle: TextStyle(
                           color: const Color(0xFF9E9E9E),
                           fontSize: 14.sp,
@@ -89,6 +115,11 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                       ),
                     ),
                   ),
+                  if (_searchQuery.isNotEmpty)
+                    GestureDetector(
+                      onTap: () => _searchController.clear(),
+                      child: Icon(Icons.close, color: const Color(0xFF9E9E9E), size: 18.sp),
+                    ),
                 ],
               ),
             ),
@@ -144,11 +175,22 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final List<BillingDocResult>? items =   // ✅ BillingDocResult
-              adminHomeController.billingDocs.value.results;
+              final List<BillingDocResult> allItems =
+                  adminHomeController.billingDocs.value.results ?? [];
 
-              if (items == null || items.isEmpty) {
+              final List<BillingDocResult> items = _applySearch(allItems);
+
+              if (allItems.isEmpty) {
                 return const Center(child: Text('No records found'));
+              }
+
+              if (items.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No results for "$_searchQuery"',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                );
               }
 
               return ListView.separated(
@@ -156,7 +198,7 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) =>
-                    _BillingDocCard(doc: items[index]),   // ✅ BillingDocResult passed
+                    _BillingDocCard(doc: items[index]),
               );
             }),
           ),

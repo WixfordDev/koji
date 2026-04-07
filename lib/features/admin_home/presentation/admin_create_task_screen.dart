@@ -17,7 +17,6 @@ import '../../../shared_widgets/custom_button.dart';
 import '../../../shared_widgets/custom_text.dart';
 import 'admin_create_task_screen_widgets/attachment_picker_widget.dart';
 import 'admin_create_task_screen_widgets/customer_info_widget.dart';
-import 'admin_create_task_screen_widgets/date_time_picker_widget.dart';
 import 'admin_create_task_screen_widgets/department_selector_widget.dart';
 import 'admin_create_task_screen_widgets/difficulty_selector_widget.dart';
 import 'admin_create_task_screen_widgets/priority_selector_widget.dart';
@@ -58,12 +57,19 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
   List<ServiceItemWithQuantity> selectedServiceList = [];
 
+  // Inline field errors — key matches validation field keys
+  final Map<String, String?> _errors = {};
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
 
 
     WidgetsBinding.instance.addObserver(this);
+    _customerNameController.addListener(_onNameChanged);
+    _customerNumberController.addListener(_onNumberChanged);
+    _customerAddressController.addListener(_onAddressChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       departmentController.getAllDepartment();
@@ -76,6 +82,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       _initializeLocalVariablesFromController();
     });
   }
+
+  void _onNameChanged() => _clearError('customerName');
+  void _onNumberChanged() { _clearError('customerNumber'); _clearError('customerNumberLength'); }
+  void _onAddressChanged() => _clearError('customerAddress');
 
   void _initializeLocalVariablesFromController() {
     selectedImages = List.from(departmentController.selectedImages);
@@ -119,6 +129,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,12 +149,20 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
               DepartmentSelectorWidget(
                 selectedDepartment: selectedDepartment,
-                onTap: _showDepartmentBottomSheet,
+                onTap: () {
+                  _clearError('department');
+                  _showDepartmentBottomSheet();
+                },
+                errorText: _errors['department'],
               ),
 
               ServiceCategorySelectorWidget(
                 selectedCategory: selectedCategory,
-                onTap: _showCategoryBottomSheet,
+                onTap: () {
+                  _clearError('category');
+                  _showCategoryBottomSheet();
+                },
+                errorText: _errors['category'],
               ),
 
               VehicleSelectorWidget(
@@ -167,53 +186,82 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                 customerNumberController: _customerNumberController,
                 customerAddressController: _customerAddressController,
                 notesController: _notesController,
+                nameError: _errors['customerName'],
+                numberError: _errors['customerNumber'] ?? _errors['customerNumberLength'],
+                addressError: _errors['customerAddress'],
               ),
 
               /// ===========================> Assign To =====================================================>
 
               AssignToSelectorWidget(
                 selectedRoles: selectedRoles,
-                onTap: _showAssignRoleBottomSheet,
+                onTap: () {
+                  _clearError('assignTo');
+                  _showAssignRoleBottomSheet();
+                },
+                errorText: _errors['assignTo'],
               ),
 
 
 
               ///  ==================================== Assign to date =======================================>
 
-              Obx(() => DateTimePickerWidget(
+              Obx(() => _singlePickerField(
                 label: "Assign Date",
-                startHint: departmentController.startDate.value == null
-                    ? "Start Date"
-                    : _formatDate(departmentController.startDate.value!),
-                endHint: departmentController.endDate.value == null
-                    ? "End Date"
-                    : _formatDate(departmentController.endDate.value!),
-                startOnTap: () => _pickDate(true),
-                endOnTap: () => _pickDate(false),
-                iconPath: "assets/icons/calendar.svg",
+                value: departmentController.startDate.value == null
+                    ? null : _formatDate(departmentController.startDate.value!),
+                hint: "Select assign date",
+                icon: Icons.calendar_today_outlined,
+                onTap: () { _clearError('assignDate'); _pickDate(true); },
+                errorText: _errors['assignDate'],
               )),
 
-              Obx(() => DateTimePickerWidget(
+              Obx(() => _singlePickerField(
                 label: "Assign Time",
-                startHint: departmentController.startTime.value == null
-                    ? "Start Time"
-                    : _formatTime(departmentController.startTime.value!),
-                endHint: departmentController.endTime.value == null
-                    ? "End Time"
-                    : _formatTime(departmentController.endTime.value!),
-                startOnTap: () => _pickTime(true),
-                endOnTap: () => _pickTime(false),
-                iconPath: "assets/icons/time.svg",
+                value: departmentController.startTime.value == null
+                    ? null : _formatTime(departmentController.startTime.value!),
+                hint: "Select assign time",
+                icon: Icons.access_time_outlined,
+                onTap: () { _clearError('assignTime'); _pickTime(true); },
+                errorText: _errors['assignTime'],
+              )),
+
+              Obx(() => _singlePickerField(
+                label: "Deadline Date",
+                value: departmentController.endDate.value == null
+                    ? null : _formatDate(departmentController.endDate.value!),
+                hint: "Select deadline date",
+                icon: Icons.calendar_today_outlined,
+                onTap: () { _clearError('deadlineDate'); _clearError('deadlineBeforeStart'); _pickDate(false); },
+                errorText: _errors['deadlineDate'] ?? _errors['deadlineBeforeStart'],
+              )),
+
+              Obx(() => _singlePickerField(
+                label: "Deadline Time",
+                value: departmentController.endTime.value == null
+                    ? null : _formatTime(departmentController.endTime.value!),
+                hint: "Select deadline time",
+                icon: Icons.access_time_outlined,
+                onTap: () { _clearError('deadlineTime'); _pickTime(false); },
+                errorText: _errors['deadlineTime'],
               )),
 
               PrioritySelectorWidget(
                 selectedPriority: selectedPriority,
-                onTap: _showPriorityBottomSheet,
+                onTap: () {
+                  _clearError('priority');
+                  _showPriorityBottomSheet();
+                },
+                errorText: _errors['priority'],
               ),
 
               DifficultySelectorWidget(
                 selectedDifficulty: selectedDifficulty,
-                onTap: _showDifficultyBottomSheet,
+                onTap: () {
+                  _clearError('difficulty');
+                  _showDifficultyBottomSheet();
+                },
+                errorText: _errors['difficulty'],
               ),
 
               SizedBox(height: 16.h),
@@ -1673,6 +1721,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
   @override
   void dispose() {
+    _scrollController.dispose();
+    _customerNameController.removeListener(_onNameChanged);
+    _customerNumberController.removeListener(_onNumberChanged);
+    _customerAddressController.removeListener(_onAddressChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -1765,27 +1817,38 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       difficulty: selectedDifficulty!.toLowerCase(), // Convert to lowercase to match expected format
     );
 
-    if (result != null) {
-      // Task created successfully, reset form using controller's method
+    if (result == 'success') {
       departmentController.resetTaskForm();
-
-      // Clear text controllers separately
       _customerNameController.clear();
       _customerNumberController.clear();
       _customerAddressController.clear();
       _notesController.clear();
-
-      // Reinitialize local variables from controller
       _initializeLocalVariablesFromController();
-
-      // Navigate back first
       Navigator.pop(context);
-
-      // Then refresh the task list after a small delay
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         final adminHomeController = Get.find<AdminHomeController>();
         adminHomeController.getAllListTasks();
       });
+    } else if (result != null && result.startsWith('error:')) {
+      final apiError = result.replaceFirst('error:', '');
+      setState(() {
+        _errors['_api'] = apiError;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text(apiError, style: const TextStyle(fontSize: 13))),
+            ],
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -2135,9 +2198,116 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     );
   }
 
-  void _showToast(String message) {
-    ToastMessageHelper.showToastMessage(message);
+
+  void _clearError(String key) {
+    if (_errors[key] != null) setState(() => _errors[key] = null);
   }
+
+  Widget _singlePickerField({
+    required String label,
+    required String? value,
+    required String hint,
+    required IconData icon,
+    required VoidCallback onTap,
+    String? errorText,
+  }) {
+    final hasError = errorText != null && errorText.isNotEmpty;
+    final hasValue = value != null && value.isNotEmpty;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+          SizedBox(height: 6.h),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: hasError ? Colors.red.shade400 : Colors.grey.shade300,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, size: 16.sp, color: Colors.grey.shade600),
+                  SizedBox(width: 8.w),
+                  Text(
+                    hasValue ? value! : hint,
+                    style: TextStyle(
+                      color: hasValue ? Colors.black87 : Colors.grey.shade500,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (hasError) ...[
+            SizedBox(height: 4.h),
+            Row(
+              children: [
+                Icon(Icons.error_outline, size: 12.sp, color: Colors.red.shade600),
+                SizedBox(width: 4.w),
+                Text(errorText, style: TextStyle(fontSize: 11.sp, color: Colors.red.shade600)),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _inlineErrorRow(String message) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h, left: 2.w),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 12.sp, color: Colors.red.shade600),
+          SizedBox(width: 4.w),
+          Text(message, style: TextStyle(fontSize: 11.sp, color: Colors.red.shade600)),
+        ],
+      ),
+    );
+  }
+
+  void _showToast(String fieldKey) {
+    // Map field key → human-readable error for inline display
+    const messages = <String, String>{
+      'department':           'Please select a department',
+      'category':             'Please select a service category',
+      'customerName':         'Customer name is required',
+      'customerNumber':       'Customer phone number is required',
+      'customerNumberLength': 'Phone number must be at least 10 digits',
+      'customerAddress':      'Customer address is required',
+      'assignTo':             'Please assign at least one employee',
+      'assignDate':           'Please select the assign date',
+      'assignTime':           'Please select the assign time',
+      'deadlineDate':         'Please select the deadline date',
+      'deadlineTime':         'Please select the deadline time',
+      'deadlineBeforeStart':  'Deadline date cannot be before assign date',
+      'services':             'Please add at least one service',
+      'priority':             'Please select a priority level',
+      'difficulty':           'Please select a difficulty level',
+    };
+
+    setState(() {
+      _errors.clear();
+      _errors[fieldKey] = messages[fieldKey] ?? fieldKey;
+    });
+
+    // Scroll to top so user sees the first error
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+    );
+  }
+
 
 
   String _formatDate(DateTime date) {
