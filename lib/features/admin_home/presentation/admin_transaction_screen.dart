@@ -176,7 +176,20 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
               }
 
               final List<BillingDocResult> allItems =
-                  adminHomeController.billingDocs.value.results ?? [];
+                  List<BillingDocResult>.from(
+                      adminHomeController.billingDocs.value.results ?? [])
+                    ..sort((a, b) {
+                      final aDate = a.invoiceDate != null
+                          ? DateTime.tryParse(a.invoiceDate!)
+                          : null;
+                      final bDate = b.invoiceDate != null
+                          ? DateTime.tryParse(b.invoiceDate!)
+                          : null;
+                      if (aDate == null && bDate == null) return 0;
+                      if (aDate == null) return 1;
+                      if (bDate == null) return -1;
+                      return bDate.compareTo(aDate); // newest first
+                    });
 
               final List<BillingDocResult> items = _applySearch(allItems);
 

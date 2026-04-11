@@ -200,7 +200,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
                 Row(
                   children: [
-                    Expanded(child: _buildDateField('Assign Date', task.assignDate.toString())),
+                    Expanded(child: _buildDateField('Assign Date', task.assignDate?.toIso8601String())),
                     SizedBox(width: 12.w),
                     Expanded(child: _buildTimeField('Assign Time', task.assignDate?.toIso8601String())),
                   ],
@@ -208,15 +208,17 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 SizedBox(height: 12.h),
                 Row(
                   children: [
-                    Expanded(child: _buildDateField('End Date', task.deadline.toString())),
+                    Expanded(child: _buildDateField('End Date', task.deadline?.toIso8601String())),
                     SizedBox(width: 12.w),
-                    Expanded(child: _buildTimeField('End Time', task.deadline.toString())),
+                    Expanded(child: _buildTimeField('End Time', task.deadline?.toIso8601String())),
                   ],
                 ),
                 SizedBox(height: 12.h),
-                _buildTextField('Priority', task.priority ?? 'N/A'),
-                SizedBox(height: 12.h),
-                _buildTextField('Difficulty', task.difficulty ?? 'N/A'),
+                // _buildTextField('Priority', task.priority ?? 'N/A'),
+                // SizedBox(height: 12.h),
+                // _buildTextField('Difficulty', task.difficulty ?? 'N/A'),
+                // SizedBox(height: 12.h),
+                _buildTextField('Notes', task.notes ?? 'N/A'),
                 SizedBox(height: 24.h),
 
                 // Accept Button
@@ -486,13 +488,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   void _acceptTask(task) async {
     final success = await controller.acceptTask(widget.taskId);
     if (success && mounted) {
-      Get.snackbar(
-        'Accepted',
-        'Task accepted successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      Navigator.pop(context); // go back to CalendarScreen
+      try {
+        Get.snackbar(
+          'Accepted',
+          'Task accepted successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } catch (_) {}
+      Navigator.pop(context);
     }
   }
 

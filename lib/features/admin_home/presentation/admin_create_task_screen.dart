@@ -18,8 +18,8 @@ import '../../../shared_widgets/custom_text.dart';
 import 'admin_create_task_screen_widgets/attachment_picker_widget.dart';
 import 'admin_create_task_screen_widgets/customer_info_widget.dart';
 import 'admin_create_task_screen_widgets/department_selector_widget.dart';
-import 'admin_create_task_screen_widgets/difficulty_selector_widget.dart';
-import 'admin_create_task_screen_widgets/priority_selector_widget.dart';
+// import 'admin_create_task_screen_widgets/difficulty_selector_widget.dart';
+// import 'admin_create_task_screen_widgets/priority_selector_widget.dart';
 import 'admin_create_task_screen_widgets/assign_to_selector_widget.dart';
 import 'admin_create_task_screen_widgets/service_category_selector_widget.dart';
 import 'admin_create_task_screen_widgets/service_list_widget.dart';
@@ -50,7 +50,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   String? selectedDepartment;
   String? selectedCategory;
   String? selectedVehicle;
-  List<String> selectedRoles = [];
+  List<String> selectedRoles = [];      // stores IDs (for API)
+  List<String> selectedRoleNames = [];  // stores names (for display)
   String? selectedPriority;
   String? selectedDifficulty;
 
@@ -194,7 +195,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
               /// ===========================> Assign To =====================================================>
 
               AssignToSelectorWidget(
-                selectedRoles: selectedRoles,
+                selectedRoles: selectedRoleNames,
                 onTap: () {
                   _clearError('assignTo');
                   _showAssignRoleBottomSheet();
@@ -246,23 +247,23 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                 errorText: _errors['deadlineTime'],
               )),
 
-              PrioritySelectorWidget(
-                selectedPriority: selectedPriority,
-                onTap: () {
-                  _clearError('priority');
-                  _showPriorityBottomSheet();
-                },
-                errorText: _errors['priority'],
-              ),
+              // PrioritySelectorWidget(
+              //   selectedPriority: selectedPriority,
+              //   onTap: () {
+              //     _clearError('priority');
+              //     _showPriorityBottomSheet();
+              //   },
+              //   errorText: _errors['priority'],
+              // ),
 
-              DifficultySelectorWidget(
-                selectedDifficulty: selectedDifficulty,
-                onTap: () {
-                  _clearError('difficulty');
-                  _showDifficultyBottomSheet();
-                },
-                errorText: _errors['difficulty'],
-              ),
+              // DifficultySelectorWidget(
+              //   selectedDifficulty: selectedDifficulty,
+              //   onTap: () {
+              //     _clearError('difficulty');
+              //     _showDifficultyBottomSheet();
+              //   },
+              //   errorText: _errors['difficulty'],
+              // ),
 
               SizedBox(height: 16.h),
 
@@ -1443,8 +1444,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                               setModalState(() {
                                 if (isSelected) {
                                   selectedRoles.remove(employeeId);
+                                  selectedRoleNames.remove(employeeName);
                                 } else {
                                   selectedRoles.add(employeeId);
+                                  selectedRoleNames.add(employeeName);
                                 }
                               });
                               setState(() {});
@@ -1813,8 +1816,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       totalAmount: totalAmount,
       attachmentFile: attachmentFile,
       notes: _notesController.text.trim(),
-      priority: selectedPriority!.toLowerCase(), // Convert to lowercase to match expected format
-      difficulty: selectedDifficulty!.toLowerCase(), // Convert to lowercase to match expected format
+      // priority: selectedPriority!.toLowerCase(),
+      // difficulty: selectedDifficulty!.toLowerCase(),
     );
 
     if (result == 'success') {

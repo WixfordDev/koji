@@ -325,7 +325,61 @@ class AdminHomeController extends GetxController {
   }
 
 
-  /// Add these methods to the AdminHomeController class
+  /// ============================ Delete Employee  =====================================
+
+  RxBool deleteEmployeeLoading = false.obs;
+
+  Future<bool> deleteEmployee({required String employeeId}) async {
+    deleteEmployeeLoading(true);
+    try {
+      var response = await ApiClient.deleteData(
+        ApiConstants.deleteUserEndPoint(employeeId),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+        deleteEmployeeLoading(false);
+        getEmployeeRequest();
+        return true;
+      } else {
+        deleteEmployeeLoading(false);
+        print("Error deleting employee: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      deleteEmployeeLoading(false);
+      print("Exception in deleteEmployee: $e");
+      return false;
+    }
+  }
+
+  /// ============================ Update Employee (Approve) =====================================
+
+  RxBool updateEmployeeLoading = false.obs;
+
+  Future<bool> updateEmployeeApproval({
+    required String employeeId,
+    required Map<String, dynamic> body,
+  }) async {
+    updateEmployeeLoading(true);
+    try {
+      var response = await ApiClient.patch(
+        ApiConstants.updateUserEndPoint(employeeId),
+        body,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        updateEmployeeLoading(false);
+        getEmployeeRequest();
+        return true;
+      } else {
+        updateEmployeeLoading(false);
+        print("Error updating employee: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      updateEmployeeLoading(false);
+      print("Exception in updateEmployeeApproval: $e");
+      return false;
+    }
+  }
 
   /// ============================ Create Invoice  =====================================
 

@@ -245,10 +245,12 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((task) {
         final name = (task.customerName ?? '').toLowerCase();
+        final number = (task.customerNumber ?? '').toLowerCase();
         final priority = (task.priority ?? '').toLowerCase();
         final status = (task.status ?? '').toLowerCase();
         final address = (task.customerAddress ?? '').toLowerCase();
         return name.contains(_searchQuery) ||
+            number.contains(_searchQuery) ||
             priority.contains(_searchQuery) ||
             status.contains(_searchQuery) ||
             address.contains(_searchQuery);
@@ -329,16 +331,40 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.flash_on, color: Colors.redAccent),
+              Column(
+                children: [
+                  const Icon(Icons.flash_on, color: Colors.redAccent),
+                  if (task.customerNumber != null && task.customerNumber!.isNotEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 9),
+                      child: Icon(Icons.phone, size: 13, color: Color(0xff6B7280)),
+                    ),
+                ],
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 6),
+                    if (task.customerNumber != null && task.customerNumber!.isNotEmpty)
+                      Text(
+                        task.customerNumber!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xff6B7280),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
               ),
               GestureDetector(
