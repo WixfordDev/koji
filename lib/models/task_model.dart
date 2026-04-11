@@ -74,10 +74,23 @@ class TaskModel {
   factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
     customerSignature: json["customerSignature"],
     id: json["_id"],
-    createdBy: json["createdBy"],
+    createdBy: json["createdBy"] == null
+        ? null
+        : (json["createdBy"] is Map<String, dynamic>
+            ? json["createdBy"]["fullName"]?.toString() ??
+                json["createdBy"]["id"]?.toString() ??
+                json["createdBy"]["_id"]?.toString()
+            : json["createdBy"]?.toString()),
     department: _parseDepartment(json["department"]),
     serviceCategory: _parseDepartment(json["serviceCategory"]),
-    vehicle: json["vehicle"],
+    vehicle: json["vehicle"] == null
+        ? null
+        : (json["vehicle"] is Map<String, dynamic>
+            ? (json["vehicle"]["vehicleNumber"]?.toString() ??
+                json["vehicle"]["plateNumber"]?.toString() ??
+                json["vehicle"]["name"]?.toString() ??
+                json["vehicle"]["_id"]?.toString())
+            : json["vehicle"]?.toString()),
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
     customerAddress: json["customerAddress"],
@@ -93,9 +106,7 @@ class TaskModel {
         : List<Service>.from((json["services"] ?? json["service"])!.map((x) => Service.fromJson(x))),
     priority: json["priority"],
     difficulty: json["difficulty"],
-    assignTo: json["assignTo"] == null
-        ? []
-        : List<String>.from(json["assignTo"]!.map((x) => x)),
+    assignTo: _parseAssignTo(json["assignTo"]),
     otherAmount: json["otherAmount"],
     totalAmount: json["totalAmount"],
     status: json["status"],
@@ -199,6 +210,39 @@ class Service {
     "quantity": quantity,
     "_id": id,
   };
+}
+
+// Helper: extract clean display name from an assignTo entry (Map or String)
+String _extractName(dynamic x) {
+  if (x is Map<String, dynamic>) {
+    final firstName = x["firstName"]?.toString();
+    final lastName = x["lastName"]?.toString();
+    // Build name from parts to avoid backend "undefined" bug
+    if (firstName != null && lastName != null) {
+      return '$firstName $lastName'.trim();
+    } else if (firstName != null) {
+      return firstName.trim();
+    }
+    // Fallback: fullName with "undefined" stripped
+    final fullName = x["fullName"]?.toString() ?? '';
+    final cleaned = fullName.replaceAll(RegExp(r'\bundefined\b'), '').trim();
+    if (cleaned.isNotEmpty) return cleaned;
+    return x["name"]?.toString() ?? x["_id"]?.toString() ?? x["id"]?.toString() ?? '';
+  }
+  return x.toString();
+}
+
+// Helper: assignTo can be a List (from list endpoint) or a single object (from details endpoint)
+List<String> _parseAssignTo(dynamic raw) {
+  if (raw == null) return [];
+  if (raw is List) {
+    return List<String>.from(raw.map((x) => _extractName(x)));
+  }
+  if (raw is Map<String, dynamic>) {
+    final name = _extractName(raw);
+    return name.isNotEmpty ? [name] : [];
+  }
+  return [];
 }
 
 // Helper function to parse department field which might be a string ID or a full object

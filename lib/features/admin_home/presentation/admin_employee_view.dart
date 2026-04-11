@@ -21,6 +21,195 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
   bool isServiceDetailsExpanded = false;
   bool isShiftChangeExpanded = false;
 
+  void _showUpdateSheet(BuildContext context, AdminHomeController controller) {
+    final firstNameCtrl =
+        TextEditingController(text: widget.employee.firstName ?? '');
+    final lastNameCtrl =
+        TextEditingController(text: widget.employee.lastName ?? '');
+    final phoneCtrl =
+        TextEditingController(text: widget.employee.phoneNumber ?? '');
+    final addressCtrl =
+        TextEditingController(text: widget.employee.address?.toString() ?? '');
+    bool isAdminApproved = widget.employee.isAdminApproved ?? false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheet) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20.w,
+                right: 20.w,
+                top: 20.h,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24.h,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40.w,
+                        height: 4.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2.r),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'Update Employee',
+                      style: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 20.h),
+                    _sheetField('First Name', firstNameCtrl),
+                    SizedBox(height: 12.h),
+                    _sheetField('Last Name', lastNameCtrl),
+                    SizedBox(height: 12.h),
+                    _sheetField('Phone Number', phoneCtrl,
+                        keyboardType: TextInputType.phone),
+                    SizedBox(height: 12.h),
+                    _sheetField('Address', addressCtrl),
+                    SizedBox(height: 16.h),
+                    // isAdminApproved toggle
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Admin Approved',
+                            style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500)),
+                        Switch(
+                          value: isAdminApproved,
+                          activeColor: const Color(0xFFEC526A),
+                          onChanged: (val) =>
+                              setSheet(() => isAdminApproved = val),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Obx(() => GestureDetector(
+                            onTap: controller.updateEmployeeLoading.value
+                                ? null
+                                : () async {
+                                    final body = <String, dynamic>{};
+                                    if (firstNameCtrl.text.trim().isNotEmpty)
+                                      body['firstName'] =
+                                          firstNameCtrl.text.trim();
+                                    if (lastNameCtrl.text.trim().isNotEmpty)
+                                      body['lastName'] =
+                                          lastNameCtrl.text.trim();
+                                    if (phoneCtrl.text.trim().isNotEmpty)
+                                      body['phoneNumber'] =
+                                          phoneCtrl.text.trim();
+                                    if (addressCtrl.text.trim().isNotEmpty)
+                                      body['address'] =
+                                          addressCtrl.text.trim();
+                                    body['isAdminApproved'] = isAdminApproved;
+
+                                    Navigator.pop(ctx);
+                                    bool result = await controller
+                                        .updateEmployeeApproval(
+                                      employeeId: widget.employee.id ?? '',
+                                      body: body,
+                                    );
+                                    if (result) {
+                                      ToastMessageHelper.showToastMessage(
+                                          'Employee updated successfully!');
+                                      if (mounted) Navigator.pop(context);
+                                    } else {
+                                      ToastMessageHelper.showToastMessage(
+                                          'Failed to update employee.',
+                                          title: 'Error');
+                                    }
+                                  },
+                            child: Container(
+                              height: 48.h,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.r),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFEC526A),
+                                    Color(0xFFF77F6E)
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: controller.updateEmployeeLoading.value
+                                    ? SizedBox(
+                                        width: 20.w,
+                                        height: 20.w,
+                                        child: const CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        'Save Changes',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          )),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _sheetField(String label, TextEditingController ctrl,
+      {TextInputType keyboardType = TextInputType.text}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style:
+                TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
+        SizedBox(height: 6.h),
+        TextField(
+          controller: ctrl,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final adminHomeController = Get.find<AdminHomeController>();
@@ -31,7 +220,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Employee Details',
+          'Employee ',
           style: TextStyle(color: Colors.black),
         ),
         centerTitle: true,
@@ -121,7 +310,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                       child: Column(
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
                                 "Personal Information",
@@ -258,95 +447,126 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            // Reject Button
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  height: 48.h,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4.r),
-                    border: Border.all(color: Color(0xFFEB0000)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Reject",
-                      style: TextStyle(
-                        color: Color(0xFFEB0000),
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
+        child: Obx(() {
+          final isDeleting = adminHomeController.deleteEmployeeLoading.value;
+          final isUpdating = adminHomeController.updateEmployeeLoading.value;
+
+          return Row(
+            children: [
+              // Delete Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: isDeleting
+                      ? null
+                      : () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text("Delete Employee"),
+                              content: const Text(
+                                  "Are you sure you want to delete this employee?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text("Delete",
+                                      style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm != true) return;
+                          bool result = await adminHomeController.deleteEmployee(
+                            employeeId: widget.employee.id ?? '',
+                          );
+                          if (result) {
+                            ToastMessageHelper.showToastMessage(
+                                "Employee deleted successfully!");
+                            Navigator.pop(context);
+                          } else {
+                            ToastMessageHelper.showToastMessage(
+                                "Failed to delete employee.",
+                                title: "Error");
+                          }
+                        },
+                  child: Container(
+                    height: 48.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                      border: Border.all(color: const Color(0xFFEB0000)),
+                    ),
+                    child: Center(
+                      child: isDeleting
+                          ? SizedBox(
+                              width: 20.w,
+                              height: 20.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFFEB0000)),
+                              ),
+                            )
+                          : Text(
+                              "Delete",
+                              style: TextStyle(
+                                color: const Color(0xFFEB0000),
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            SizedBox(width: 12.w),
+              SizedBox(width: 12.w),
 
-            // Accept Button
-            Expanded(
-              child: Obx(() => GestureDetector(
-                onTap: adminHomeController.approveEmployeeLoading.value
-                    ? null
-                    : () async {
-                  bool result = await adminHomeController.approveEmployee(
-                    employeeId: widget.employee.id ?? '',
-                  );
-                  if (result) {
-                    ToastMessageHelper.showToastMessage(
-                      "Employee approved successfully!",
-                    );
-                    Navigator.pop(context);
-                  } else {
-                    ToastMessageHelper.showToastMessage(
-                      "Failed to approve employee.",
-                      title: "Error",
-                    );
-                  }
-                },
-                child: Container(
-                  height: 48.h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4.r),
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFEC526A),
-                        Color(0xFFF77F6E),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+              // Update Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: isUpdating
+                      ? null
+                      : () => _showUpdateSheet(context, adminHomeController),
+                  child: Container(
+                    height: 48.h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4.r),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: adminHomeController.approveEmployeeLoading.value
-                        ? SizedBox(
-                      width: 20.w,
-                      height: 20.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                        : Text(
-                      "Accept",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Center(
+                      child: isUpdating
+                          ? SizedBox(
+                              width: 20.w,
+                              height: 20.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Text(
+                              "Update",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
                 ),
-              )),
-            ),
-          ],
-        ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }

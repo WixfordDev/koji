@@ -373,8 +373,8 @@ class DepartmentController extends GetxController {
     required double totalAmount,
     required File? attachmentFile,
     required String notes,
-    required String priority,
-    required String difficulty,
+    // required String priority,
+    // required String difficulty,
   }) async {
     createNewLoading(true);
 
@@ -396,8 +396,8 @@ class DepartmentController extends GetxController {
         "otherAmount": otherAmount.toString(),
         "totalAmount": totalAmount.toString(),
         "notes": notes,
-        "priority": priority,
-        "difficulty": difficulty,
+        // "priority": priority,
+        // "difficulty": difficulty,
       };
 
       // Prepare multipart body for file attachment
@@ -633,9 +633,9 @@ class DepartmentController extends GetxController {
     if (selectedServiceList.isEmpty) {
       return 'services';
     }
-    if (selectedPriority.value.isEmpty) {
-      return 'priority';
-    }
+    // if (selectedPriority.value.isEmpty) {
+    //   return 'priority';
+    // }
 
     return null;
   }

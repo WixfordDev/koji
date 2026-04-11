@@ -118,55 +118,43 @@ class EmployeeScheduleController extends GetxController {
     }
   }
 
-  // New method to fetch single task details (for TaskDetailsScreen)
+  // Fetch single task details via API (populated assignTo + vehicle)
   Future<void> fetchTaskById(String taskId) async {
     _isLoading.value = true;
     update();
     try {
-      final task = _tasks.firstWhere(
-        (element) => element.id == taskId,
-        orElse: () => TaskModel(
-          id: '',
-          createdBy: '',
-          department: Department(name: ''),
-          serviceCategory: Department(name: ''),
-          customerName: '',
-          customerNumber: '',
-          customerAddress: '',
-          assignDate: DateTime.now(),
-          deadline: DateTime.now(),
-          services: [],
-          assignTo: [],
-          otherAmount: 0,
-          totalAmount: 0,
-          status: '',
-          attachments: [],
-          notes: '',
-          isDeleted: false,
-          v: 0,
-          difficulty: '',
-          priority: '',
-          progressPercent: 0,
-          submitedDoc: [],
-          isSubmited: false,
-        ),
-      );
-
-      if (task.id!.isNotEmpty) {
-        _selectedTask.value = task;
+      final response = await ApiClient.getData('/tasks/$taskId');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.body['data']?['attributes'] ?? response.body['data'];
+        if (data != null) {
+          _selectedTask.value = TaskModel.fromJson(data);
+        }
+      } else {
+        _safeSnackbar('Error', 'Failed to load task details');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load task details: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+      debugPrint('fetchTaskById error: $e');
+      _safeSnackbar('Error', 'Failed to load task details');
     } finally {
       _isLoading.value = false;
       update();
+    }
+  }
+
+  void _safeSnackbar(String title, String message) {
+    try {
+      if (Get.isOverlaysOpen || Get.key.currentContext != null) {
+        Get.snackbar(
+          title,
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (_) {
+      debugPrint('Snackbar error suppressed: $title — $message');
     }
   }
 

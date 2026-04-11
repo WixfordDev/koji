@@ -195,33 +195,34 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
 
     List<Widget> markers = [];
 
-    // Completed - green dot
+    // Completed - green number
     if ((events['completed'] ?? 0) > 0) {
-      markers.add(_buildDot(const Color(0xFF4CD964)));
+      markers.add(_buildCountBadge(events['completed']!, const Color(0xFF4CD964)));
     }
 
-    // In Progress - yellow dot
+    // In Progress - yellow number
     if ((events['inProgress'] ?? 0) > 0) {
-      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
-      markers.add(_buildDot(const Color(0xFFFFB509)));
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 2.w));
+      markers.add(_buildCountBadge(events['inProgress']!, const Color(0xFFFFB509)));
     }
 
-    // Pending - red dot
+    // Pending - red number
     if ((events['pending'] ?? 0) > 0) {
-      if (markers.isNotEmpty) markers.add(SizedBox(width: 3.w));
-      markers.add(_buildDot(const Color(0xFFFF1414)));
+      if (markers.isNotEmpty) markers.add(SizedBox(width: 2.w));
+      markers.add(_buildCountBadge(events['pending']!, const Color(0xFFFF1414)));
     }
 
     return markers;
   }
 
-  Widget _buildDot(Color color) {
-    return Container(
-      width: 6.w,
-      height: 6.w,
-      decoration: BoxDecoration(
+  Widget _buildCountBadge(int count, Color color) {
+    return Text(
+      '$count',
+      style: TextStyle(
+        fontSize: 9.sp,
+        fontWeight: FontWeight.w700,
         color: color,
-        shape: BoxShape.circle,
+        height: 1,
       ),
     );
   }
