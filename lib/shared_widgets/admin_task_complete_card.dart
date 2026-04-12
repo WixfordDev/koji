@@ -69,8 +69,9 @@ class AdminTaskCompleteCard extends StatelessWidget {
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
 
-    final hour = dateTime.hour;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final local = dateTime.toLocal();
+    final hour = local.hour;
+    final minute = local.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
 

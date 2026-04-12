@@ -5,6 +5,7 @@ import 'package:koji/controller/admincontroller/admin_home_controller.dart';
 import 'package:koji/models/admin-model/all_employee_model.dart';
 import 'package:koji/shared_widgets/custom_network_image.dart';
 import 'package:koji/helpers/toast_message_helper.dart';
+import '../../../services/api_constants.dart';
 
 class AdminEmployeeView extends StatefulWidget {
   final Employee employee;
@@ -31,6 +32,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
     final addressCtrl =
         TextEditingController(text: widget.employee.address?.toString() ?? '');
     bool isAdminApproved = widget.employee.isAdminApproved ?? false;
+    String selectedRole = widget.employee.role ?? 'employee';
 
     showModalBottomSheet(
       context: context,
@@ -79,6 +81,36 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                         keyboardType: TextInputType.phone),
                     SizedBox(height: 12.h),
                     _sheetField('Address', addressCtrl),
+                    SizedBox(height: 12.h),
+                    // Role selector
+                    Text('Role',
+                        style: TextStyle(
+                            fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                    SizedBox(height: 6.h),
+                    DropdownButtonFormField<String>(
+                      value: selectedRole,
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 12.h),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'employee', child: Text('Employee')),
+                        DropdownMenuItem(
+                            value: 'admin', child: Text('Admin')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setSheet(() => selectedRole = val);
+                      },
+                    ),
                     SizedBox(height: 16.h),
                     // isAdminApproved toggle
                     Row(
@@ -117,6 +149,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                                       body['address'] =
                                           addressCtrl.text.trim();
                                     body['isAdminApproved'] = isAdminApproved;
+                                    body['role'] = selectedRole;
 
                                     Navigator.pop(ctx);
                                     bool result = await controller
@@ -210,6 +243,13 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
     );
   }
 
+  String _getImageUrl(String imageUrl) {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    return "${ApiConstants.imageBaseUrl}$imageUrl";
+  }
+
   @override
   Widget build(BuildContext context) {
     final adminHomeController = Get.find<AdminHomeController>();
@@ -260,7 +300,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                       ),
                       child: ClipOval(
                         child: CustomNetworkImage(
-                          imageUrl: widget.employee.image ?? '',
+                          imageUrl: _getImageUrl(widget.employee.image ?? ''),
                           height: 100.w,
                           width: 100.w,
                           boxShape: BoxShape.circle,
