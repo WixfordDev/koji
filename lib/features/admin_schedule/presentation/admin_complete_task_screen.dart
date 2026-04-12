@@ -54,10 +54,9 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
             IconButton(
               padding: EdgeInsets.zero,
               icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
-              onPressed: () async {
-
+              onPressed: () {
                   if (mounted) {
-                    context.go('/adminBottomNavBar');
+                    context.pop();
                 }
               },
             ),

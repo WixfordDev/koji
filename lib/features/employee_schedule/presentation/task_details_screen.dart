@@ -423,7 +423,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayDate = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        displayDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(dateString));
+        displayDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(dateString).toLocal());
       } catch (e) {
         displayDate = dateString;
       }
@@ -456,7 +456,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayTime = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        displayTime = DateFormat('hh:mm a').format(DateTime.parse(dateString));
+        displayTime = DateFormat('hh:mm a').format(DateTime.parse(dateString).toLocal());
       } catch (e) {
         displayTime = '09:00 AM';
       }

@@ -44,8 +44,9 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
 
-    final hour = dateTime.hour;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final local = dateTime.toLocal();
+    final hour = local.hour;
+    final minute = local.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
 
@@ -184,7 +185,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                         String taskId = task.id ?? '';
                         if (taskId.isNotEmpty) {
                           // Navigate using path parameters
-                          context.goNamed(
+                          context.pushNamed(
                             'adminCompleteTaskScreenWithParams',
                             pathParameters: {
                               'taskId': taskId,
