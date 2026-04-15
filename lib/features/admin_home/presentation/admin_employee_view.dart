@@ -21,18 +21,41 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
   bool isContactInfoExpanded = false;
   bool isServiceDetailsExpanded = false;
   bool isShiftChangeExpanded = false;
+  TextEditingController fullName = TextEditingController();
+
+  // Local mutable copies so the profile card reflects updates immediately
+  late String _displayName;
+  late String _displayRole;
+
+  @override
+  void initState() {
+    getFullName();
+    super.initState();
+    _displayName = widget.employee.fullName ??
+        widget.employee.firstName ??
+        'N/A';
+    _displayRole = widget.employee.role ?? 'employee';
+  }
+
+  getFullName(){
+    fullName.text = "${widget.employee.firstName} ${widget.employee.lastName}";
+    setState(() {
+
+    });
+  }
+
+
 
   void _showUpdateSheet(BuildContext context, AdminHomeController controller) {
-    final firstNameCtrl =
-        TextEditingController(text: widget.employee.firstName ?? '');
-    final lastNameCtrl =
-        TextEditingController(text: widget.employee.lastName ?? '');
+    final firstNameCtrl = TextEditingController(text: widget.employee.firstName ?? '');
+    final lastNameCtrl = TextEditingController(text: widget.employee.lastName ?? '');
+
     final phoneCtrl =
         TextEditingController(text: widget.employee.phoneNumber ?? '');
     final addressCtrl =
         TextEditingController(text: widget.employee.address?.toString() ?? '');
     bool isAdminApproved = widget.employee.isAdminApproved ?? false;
-    String selectedRole = widget.employee.role ?? 'employee';
+    String selectedRole = _displayRole;
 
     showModalBottomSheet(
       context: context,
@@ -158,9 +181,23 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                                       body: body,
                                     );
                                     if (result) {
+                                      // Update local state so the profile card
+                                      // shows the new name/role immediately
+                                      if (mounted) {
+                                        setState(() {
+                                          final first =
+                                              firstNameCtrl.text.trim();
+                                          final last = lastNameCtrl.text.trim();
+                                          final newName =
+                                              '${first.isNotEmpty ? first : (widget.employee.firstName ?? '')} ${last.isNotEmpty ? last : (widget.employee.lastName ?? '')}'
+                                                  .trim();
+                                          _displayName = newName;
+                                          fullName.text = newName;
+                                          _displayRole = selectedRole;
+                                        });
+                                      }
                                       ToastMessageHelper.showToastMessage(
                                           'Employee updated successfully!');
-                                      if (mounted) Navigator.pop(context);
                                     } else {
                                       ToastMessageHelper.showToastMessage(
                                           'Failed to update employee.',
@@ -260,7 +297,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Employee ',
+          'Employee',
           style: TextStyle(color: Colors.black),
         ),
         centerTitle: true,
@@ -309,7 +346,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                     ),
                     SizedBox(height: 12.h),
                     Text(
-                      widget.employee.fullName ?? widget.employee.firstName ?? 'N/A',
+                      "${fullName.text}",
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w700,
@@ -318,7 +355,7 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      widget.employee.role ?? 'employee',
+                      _displayRole,
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: Colors.grey.shade600,

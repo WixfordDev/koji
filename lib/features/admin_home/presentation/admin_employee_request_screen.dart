@@ -233,7 +233,7 @@ class _AdminEmployeeRequestScreenState
                             ),
                           ),
                           title: CustomText(
-                            text: "${user.firstName ?? user.fullName ?? "N/A"}",
+                            text: "${user.firstName ?? ""} ${user.lastName ?? "N/A"}",
                             fontSize: 16.h,
                             textAlign: TextAlign.start,
                             fontWeight: FontWeight.w600,
@@ -251,13 +251,18 @@ class _AdminEmployeeRequestScreenState
                             color: Color(0xffF4726D),
                             title: "View",
                             onpress: () {
-                              Navigator.of(context).push(
+                              Navigator.of(context)
+                                  .push(
                                 MaterialPageRoute(
                                   builder: (context) => AdminEmployeeView(
                                     employee: user,
                                   ),
                                 ),
-                              );
+                              )
+                                  .then((_) {
+                                    print("==================Call api");
+                                adminHomeController.getEmployeeRequest();
+                              });
                             },
                           ),
                         ),
