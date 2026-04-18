@@ -145,11 +145,12 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
 
   String _buildISO(DateTime? date, TimeOfDay? time) {
     if (date == null) return '';
+    // Convert to UTC so the server receives an unambiguous timestamp.
     final d = DateTime(
       date.year, date.month, date.day,
       time?.hour ?? 0, time?.minute ?? 0,
     );
-    return d.toIso8601String();
+    return d.toUtc().toIso8601String();
   }
 
   double _calcTotal() {

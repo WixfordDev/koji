@@ -82,10 +82,10 @@ class HistoryModel {
     customerAddress: json["customerAddress"],
     assignDate: json["assignDate"] == null
         ? null
-        : DateTime.parse(json["assignDate"]),
+        : DateTime.parse(json["assignDate"]).toLocal(),
     deadline: json["deadline"] == null
         ? null
-        : DateTime.parse(json["deadline"]),
+        : DateTime.parse(json["deadline"]).toLocal(),
     services: json["services"] == null
         ? []
         : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),

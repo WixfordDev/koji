@@ -1755,9 +1755,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   String _formatDateToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
 
-    // Create a DateTime object with the date and time
+    // Create a local DateTime then convert to UTC so the server always
+    // receives an unambiguous UTC timestamp (avoids date shift across timezones).
     DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    return dateTime.toIso8601String();
+    return dateTime.toUtc().toIso8601String();
   }
 
   Future<void> _createTask() async {
