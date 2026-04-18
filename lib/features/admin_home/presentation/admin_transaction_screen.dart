@@ -45,21 +45,32 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
 
   void _onTabTap(int index) {
     setState(() => _selectedTabIndex = index);
-    adminHomeController.getBillingDocs(type: _tabTypes[index]);
   }
 
-  List<BillingDocResult> _applySearch(List<BillingDocResult> items) {
-    if (_searchQuery.isEmpty) return items;
-    return items.where((doc) {
-      final name = (doc.customerName ?? '').toLowerCase();
-      final number = (doc.customerNumber ?? '').toLowerCase();
-      final invoice = (doc.invoiceNumber ?? '').toLowerCase();
-      final quote = (doc.quoteNumber ?? '').toLowerCase();
-      return name.contains(_searchQuery) ||
-          number.contains(_searchQuery) ||
-          invoice.contains(_searchQuery) ||
-          quote.contains(_searchQuery);
-    }).toList();
+  List<BillingDocResult> _applyFilters(List<BillingDocResult> items) {
+    List<BillingDocResult> filtered = items;
+
+    // Client-side type filter
+    final typeFilter = _tabTypes[_selectedTabIndex];
+    if (typeFilter.isNotEmpty) {
+      filtered = filtered.where((doc) => doc.type == typeFilter).toList();
+    }
+
+    // Search filter
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((doc) {
+        final name = (doc.customerName ?? '').toLowerCase();
+        final number = (doc.customerNumber ?? '').toLowerCase();
+        final invoice = (doc.invoiceNumber ?? '').toLowerCase();
+        final quote = (doc.quoteNumber ?? '').toLowerCase();
+        return name.contains(_searchQuery) ||
+            number.contains(_searchQuery) ||
+            invoice.contains(_searchQuery) ||
+            quote.contains(_searchQuery);
+      }).toList();
+    }
+
+    return filtered;
   }
 
   @override
@@ -188,10 +199,10 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                       if (aDate == null && bDate == null) return 0;
                       if (aDate == null) return 1;
                       if (bDate == null) return -1;
-                      return bDate.compareTo(aDate); // newest first
+                      return bDate.compareTo(aDate);
                     });
 
-              final List<BillingDocResult> items = _applySearch(allItems);
+              final List<BillingDocResult> items = _applyFilters(allItems);
 
               if (allItems.isEmpty) {
                 return const Center(child: Text('No records found'));
@@ -200,7 +211,9 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
               if (items.isEmpty) {
                 return Center(
                   child: Text(
-                    'No results for "$_searchQuery"',
+                    _searchQuery.isNotEmpty
+                        ? 'No results for "$_searchQuery"'
+                        : 'No ${_tabLabels[_selectedTabIndex]} found',
                     style: const TextStyle(color: Colors.grey),
                   ),
                 );
@@ -328,7 +341,7 @@ class _BillingDocCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '\$${doc.totalDue ?? 0}',
+                  doc.formattedTotal,
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w700,

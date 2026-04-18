@@ -11,7 +11,7 @@ import '../../models/admin-model/all_employee_model.dart';
 import '../../models/admin-model/all_task_summary_model.dart';
 import '../../models/admin-model/billing_docs_model.dart';
 import '../../models/admin-model/get_alllist_task_model.dart';
-import '../../models/admin-model/transaction_model.dart';
+import '../../models/admin-model/transaction_model.dart' hide Result;
 import '../../models/admin-model/profile_model.dart';
 import '../../models/admin-model/invoice_details_model.dart';
 
@@ -116,10 +116,15 @@ class AdminHomeController extends GetxController {
   RxBool getAdminAllAttendanceLoading = false.obs;
   Rx<AllAttendanceModel> allAttendance = AllAttendanceModel().obs;
 
-  getAdminAllAttendance() async {
+  getAdminAllAttendance({int? month, int? year}) async {
     getAdminAllAttendanceLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllAttendanceEndPoint);
+      String endpoint = ApiConstants.getAllAttendanceEndPoint;
+      final params = <String>[];
+      if (month != null) params.add('month=$month');
+      if (year != null) params.add('year=$year');
+      if (params.isNotEmpty) endpoint += '?${params.join('&')}';
+      var response = await ApiClient.getData(endpoint);
 
       if (response.statusCode == 200) {
         allAttendance.value = AllAttendanceModel.fromJson(response.body['data']['attributes']);
@@ -150,18 +155,34 @@ class AdminHomeController extends GetxController {
   getAllListTasks() async {
     getAllListTaskLoading(true);
     try {
-      var response = await ApiClient.getData(ApiConstants.getAllTaskEndPoint);
+      final base = '${ApiConstants.getAllTaskEndPoint}&limit=100&page=1';
+      final first = await ApiClient.getData(base);
 
-      if (response.statusCode == 200) {
+      if (first.statusCode == 200) {
+        final firstModel = GetAllListTaskModel.fromJson(first.body['data']['attributes']);
+        final totalPages = firstModel.totalPages ?? 1;
+        final allResults = List<Result>.from(firstModel.results ?? []);
 
-        getAllListTask.value = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
-        getAllListTaskLoading(false);
-      } else if (response.statusCode == 404) {
-        getAllListTaskLoading(false);
-      } else {
-        getAllListTaskLoading(false);
+        for (int page = 2; page <= totalPages; page++) {
+          final res = await ApiClient.getData(
+              '${ApiConstants.getAllTaskEndPoint}&limit=100&page=$page');
+          if (res.statusCode == 200) {
+            final model = GetAllListTaskModel.fromJson(res.body['data']['attributes']);
+            allResults.addAll(model.results ?? []);
+          }
+        }
+
+        getAllListTask.value = GetAllListTaskModel(
+          results: allResults,
+          page: firstModel.page,
+          limit: firstModel.limit,
+          totalPages: firstModel.totalPages,
+          totalResults: firstModel.totalResults,
+        );
       }
     } catch (e) {
+      print('getAllListTasks error: $e');
+    } finally {
       getAllListTaskLoading(false);
     }
   }
@@ -278,16 +299,34 @@ class AdminHomeController extends GetxController {
   getBillingDocs({String type = ''}) async {
     getBillingDocsLoading(true);
     try {
-      final String endpoint = type.isEmpty
+      final String base = type.isEmpty
           ? '/info/billing-docs?sortBy=createdAt:desc'
           : '/info/billing-docs?type=$type&sortBy=createdAt:desc';
 
-      var response = await ApiClient.getData(endpoint);
+      // Fetch page 1 to get totalPages
+      final first = await ApiClient.getData('$base&limit=100&page=1');
+      if (first.statusCode != 200) return;
 
-      if (response.statusCode == 200) {
-        billingDocs.value = BillingDocsModel.fromJson(
-            response.body['data']['attributes']);  // ✅ correct parse
+      final firstModel = BillingDocsModel.fromJson(first.body['data']['attributes']);
+      final totalPages = firstModel.totalPages ?? 1;
+      final allResults = List<BillingDocResult>.from(firstModel.results ?? []);
+
+      // Fetch remaining pages if any
+      for (int page = 2; page <= totalPages; page++) {
+        final res = await ApiClient.getData('$base&limit=100&page=$page');
+        if (res.statusCode == 200) {
+          final model = BillingDocsModel.fromJson(res.body['data']['attributes']);
+          allResults.addAll(model.results ?? []);
+        }
       }
+
+      billingDocs.value = BillingDocsModel(
+        results: allResults,
+        page: firstModel.page,
+        limit: firstModel.limit,
+        totalPages: firstModel.totalPages,
+        totalResults: firstModel.totalResults,
+      );
     } catch (e) {
       print('getBillingDocs error: $e');
     } finally {

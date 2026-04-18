@@ -33,7 +33,26 @@ class _AdminInvoiceDetailsScreenState
     adminHomeController = Get.find<AdminHomeController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       adminHomeController.getBillingDetails(widget.billingId);
+      if (adminHomeController.employeeRequest.value.results == null ||
+          adminHomeController.employeeRequest.value.results!.isEmpty) {
+        adminHomeController.getEmployeeRequest();
+      }
+      if (adminHomeController.profileData.value.user == null) {
+        adminHomeController.getProfile();
+      }
     });
+  }
+
+  String _resolveName(String? id) {
+    if (id == null || id.isEmpty) return '-';
+    if (!RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(id)) return id;
+    final employees = adminHomeController.employeeRequest.value.results ?? [];
+    for (final e in employees) {
+      if (e.id == id) return e.fullName ?? e.email ?? id;
+    }
+    final user = adminHomeController.profileData.value.user;
+    if (user?.id == id) return user?.fullName ?? user?.email ?? id;
+    return id;
   }
 
   @override
@@ -71,6 +90,9 @@ class _AdminInvoiceDetailsScreenState
         }
 
         final billing = adminHomeController.billingDetails.value;
+        // observe for reactive updates when employee/profile data loads
+        adminHomeController.employeeRequest.value;
+        adminHomeController.profileData.value;
 
         // ── Empty / not yet loaded
         if (billing.id == null) {
@@ -84,6 +106,8 @@ class _AdminInvoiceDetailsScreenState
                 .toList() ??
             [];
 
+        final String resolvedCreatedBy = _resolveName(billing.createdBy);
+
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -91,13 +115,13 @@ class _AdminInvoiceDetailsScreenState
 
               // ── Detail Card with real data
               InvoiceDetailsWidget(
-                staffName: billing.createdBy ?? '-',
+                staffName: resolvedCreatedBy,
                 category: serviceNames.isNotEmpty ? serviceNames.first : '-',
                 serviceList: serviceNames,
                 customerName: billing.customerName ?? '-',
                 customerNumber: billing.customerNumber ?? '-',
                 customerAddress: billing.customerAddress ?? '-',
-                assignTo: billing.createdBy ?? '-',
+                assignTo: resolvedCreatedBy,
                 time: billing.invoiceDate != null
                     ? '${_formatDate(billing.invoiceDate)} – ${_formatDate(billing.dueDate)}'
                     : '-',

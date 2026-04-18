@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:koji/models/task_report_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/task_report_controller.dart';
+import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_text.dart';
 import '../../../shared_widgets/task_report_card_widget.dart';
 
@@ -27,6 +29,33 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
     // Only fetch the task report if a taskId is provided
     if (widget.taskId != null && widget.taskId!.isNotEmpty) {
       controller.fetchTaskReport(widget.taskId!);
+    }
+  }
+
+  void _showSnack(String msg, {Color color = Colors.orange}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _downloadReport(String? path) async {
+    if (path == null || path.isEmpty) {
+      _showSnack('Task report PDF has not been generated yet.');
+      return;
+    }
+    final fullUrl = path.startsWith('http')
+        ? path
+        : '${ApiConstants.imageBaseUrl}$path';
+    final uri = Uri.tryParse(fullUrl);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      _showSnack('Cannot open the report link.', color: Colors.red);
     }
   }
 
@@ -104,28 +133,35 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
                 return Column(
                   children: [
                     SizedBox(height: 24.h),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52.h,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.r),
+                    GestureDetector(
+                      onTap: () => _downloadReport(
+                          controller.taskReport.value?.invoicePath),
+                      child: Container(
+                        width: double.infinity,
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          backgroundColor: const Color(0xFF000066),
-                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          borderRadius: BorderRadius.circular(30.r),
                         ),
-                        icon: const Icon(Icons.download, color: Colors.white),
-                        label: const Text(
-                          "Download Task Report",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.download, color: Colors.white),
+                            SizedBox(width: 8.w),
+                            Text(
+                              "Download Task Report",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.sp,
+                              ),
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          // Add download functionality here
-                        },
                       ),
                     ),
                     SizedBox(height: 30.h),
@@ -172,15 +208,15 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
               ),
               child: Text(
                 taskReport.isSubmited
-                    ? "Task Submitted Successfully"
+                    ? "Submitted on ${_formatDate(taskReport.updatedAt ?? taskReport.createdAt)}"
                     : "Task is in progress",
                 style: TextStyle(
                   color:
                       taskReport.status.toLowerCase().contains('completed') ||
                           taskReport.status.toLowerCase().contains('done') ||
                           taskReport.isSubmited
-                      ? const Color(0xFF249E58) // Green
-                      : const Color(0xFFFF9800), // Orange
+                      ? const Color(0xFF249E58)
+                      : const Color(0xFFFF9800),
                   fontWeight: FontWeight.w500,
                 ),
               ),

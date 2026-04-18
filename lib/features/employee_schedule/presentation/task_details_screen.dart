@@ -279,6 +279,59 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   Widget _buildAttachmentSection(task) {
+    final List<String> originalImages = (task.attachments as List?)
+            ?.map((e) => e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList()
+            .cast<String>() ??
+        [];
+    final List<String> submittedImages = (task.submitedDoc as List?)
+            ?.map((e) => e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList()
+            .cast<String>() ??
+        [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (originalImages.isNotEmpty) ...[
+          _imageListSection(title: 'Attachment', imagePaths: originalImages),
+          SizedBox(height: 12.h),
+        ],
+        if (task.isSubmited == true) ...[
+          _imageListSection(
+            title: 'Submitted Documents',
+            imagePaths: submittedImages,
+          ),
+        ] else if (originalImages.isEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Container(
+              height: 80.h,
+              decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.r)),
+              child: Center(
+                child: Text('No attachments',
+                    style:
+                        TextStyle(color: Colors.grey[600], fontSize: 12.sp)),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _imageListSection(
+      {required String title, required List<String> imagePaths}) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(12.w),
@@ -290,27 +343,35 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Attachment',
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-          ),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87)),
           SizedBox(height: 12.h),
-          if (task.attachments != null && task.attachments!.isNotEmpty)
+          if (imagePaths.isEmpty)
+            Container(
+              height: 80.h,
+              decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.r)),
+              child: Center(
+                child: Text('No images',
+                    style:
+                        TextStyle(color: Colors.grey[600], fontSize: 12.sp)),
+              ),
+            )
+          else
             SizedBox(
               height: 110.h,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: task.attachments!.length,
+                itemCount: imagePaths.length,
                 itemBuilder: (context, index) {
-                  final rawPath = task.attachments![index].toString();
-                  final imageUrl = _buildImageUrl(ApiConstants.imageBaseUrl, rawPath);
-
-                  // Debug — remove after confirming
-                  debugPrint('📎 Attachment URL [$index]: $imageUrl');
-
+                  final imageUrl =
+                      _buildImageUrl(ApiConstants.imageBaseUrl, imagePaths[index]);
                   return GestureDetector(
                     onTap: () {
-                      // Show full image on tap
                       showDialog(
                         context: context,
                         builder: (_) => Dialog(
@@ -322,7 +383,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               imageUrl,
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => Center(
-                                child: Icon(Icons.broken_image, color: Colors.white54, size: 48.sp),
+                                child: Icon(Icons.broken_image,
+                                    color: Colors.white54, size: 48.sp),
                               ),
                             ),
                           ),
@@ -343,7 +405,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         child: Image.network(
                           imageUrl,
                           fit: BoxFit.cover,
-                          // Show loading spinner while image loads
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Center(
@@ -351,23 +412,23 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                 strokeWidth: 2,
                                 value: loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                        loadingProgress.expectedTotalBytes!
                                     : null,
                                 color: primaryBlue,
                               ),
                             );
                           },
                           errorBuilder: (context, error, stackTrace) {
-                            debugPrint('❌ Image load error [$index]: $error');
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.broken_image_outlined, color: Colors.grey[400], size: 28.sp),
+                                Icon(Icons.broken_image_outlined,
+                                    color: Colors.grey[400], size: 28.sp),
                                 SizedBox(height: 4.h),
-                                Text(
-                                  'No Image',
-                                  style: TextStyle(fontSize: 10.sp, color: Colors.grey[500]),
-                                ),
+                                Text('No Image',
+                                    style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey[500])),
                               ],
                             );
                           },
@@ -376,14 +437,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     ),
                   );
                 },
-              ),
-            )
-          else
-            Container(
-              height: 80.h,
-              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8.r)),
-              child: Center(
-                child: Text('No attachments', style: TextStyle(color: Colors.grey[600], fontSize: 12.sp)),
               ),
             ),
         ],
@@ -514,7 +567,14 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             'priority': task.priority,
             'difficulty': task.difficulty,
             'notes': task.notes,
-            "service": task.service ?? {},
+            "service": (task.service as List?)
+                    ?.map((s) => {
+                          'name': s.name ?? '',
+                          'price': (s.price ?? 0).toDouble(),
+                          'quantity': (s.quantity ?? 1).toString(),
+                        })
+                    .toList() ??
+                [],
             "totalPrice": task.totalAmount,
           },
         ),

@@ -82,7 +82,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
 
               // Task count summary
-              Container(
+              Obx(() => Container(
                 padding: EdgeInsets.all(12.w),
                 margin: EdgeInsets.only(bottom: 16.h),
                 decoration: BoxDecoration(
@@ -95,7 +95,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         children: [
                           CustomText(
-                            text: "Total Tasks",
+                            text: "Total",
                             color: AppColor.secondaryColor,
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
@@ -114,23 +114,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         children: [
                           CustomText(
-                            text: "Completed",
+                            text: "Pending",
                             color: AppColor.secondaryColor,
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
                           ),
                           SizedBox(height: 4.h),
                           CustomText(
-                            text: controller.taskList
-                                .where(
-                                  (task) =>
-                                      task.status?.toLowerCase() ==
-                                          'completed' ||
-                                      task.status?.toLowerCase() == 'done',
-                                )
-                                .length
-                                .toString(),
-                            color: Colors.green,
+                            text: controller.pendingTasksCount.toString(),
+                            color: Colors.red,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
                           ),
@@ -141,21 +133,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         children: [
                           CustomText(
-                            text: "Pending",
+                            text: "Completed",
                             color: AppColor.secondaryColor,
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
                           ),
                           SizedBox(height: 4.h),
                           CustomText(
-                            text: controller.taskList
-                                .where(
-                                  (task) =>
-                                      task.status?.toLowerCase() == 'pending',
-                                )
-                                .length
-                                .toString(),
-                            color: Colors.orange,
+                            text: controller.completedTasksCount.toString(),
+                            color: Colors.green,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
                           ),
@@ -164,7 +150,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ],
                 ),
-              ),
+              )),
 
               // Task list
               Expanded(
@@ -173,7 +159,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (controller.taskList.isEmpty) {
+                  if (controller.filteredTaskList.isEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -206,26 +192,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     onRefresh: () => controller.fetchTaskList(),
                     child: ListView.builder(
                       padding: EdgeInsets.only(bottom: 20.h),
-                      itemCount: controller.taskList.length,
+                      itemCount: controller.filteredTaskList.length,
                       itemBuilder: (context, index) {
-                        final task = controller.taskList[index];
-
-                        // Map task status to completed flag
-                        bool isCompleted =
-                            task.status?.toLowerCase() == 'completed' ||
-                            task.status?.toLowerCase() == 'done';
+                        final task = controller.filteredTaskList[index];
 
                         return Container(
                           margin: EdgeInsets.only(bottom: 12.h),
                           child: HistoryCardWidget(
                             title: task.customerName ?? "",
                             category: task.serviceCategory?.name ?? "",
-                            // time: "${task.assignDate?.split('T')[0]} - ${task.deadline.split('T')[0]}",
-                            time: "2:00 AM - 3:00 AM",
-                            breakTime:
-                                task.notes ??
-                                "", // Using notes as break time placeholder
-                            completed: isCompleted,
+                            time: _formatDateRange(task.assignDate, task.deadline),
+                            breakTime: task.notes ?? "",
+                            status: task.status ?? 'pending',
+                            progressPercent: task.progressPercent ?? 0,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -261,21 +240,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Row(
           children: [
             _buildStatusTab("All", "", controller.selectedStatus.value == ""),
-            _buildStatusTab(
-              "Pending",
-              "pending",
-              controller.selectedStatus.value == "pending",
-            ),
-            _buildStatusTab(
-              "Done",
-              "completed",
-              controller.selectedStatus.value == "completed",
-            ),
-            _buildStatusTab(
-              "In Progress",
-              "in_progress",
-              controller.selectedStatus.value == "in_progress",
-            ),
+            _buildStatusTab("Pending", "pending",
+                controller.selectedStatus.value == "pending"),
+            _buildStatusTab("InProgress", "in_progress",
+                controller.selectedStatus.value == "in_progress"),
+            _buildStatusTab("Completed", "completed",
+                controller.selectedStatus.value == "completed"),
           ],
         ),
       );
@@ -311,6 +281,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDateRange(DateTime? from, DateTime? to) {
+    String fmt(DateTime? dt) {
+      if (dt == null) return '-';
+      return '${dt.day}/${dt.month}/${dt.year}';
+    }
+    return '${fmt(from)} – ${fmt(to)}';
   }
 
   String _getDisplayTextForStatus(String status) {

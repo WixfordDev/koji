@@ -60,6 +60,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
     _isDataLoaded = true;
 
+    final id = user.id ?? '';
+    employeeIdCtrl.text = id.length >= 6
+        ? 'EMP-${id.substring(id.length - 6).toUpperCase()}'
+        : id.isNotEmpty ? id : 'N/A';
     nameCtrl.text    = user.firstName   ?? '';
     emailCtrl.text   = user.email       ?? '';
     phoneCtrl.text   = user.phoneNumber ?? '';
@@ -182,21 +186,24 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       Positioned(
                         bottom: -4.h,
                         right: -4.w,
-                        child: Container(
-                          width: 28.w,
-                          height: 28.h,
-                          padding: EdgeInsets.all(6.w),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.bottomLeft,
-                              end: Alignment.topRight,
-                              colors: [primaryDark, primaryBlue],
+                        child: GestureDetector(
+                          onTap: _showImagePickerOptions,
+                          child: Container(
+                            width: 28.w,
+                            height: 28.h,
+                            padding: EdgeInsets.all(6.w),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight,
+                                colors: [primaryDark, primaryBlue],
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
                             ),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: Assets.icons.camera.svg(
-                            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                            child: Assets.icons.camera.svg(
+                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                            ),
                           ),
                         ),
                       ),
@@ -223,7 +230,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       ),
                       SizedBox(height: 2.h),
                       CustomText(
-                        text: 'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                        text: () {
+                          final id = profileController.profile.value.user?.id;
+                          if (id == null || id.length < 6) return 'ID: N/A';
+                          return 'ID: EMP-${id.substring(id.length - 6).toUpperCase()}';
+                        }(),
                         fontSize: 13.sp,
                         color: AppColor.textColor707070,
                       ),
@@ -262,8 +273,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 SizedBox(height: 4.h),
                 CustomAuthTextField(
                   controller: employeeIdCtrl,
-                  hintText: profileController.profile.value.user?.id ?? 'N/A',
-                  readOnly: true, // ID should not be editable
+                  hintText: 'Employee ID',
+                  readOnly: true,
                 ),
 
                 SizedBox(height: 16.h),

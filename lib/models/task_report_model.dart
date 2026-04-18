@@ -60,6 +60,7 @@ class TaskReportAttributes {
   final String notes;
   final String? invoicePath;
   final String createdAt;
+  final String? updatedAt;
   final String? customerEmail;
   final String? paymentMethod;
   final String paymentStatus;
@@ -87,6 +88,7 @@ class TaskReportAttributes {
     required this.notes,
     this.invoicePath,
     required this.createdAt,
+    this.updatedAt,
     this.customerEmail,
     this.paymentMethod,
     required this.paymentStatus,
@@ -110,7 +112,11 @@ class TaskReportAttributes {
           [],
       priority: json['priority'] ?? '',
       difficulty: json['difficulty'] ?? '',
-      assignTo: _parseUser(json['assignTo']),
+      assignTo: _parseUser(json['assignTo'] is List
+          ? (json['assignTo'] as List).isNotEmpty
+              ? json['assignTo'][0]
+              : null
+          : json['assignTo']),
       otherAmount: json['otherAmount'] ?? 0,
       totalAmount: json['totalAmount'] ?? 0,
       status: json['status'] ?? '',
@@ -120,6 +126,7 @@ class TaskReportAttributes {
       notes: json['notes'] ?? '',
       invoicePath: json['invoicePath'],
       createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'],
       customerEmail: json['customerEmail'],
       paymentMethod: json['paymentMethod'],
       paymentStatus: json['paymentStatus'] ?? '',
@@ -150,6 +157,7 @@ class TaskReportAttributes {
       'notes': notes,
       'invoicePath': invoicePath,
       'createdAt': createdAt,
+      'updatedAt': updatedAt,
       'customerEmail': customerEmail,
       'paymentMethod': paymentMethod,
       'paymentStatus': paymentStatus,

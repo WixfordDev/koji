@@ -7,9 +7,9 @@ class HistoryCardWidget extends StatelessWidget {
   final String title;
   final String category;
   final String time;
-  final bool? completed;
   final String breakTime;
-  final String status; // Changed from bool completed to String status
+  final String status;
+  final int progressPercent;
   final VoidCallback? onTap;
 
   const HistoryCardWidget({
@@ -17,9 +17,9 @@ class HistoryCardWidget extends StatelessWidget {
     required this.title,
     required this.category,
     required this.time,
-    this.completed,
     required this.breakTime,
-    this.status = 'pending', // Default to pending
+    this.status = 'pending',
+    this.progressPercent = 0,
     this.onTap,
   });
 
@@ -60,11 +60,7 @@ class HistoryCardWidget extends StatelessWidget {
         ? "In Progress"
         : "Pending";
 
-    String progressText = isCompleted
-        ? "100%"
-        : isInProgress
-        ? "50%"
-        : "0%";
+    String progressText = "$progressPercent%";
 
     return InkWell(
       borderRadius: BorderRadius.circular(14.r),
@@ -93,6 +89,7 @@ class HistoryCardWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: CustomText(
+                    textAlign: TextAlign.start,
                     text: title,
                     color: AppColor.secondaryColor,
                     fontSize: 16.sp,
@@ -193,6 +190,8 @@ class HistoryCardWidget extends StatelessWidget {
     return lowerStatus == 'in_progress' ||
         lowerStatus == 'in progress' ||
         lowerStatus == 'progress' ||
+        lowerStatus == 'submited' ||
+        lowerStatus == 'submitted' ||
         lowerStatus == 'working';
   }
 

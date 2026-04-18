@@ -8,7 +8,7 @@ import '../../../services/api_constants.dart';
 class AdminViewAttendanceScreen extends StatefulWidget {
   final String employeeName;
   final String role;
-  final String employeeId;
+  final String? employeeEmail;
   final String? image;
   final String checkIn;
   final String breakTime;
@@ -18,7 +18,7 @@ class AdminViewAttendanceScreen extends StatefulWidget {
     super.key,
     required this.employeeName,
     required this.role,
-    required this.employeeId,
+    this.employeeEmail,
     this.image,
     required this.checkIn,
     required this.breakTime,
@@ -115,11 +115,13 @@ class _AdminViewAttendanceScreenState extends State<AdminViewAttendanceScreen> {
                     color: Colors.grey,
                   ),
                   SizedBox(height: 4.h),
-                  CustomText(
-                    text: "ID: ${widget.employeeId}",
-                    fontSize: 12.sp,
-                    color: Colors.black54,
-                  ),
+                  if (widget.employeeEmail != null &&
+                      widget.employeeEmail!.isNotEmpty)
+                    CustomText(
+                      text: widget.employeeEmail!,
+                      fontSize: 12.sp,
+                      color: Colors.black54,
+                    ),
                 ],
               ),
             ),

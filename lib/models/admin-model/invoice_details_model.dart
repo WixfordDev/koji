@@ -47,8 +47,18 @@ class InvoiceDetailsModel {
     this.pdfPath,
   });
 
+  static String? _extractName(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is Map) {
+      return raw['fullName']?.toString() ??
+          raw['name']?.toString() ??
+          raw['_id']?.toString();
+    }
+    return raw.toString();
+  }
+
   factory InvoiceDetailsModel.fromJson(Map<String, dynamic> json) => InvoiceDetailsModel(
-    createdBy: json["createdBy"],
+    createdBy: _extractName(json["createdBy"]),
     type: json["type"],
     customerName: json["customerName"],
     customerAddress: json["customerAddress"],

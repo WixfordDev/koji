@@ -395,9 +395,9 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       _buildLegendItem(
-                        color: const Color(0xFF4CD964),
-                        label: 'Completed',
-                        count: totalCompleted,
+                        color: const Color(0xFFFF1414),
+                        label: 'Pending',
+                        count: totalPending,
                       ),
                       SizedBox(width: 16.w),
                       _buildLegendItem(
@@ -407,9 +407,9 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                       ),
                       SizedBox(width: 16.w),
                       _buildLegendItem(
-                        color: const Color(0xFFFF1414),
-                        label: 'Pending',
-                        count: totalPending,
+                        color: const Color(0xFF4CD964),
+                        label: 'Completed',
+                        count: totalCompleted,
                       ),
                     ],
                   );
@@ -698,16 +698,16 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       _buildStatItem(
-                                        'Completed (${member['stats']['completed']})',
-                                        const Color(0xFF4CD964),
+                                        'Pending (${member['stats']['pending']})',
+                                        const Color(0xFFFF1414),
                                       ),
                                       _buildStatItem(
                                         'In progress (${member['stats']['inProgress']})',
                                         const Color(0xFFFFB800),
                                       ),
                                       _buildStatItem(
-                                        'Pending (${member['stats']['pending']})',
-                                        const Color(0xFFFF1414),
+                                        'Completed (${member['stats']['completed']})',
+                                        const Color(0xFF4CD964),
                                       ),
                                     ],
                                   ),

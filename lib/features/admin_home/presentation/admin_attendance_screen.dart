@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
+import '../../../models/admin-model/all_attendance_list_model.dart';
 import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_text.dart';
 import 'admin_view_attendance_screen.dart';
@@ -16,21 +17,175 @@ class AdminAttendanceScreen extends StatefulWidget {
 }
 
 class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
-
-
   late AdminHomeController adminHomeController;
+
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _selectedStatus = 'Pending';
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+
+  static const List<String> _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
 
   @override
   void initState() {
     super.initState();
     adminHomeController = Get.find<AdminHomeController>();
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      adminHomeController.getAdminAllAttendance();
-
+      _fetchAttendance();
     });
   }
 
+  void _fetchAttendance() {
+    adminHomeController.getAdminAllAttendance(
+      month: _selectedMonth.month,
+      year: _selectedMonth.year,
+    );
+  }
 
+  void _changeMonth(int delta) {
+    setState(() {
+      _selectedMonth = DateTime(
+        _selectedMonth.year + ((_selectedMonth.month + delta - 1) ~/ 12),
+        ((_selectedMonth.month - 1 + delta) % 12) + 1,
+      );
+    });
+    _fetchAttendance();
+  }
+
+  Future<void> _showMonthPicker() async {
+    int pickerYear = _selectedMonth.year;
+    int pickerMonth = _selectedMonth.month;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r)),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () =>
+                      setDialogState(() => pickerYear--),
+                ),
+                Text(
+                  '$pickerYear',
+                  style: TextStyle(
+                      fontSize: 16.sp, fontWeight: FontWeight.w700),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () =>
+                      setDialogState(() => pickerYear++),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 2.2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: 12,
+                itemBuilder: (_, i) {
+                  final isSelected =
+                      i + 1 == pickerMonth && pickerYear == _selectedMonth.year;
+                  return GestureDetector(
+                    onTap: () {
+                      setDialogState(() => pickerMonth = i + 1);
+                      setState(() {
+                        _selectedMonth =
+                            DateTime(pickerYear, i + 1);
+                      });
+                      _fetchAttendance();
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFFEC526A),
+                                  Color(0xFFF77F6E)
+                                ],
+                              )
+                            : null,
+                        color: isSelected ? null : const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        _monthNames[i].substring(0, 3),
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  List<Attendance> _applyFilters(List<Attendance> all) {
+    return all.where((a) {
+      // Month filter
+      if (a.clockIn != null) {
+        if (a.clockIn!.month != _selectedMonth.month ||
+            a.clockIn!.year != _selectedMonth.year) {
+          return false;
+        }
+      }
+      // Status filter
+      final status = (a.status ?? '').toLowerCase();
+      if (_selectedStatus == 'Pending' &&
+          status != 'pending' &&
+          status != '') {
+        if (status == 'approved') return false;
+      }
+      if (_selectedStatus == 'Approved' && status != 'approved') {
+        return false;
+      }
+      // Search filter
+      if (_searchQuery.isNotEmpty) {
+        final name = (a.employee?.displayName ?? '').toLowerCase();
+        final role = (a.employee?.role ?? '').toLowerCase();
+        if (!name.contains(_searchQuery) && !role.contains(_searchQuery)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +220,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// Search & Month
+              /// Search & Month Picker
               Row(
                 children: [
                   Expanded(
@@ -89,9 +244,10 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                           SizedBox(width: 6.w),
                           Expanded(
                             child: TextField(
+                              controller: _searchController,
                               textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
-                                hintText: "Search",
+                                hintText: "Search employee...",
                                 border: InputBorder.none,
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
@@ -100,19 +256,24 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                              ),
+                              style: TextStyle(fontSize: 12.sp),
                             ),
                           ),
+                          if (_searchQuery.isNotEmpty)
+                            GestureDetector(
+                              onTap: () => _searchController.clear(),
+                              child: Icon(Icons.close,
+                                  color: Colors.grey, size: 16.r),
+                            ),
                         ],
                       ),
                     ),
                   ),
                   SizedBox(width: 8.w),
+
+                  /// Month Navigation
                   Container(
                     height: 40.h,
-                    padding: EdgeInsets.symmetric(horizontal: 10.w),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(100.r),
@@ -125,16 +286,45 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        CustomText(
-                          text: "November",
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(
+                              minWidth: 28.w, minHeight: 40.h),
+                          icon: Icon(Icons.chevron_left,
+                              size: 20.r, color: Colors.black),
+                          onPressed: () => _changeMonth(-1),
                         ),
-                        SizedBox(width: 6.w),
-                        Icon(Icons.calendar_today_outlined,
-                            color: Colors.black, size: 18.r),
+                        GestureDetector(
+                          onTap: _showMonthPicker,
+                          child: Padding(
+                            padding:
+                                EdgeInsets.symmetric(horizontal: 4.w),
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  text:
+                                      "${_monthNames[_selectedMonth.month - 1]} ${_selectedMonth.year}",
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                SizedBox(width: 4.w),
+                                Icon(Icons.calendar_today_outlined,
+                                    color: const Color(0xFFEC526A),
+                                    size: 14.r),
+                              ],
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(
+                              minWidth: 28.w, minHeight: 40.h),
+                          icon: Icon(Icons.chevron_right,
+                              size: 20.r, color: Colors.black),
+                          onPressed: () => _changeMonth(1),
+                        ),
                       ],
                     ),
                   ),
@@ -142,8 +332,10 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               ),
               SizedBox(height: 20.h),
 
+              /// Summary Cards
               Obx(() {
                 final data = adminHomeController.allAttendance.value;
+                int safe(int? v) => (v ?? 0) < 0 ? 0 : (v ?? 0);
                 return GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -152,25 +344,25 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildSummaryCard(
-                      "${data.totalPresent ?? 0}",
+                      "${safe(data.totalPresent)}",
                       "Present",
                       const Color(0xFFC4EAD5),
                       const Color(0xFF31712B),
                     ),
                     _buildSummaryCard(
-                      "${data.totalAbsent ?? 0}",
+                      "${safe(data.totalAbsent)}",
                       "Absent",
                       const Color(0xFFD2E8F8),
                       const Color(0xFF0B59A1),
                     ),
                     _buildSummaryCard(
-                      "${data.totalLateIn ?? 0}",
+                      "${safe(data.totalLateIn)}",
                       "Late In",
                       const Color(0xFFF3E8C1),
                       const Color(0xFFE3A607),
                     ),
                     _buildSummaryCard(
-                      "${data.totalEarlyOut ?? 0}",
+                      "${safe(data.totalEarlyOut)}",
                       "Early Out",
                       const Color(0xFFFCCCCC),
                       const Color(0xFFEE3E3E),
@@ -181,77 +373,61 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
               SizedBox(height: 20.h),
 
-              /// Status Filter
+              /// Status Filter — Pending / Approved only
               Row(
                 children: [
-                  _buildStatusChip("Pending", selectedStatus == "Pending"),
+                  _buildStatusChip("Pending", _selectedStatus == "Pending"),
                   SizedBox(width: 10.w),
-                  _buildStatusChip("Approved", selectedStatus == "Approved"),
-                  SizedBox(width: 10.w),
-                  _buildStatusChip("Reject", selectedStatus == "Reject"),
+                  _buildStatusChip("Approved", _selectedStatus == "Approved"),
                 ],
               ),
               SizedBox(height: 20.h),
 
               /// Employee List Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText(
-                    text: "Employee List",
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  Container(
-                    padding:
-                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        CustomText(
-                          text: "Department",
-                          fontSize: 14.sp,
-                          color: Colors.black87,
-                        ),
-                        Icon(Icons.keyboard_arrow_down, size: 20.r),
-                      ],
-                    ),
-                  ),
-                ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: CustomText(
+                  text: "Employee List",
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: 16.h),
 
-              /// ===========================>  Employee Cards ===========================>
+              /// Employee Cards
               Obx(() {
                 if (adminHomeController.getAdminAllAttendanceLoading.value) {
                   return const Center(child: CustomLoader());
                 }
 
-                final attendanceList = adminHomeController.allAttendance.value.results ?? [];
+                final all =
+                    adminHomeController.allAttendance.value.results ?? [];
+                final filtered = _applyFilters(all);
+
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 20.h),
+                      child: Text(
+                        _searchQuery.isNotEmpty
+                            ? 'No results for "$_searchQuery"'
+                            : 'No attendance records found',
+                        style: TextStyle(
+                            color: Colors.grey, fontSize: 13.sp),
+                      ),
+                    ),
+                  );
+                }
+
                 return ListView.builder(
-                  itemCount: attendanceList.length,
+                  itemCount: filtered.length,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
-                    final attendance = attendanceList[index];
+                    final attendance = filtered[index];
 
-                    // Format time from DateTime
-                    String checkInTime = attendance.clockIn != null
-                        ? "${attendance.clockIn!.hour}:${attendance.clockIn!.minute.toString().padLeft(2, '0')}"
-                        : "N/A";
-
-                    String checkOutTime = attendance.clockOut != null
-                        ? "${attendance.clockOut!.hour}:${attendance.clockOut!.minute.toString().padLeft(2, '0')}"
-                        : "N/A";
+                    String checkInTime = _formatTime(attendance.clockIn);
+                    String checkOutTime = _formatTime(attendance.clockOut);
 
                     return GestureDetector(
                       onTap: () {
@@ -259,29 +435,32 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AdminViewAttendanceScreen(
-                              employeeName: attendance.employee?.fullName ?? "Unknown",
+                              employeeName:
+                                  attendance.employee?.displayName ??
+                                      "Unknown",
                               role: attendance.employee?.role ?? "N/A",
-                              employeeId: attendance.employee?.id ?? "",
+                              employeeEmail:
+                                  attendance.employee?.email,
                               image: attendance.employee?.image,
                               checkIn: checkInTime,
-                              breakTime: "N/A", // Placeholder - you may want to implement break time logic
+                              breakTime: "N/A",
                               checkOut: checkOutTime,
                             ),
                           ),
                         );
                       },
                       child: _buildEmployeeCard(
-                        attendance.employee?.fullName ?? "Unknown",
+                        attendance.employee?.displayName ?? "Unknown",
                         attendance.employee?.role ?? "N/A",
                         checkInTime,
                         checkOutTime,
                         attendance.employee?.image,
+                        attendance.status,
                       ),
                     );
                   },
                 );
-              })
-
+              }),
             ],
           ),
         ),
@@ -289,12 +468,21 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
     );
   }
 
+  String _formatTime(DateTime? dt) {
+    if (dt == null) return 'N/A';
+    final local = dt.toLocal();
+    final period = local.hour < 12 ? 'AM' : 'PM';
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final min = local.minute.toString().padLeft(2, '0');
+    return '${hour.toString().padLeft(2, '0')}:$min $period';
+  }
+
   Widget _buildSummaryCard(
-      String count,
-      String label,
-      Color bgColor,
-      Color topShadowColor,
-      ) {
+    String count,
+    String label,
+    Color bgColor,
+    Color topShadowColor,
+  ) {
     return Container(
       width: 172.w,
       height: 90.h,
@@ -316,7 +504,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               text: count,
               fontSize: 22.sp,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0B2750), // dark navy text color
+              color: const Color(0xFF0B2750),
             ),
             SizedBox(height: 4.h),
             CustomText(
@@ -333,18 +521,17 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
   Widget _buildStatusChip(String text, bool isSelected) {
     return GestureDetector(
-      onTap: () => setState(() => selectedStatus = text),
+      onTap: () => setState(() => _selectedStatus = text),
       child: Container(
-        padding:
-        EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30.r),
           gradient: isSelected
               ? const LinearGradient(
-            colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
+                  colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
               : null,
           color: !isSelected ? Colors.white : null,
           boxShadow: [
@@ -352,7 +539,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               color: Colors.black.withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
-            )
+            ),
           ],
         ),
         child: CustomText(
@@ -366,7 +553,23 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
   }
 
   Widget _buildEmployeeCard(
-      String name, String role, String checkIn, String checkOut, String? imageUrl) {
+    String name,
+    String role,
+    String checkIn,
+    String checkOut,
+    String? imageUrl,
+    String? status,
+  ) {
+    final statusLower = (status ?? '').toLowerCase();
+    Color statusColor = statusLower == 'approved'
+        ? Colors.green
+        : statusLower == 'rejected'
+            ? Colors.red
+            : Colors.orange;
+    String statusLabel = statusLower.isEmpty
+        ? 'Pending'
+        : status![0].toUpperCase() + status.substring(1);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(10.w),
@@ -383,18 +586,15 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       ),
       child: Row(
         children: [
-
-
           CircleAvatar(
             radius: 25,
             backgroundImage: imageUrl != null && imageUrl.isNotEmpty
                 ? NetworkImage(_getImageUrl(imageUrl))
                 : AssetImage('assets/images/profile.png') as ImageProvider,
             child: imageUrl == null || imageUrl.isEmpty
-                ? Icon(Icons.person)
+                ? const Icon(Icons.person)
                 : null,
           ),
-
           SizedBox(width: 10.w),
           Expanded(
             child: Column(
@@ -414,7 +614,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                 Row(
                   children: [
                     CustomText(
-                      text: "Check In: ",
+                      text: "In: ",
                       fontSize: 10.sp,
                       fontWeight: FontWeight.w400,
                       color: Colors.black54,
@@ -425,7 +625,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       color: Colors.green,
                     ),
                     CustomText(
-                      text: " | Check Out: ",
+                      text: "  Out: ",
                       fontSize: 10.sp,
                       fontWeight: FontWeight.w400,
                       color: Colors.black54,
@@ -440,27 +640,32 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
               ],
             ),
           ),
-          Icon(Icons.person_outline, color: Colors.redAccent),
+          Container(
+            padding:
+                EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Text(
+              statusLabel,
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: statusColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String selectedStatus = 'Pending';
-
-
   String _getImageUrl(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) return '';
-
-    // If already a full URL, return as is
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
-
-    // Otherwise, prepend your base URL
-    String baseUrl = ApiConstants.imageBaseUrl; // Your API base URL
-    return "$baseUrl$imageUrl";
+    return "${ApiConstants.imageBaseUrl}$imageUrl";
   }
-
-
 }

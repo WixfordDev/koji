@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:koji/features/admin_home/presentation/admin_my_task_details_screen.dart';
 import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../models/admin-model/get_alllist_task_model.dart';
@@ -209,16 +210,28 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
             final task = filteredTasks[index];
             final progress = (task.progressPercent ?? 0) / 100.0;
 
-            return _taskCard(
-              task: task,
-              title: task.customerName ?? 'Task',
-              status: _formatStatus(task.status ?? 'pending'),
-              statusColor: _getStatusColor(task.status ?? 'pending'),
-              priority: _formatPriority(task.priority ?? 'medium'),
-              progress: progress,
-              date: task.assignDate != null
-                  ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
-                  : 'No date',
+            return GestureDetector(
+              onTap: () {
+                if (task.id != null && task.id!.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminMyTaskDetailsScreen(taskId: task.id!),
+                    ),
+                  );
+                }
+              },
+              child: _taskCard(
+                task: task,
+                title: task.customerName ?? 'Task',
+                status: _formatStatus(task.status ?? 'pending'),
+                statusColor: _getStatusColor(task.status ?? 'pending'),
+                priority: _formatPriority(task.priority ?? 'medium'),
+                progress: progress,
+                date: task.assignDate != null
+                    ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
+                    : 'No date',
+              ),
             );
           },
         ),

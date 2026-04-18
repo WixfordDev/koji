@@ -502,9 +502,10 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
   String _formatTime(DateTime? dt) {
     if (dt == null) return '--:--';
     final local = dt.toLocal();
-    final h = local.hour.toString().padLeft(2, '0');
+    final period = local.hour < 12 ? 'AM' : 'PM';
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final m = local.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    return '${hour.toString().padLeft(2, '0')}:$m $period';
   }
 
   String _formatTotalHours(Attendance? a) {

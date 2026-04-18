@@ -87,22 +87,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final dayTasks = controller.getTasksForDay(day);
     if (dayTasks.isEmpty) return const SizedBox.shrink();
 
-    final completedCount = dayTasks.where((t) =>
-        t.isSubmited == true ||
-        t.status?.toLowerCase() == 'complete' ||
-        t.status?.toLowerCase() == 'done' ||
-        t.status?.toLowerCase() == 'completed').length;
+    final completedCount = dayTasks.where((t) {
+      final s = t.status?.toLowerCase() ?? '';
+      return s == 'complete' || s == 'completed' || s == 'done';
+    }).length;
 
-    final inProgressCount = dayTasks.where((t) =>
-        t.isSubmited != true &&
-        (t.status?.toLowerCase() == 'inprogress' ||
-            t.status?.toLowerCase() == 'in progress' ||
-            t.status?.toLowerCase() == 'progress')).length;
+    final inProgressCount = dayTasks.where((t) {
+      final s = t.status?.toLowerCase() ?? '';
+      return s == 'inprogress' || s == 'in progress' || s == 'progress';
+    }).length;
 
-    final pendingCount = dayTasks.where((t) =>
-        t.isSubmited != true &&
-        (t.status?.toLowerCase() == 'pending' ||
-            t.status?.toLowerCase() == 'upcoming')).length;
+    final pendingCount = dayTasks.where((t) {
+      final s = t.status?.toLowerCase() ?? '';
+      return s == 'pending' || s == 'upcoming';
+    }).length;
 
     if (completedCount == 0 && inProgressCount == 0 && pendingCount == 0) return const SizedBox.shrink();
 
@@ -678,11 +676,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   String _effectiveStatus(TaskModel.TaskModel task) {
-    if (task.isSubmited == true) return 'complete';
     final s = task.status?.toLowerCase() ?? '';
-    if (s == 'completed' || s == 'done') return 'complete';
-    if (s == 'progress') return 'inprogress';
-    return task.status ?? '';
+    if (s == 'complete' || s == 'completed' || s == 'done') return 'complete';
+    if (s == 'inprogress' || s == 'in progress' || s == 'progress') return 'inprogress';
+    return task.status ?? 'pending';
   }
 
   String _capitalize(String text) {
