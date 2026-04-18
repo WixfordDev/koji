@@ -252,7 +252,6 @@ class EmployeeScheduleController extends GetxController {
 
     if (status.toLowerCase() == 'complete') {
       return _tasks.where((task) {
-        if (task.isSubmited == true) return true;
         final s = task.status?.toLowerCase() ?? '';
         return s == 'complete' || s == 'completed' || s == 'done';
       }).length;
@@ -260,14 +259,12 @@ class EmployeeScheduleController extends GetxController {
 
     if (status.toLowerCase() == 'inprogress') {
       return _tasks.where((task) {
-        if (task.isSubmited == true) return false;
         final s = task.status?.toLowerCase() ?? '';
         return s == 'inprogress' || s == 'in progress' || s == 'progress';
       }).length;
     }
 
     return _tasks.where((task) {
-      if (task.isSubmited == true) return false;
       return task.status?.toLowerCase() == status.toLowerCase();
     }).length;
   }

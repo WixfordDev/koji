@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:koji/services/api_client.dart';
 import '../services/employee_task_service.dart';
@@ -13,37 +12,34 @@ class EmployeeHistoryController extends GetxController {
   Future<void> fetchTaskList() async {
     try {
       isLoading.value = true;
-      final response = await ApiClient.getData("/tasks/employ/list");
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        var data = List<HistoryModel>.from(
-          response.body["data"]['attributes']["results"].map(
-            (x) => HistoryModel.fromJson(x),
-          ),
+      const base = '/tasks/employ/list?limit=100&page=1';
+      final first = await ApiClient.getData(base);
+      if (first.statusCode == 200 || first.statusCode == 201) {
+        final attrs = first.body["data"]['attributes'];
+        final totalPages = attrs['totalPages'] ?? 1;
+        final allResults = List<HistoryModel>.from(
+          attrs["results"].map((x) => HistoryModel.fromJson(x)),
         );
-        taskList.assignAll(data);
+
+        for (int page = 2; page <= totalPages; page++) {
+          final res = await ApiClient.getData(
+              '/tasks/employ/list?limit=100&page=$page');
+          if (res.statusCode == 200 || res.statusCode == 201) {
+            final more = res.body["data"]['attributes']["results"];
+            allResults.addAll(
+              List<HistoryModel>.from(more.map((x) => HistoryModel.fromJson(x))),
+            );
+          }
+        }
+
+        taskList.assignAll(allResults);
         _applyFilter();
         update();
-
-        isLoading.value = false;
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to fetch task list: ${response.statusText}",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: Duration(seconds: 3),
-        );
+        print("fetchTaskList error: ${first.statusCode} ${first.statusText}");
       }
     } catch (error) {
-      Get.snackbar(
-        "Error",
-        "Failed to fetch task list: ${error.toString()}",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: Duration(seconds: 3),
-      );
+      print("fetchTaskList exception: $error");
     } finally {
       isLoading.value = false;
     }

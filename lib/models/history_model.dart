@@ -24,7 +24,7 @@ class HistoryModel {
   final List<Service>? services;
   final String? priority;
   final String? difficulty;
-  final String? assignTo;
+  final List<String>? assignTo;
   final int? otherAmount;
   final int? totalAmount;
   final String? status;
@@ -91,7 +91,11 @@ class HistoryModel {
         : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
     priority: json["priority"],
     difficulty: json["difficulty"],
-    assignTo: json["assignTo"],
+    assignTo: json["assignTo"] == null
+        ? []
+        : (json["assignTo"] is List)
+            ? List<String>.from(json["assignTo"].map((x) => x.toString()))
+            : [json["assignTo"].toString()],
     otherAmount: json["otherAmount"],
     totalAmount: json["totalAmount"],
     status: json["status"],
@@ -132,7 +136,7 @@ class HistoryModel {
         : List<dynamic>.from(services!.map((x) => x.toJson())),
     "priority": priority,
     "difficulty": difficulty,
-    "assignTo": assignTo,
+    "assignTo": assignTo == null ? [] : List<dynamic>.from(assignTo!),
     "otherAmount": otherAmount,
     "totalAmount": totalAmount,
     "status": status,

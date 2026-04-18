@@ -276,8 +276,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // ID
                 CustomText(
-                  text:
-                      'ID: ${profileController.profile.value.user?.id ?? 'N/A'}',
+                  text: () {
+                    final id = profileController.profile.value.user?.id;
+                    if (id == null || id.length < 6) return 'ID: N/A';
+                    return 'ID: EMP-${id.substring(id.length - 6).toUpperCase()}';
+                  }(),
                   fontSize: 12.sp,
                   color: AppColor.textColor707070,
                 ),

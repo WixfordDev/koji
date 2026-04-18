@@ -40,24 +40,17 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   void _loadOriginalServices() {
-    var servicesData = widget.taskData['service'];
-    if (servicesData is List<Service>) {
-      for (var service in servicesData) {
+    final servicesData = widget.taskData['service'];
+    if (servicesData is! List) return;
+    for (final item in servicesData) {
+      if (item is Map) {
         _originalServices.add({
-          'name': service.name ?? 'N/A',
-          'price': service.price?.toDouble() ?? 0.0,
-          'quantity': service.quantity?.toString() ?? '1',
+          'name': item['name']?.toString() ?? 'N/A',
+          'price': (item['price'] is num)
+              ? (item['price'] as num).toDouble()
+              : double.tryParse(item['price'].toString()) ?? 0.0,
+          'quantity': item['quantity']?.toString() ?? '1',
         });
-      }
-    } else if (servicesData is List) {
-      for (var service in servicesData) {
-        if (service is Map<String, dynamic>) {
-          _originalServices.add({
-            'name': service['name'] ?? 'N/A',
-            'price': (service['price'] is double) ? service['price'] : double.tryParse(service['price'].toString()) ?? 0.0,
-            'quantity': service['quantity']?.toString() ?? '1',
-          });
-        }
       }
     }
   }
@@ -66,33 +59,38 @@ class _TaskScreenState extends State<TaskScreen> {
   final double _gstPercentage = 0;
 
   double get _subtotal {
-    double subtotal = 0;
-    for (var service in _originalServices) {
-      subtotal += service['price'] * int.parse(service['quantity']);
-    }
-    for (var service in _extraServices) {
-      subtotal += service['price'] * int.parse(service['quantity']);
-    }
-    return subtotal;
+    return [..._originalServices, ..._extraServices].fold(0.0, (sum, s) {
+      final price = (s['price'] as num).toDouble();
+      final qty = int.tryParse(s['quantity']?.toString() ?? '1') ?? 1;
+      return sum + price * qty;
+    });
   }
 
   double get _gstAmount => (_subtotal * _gstPercentage) / 100;
   double get _totalPrice => _subtotal + _gstAmount;
 
+  List<Map<String, String>> get _allServices {
+    return [
+      ..._originalServices,
+      ..._extraServices,
+    ].map((s) => {
+          'name': s['name']?.toString() ?? '',
+          'price': (s['price'] as num).toDouble().toString(),
+          'quantity': s['quantity']?.toString() ?? '1',
+        }).toList();
+  }
+
   Map<String, String> get _taskJson {
-    List<Map<String, dynamic>> allServices = [];
-    allServices.addAll(_originalServices.map((s) => {'name': s['name'], 'price': s['price'].toString(), 'quantity': s['quantity']}));
-    allServices.addAll(_extraServices.map((s) => {'name': s['name'], 'price': s['price'].toString(), 'quantity': s['quantity']}));
     return {
-      "customerName": widget.taskData['customerName'] ?? 'N/A',
-      "customerNumber": widget.taskData['customerNumber'] ?? 'N/A',
-      "customerAddress": widget.taskData['customerAddress'] ?? 'N/A',
-      "customerEmail": widget.taskData['customerEmail'] ?? 'N/A',
-      "service": json.encode(allServices),
-      "totalAmount": "$_totalPrice",
+      "customerName": widget.taskData['customerName']?.toString() ?? 'N/A',
+      "customerNumber": widget.taskData['customerNumber']?.toString() ?? 'N/A',
+      "customerAddress": widget.taskData['customerAddress']?.toString() ?? 'N/A',
+      "customerEmail": widget.taskData['customerEmail']?.toString() ?? 'N/A',
+      "service": json.encode(_allServices),
+      "totalAmount": _totalPrice.toStringAsFixed(2),
       "paymentMethod": _selectedPaymentMethod,
       "paymentStatus": _selectedPaymentStatus,
-      "notes": widget.taskData['notes'] ?? '',
+      "notes": widget.taskData['notes']?.toString() ?? '',
     };
   }
 
@@ -427,12 +425,14 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   void _showAddServiceDialog() {
-    TextEditingController nameController = TextEditingController();
-    TextEditingController priceController = TextEditingController();
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+    final quantityController = TextEditingController(text: '1');
+    final outerSetState = setState;
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
         child: Padding(
           padding: EdgeInsets.all(20.w),
@@ -449,23 +449,41 @@ class _TaskScreenState extends State<TaskScreen> {
                   contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                 ),
               ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Price (\$)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-                  prefixText: '\$',
-                ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: priceController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Price (\$)',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                        prefixText: '\$',
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: TextField(
+                      controller: quantityController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Qty',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 24.h),
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 14.h),
                         shape: RoundedRectangleBorder(
@@ -482,13 +500,19 @@ class _TaskScreenState extends State<TaskScreen> {
                       onTap: () {
                         final name = nameController.text.trim();
                         final price = double.tryParse(priceController.text) ?? 0.0;
+                        final qty = int.tryParse(quantityController.text) ?? 1;
                         if (name.isNotEmpty && price > 0) {
-                          setState(() {
-                            _extraServices.add({'name': name, 'price': price, "quantity": "1"});
+                          outerSetState(() {
+                            _extraServices.add({
+                              'name': name,
+                              'price': price,
+                              'quantity': qty.toString(),
+                            });
                           });
-                          Navigator.pop(context);
+                          Navigator.pop(dialogContext);
                         } else {
-                          Get.snackbar('Error', 'Please enter valid service name and price', backgroundColor: Colors.red, colorText: Colors.white);
+                          Get.snackbar('Error', 'Please enter valid service name and price',
+                              backgroundColor: Colors.red, colorText: Colors.white);
                         }
                       },
                       child: Container(

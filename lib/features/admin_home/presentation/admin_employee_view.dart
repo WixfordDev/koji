@@ -400,7 +400,9 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
                             ],
                           ),
                           SizedBox(height: 16.h),
-                          _buildInfoRow("Employee Code", widget.employee.id?.substring(0, 12) ?? "Koji Tech 123"),
+                          _buildInfoRow("Employee Code", widget.employee.id != null && widget.employee.id!.length >= 6
+                              ? 'EMP-${widget.employee.id!.substring(widget.employee.id!.length - 6).toUpperCase()}'
+                              : 'N/A'),
                           _buildDivider(),
                           _buildInfoRow("Gender", widget.employee.gender ?? "N/A"),
                           _buildDivider(),

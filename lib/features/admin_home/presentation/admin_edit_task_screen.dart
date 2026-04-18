@@ -10,6 +10,7 @@ import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../controller/admincontroller/department_controller.dart';
 import '../../../helpers/toast_message_helper.dart';
 import '../../../models/admin-model/get_alllist_task_model.dart';
+import '../../../services/api_constants.dart';
 
 class AdminEditTaskScreen extends StatefulWidget {
   final Result task;
@@ -703,51 +704,104 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
   }
 
   Widget _attachmentPicker() {
-    return GestureDetector(
-      onTap: _pickAttachment,
-      child: Container(
-        height: 90.h,
-        decoration: BoxDecoration(
-          color: const Color(0xffF9FAFB),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: const Color(0xffE5E7EB), style: BorderStyle.solid),
-        ),
-        child: _attachmentFile != null
-            ? Stack(
-                alignment: Alignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Image.file(_attachmentFile!, width: double.infinity, height: 90.h, fit: BoxFit.cover),
+    final existingAttachments = widget.task.attachments ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Show existing attachments from server
+        if (existingAttachments.isNotEmpty && _attachmentFile == null) ...[
+          SizedBox(
+            height: 90.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: existingAttachments.length,
+              itemBuilder: (context, i) {
+                final rawPath = existingAttachments[i];
+                final base = ApiConstants.imageBaseUrl.endsWith('/')
+                    ? ApiConstants.imageBaseUrl
+                    : '${ApiConstants.imageBaseUrl}/';
+                final url = rawPath.startsWith('http')
+                    ? rawPath
+                    : '$base${rawPath.startsWith('/') ? rawPath.substring(1) : rawPath}';
+                return Container(
+                  width: 90.w,
+                  height: 90.h,
+                  margin: EdgeInsets.only(right: 8.w),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: const Color(0xffE5E7EB)),
                   ),
-                  Positioned(
-                    top: 6.r,
-                    right: 6.r,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _attachmentFile = null),
-                      child: CircleAvatar(
-                        radius: 12.r,
-                        backgroundColor: Colors.black54,
-                        child: Icon(Icons.close, color: Colors.white, size: 14.r),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.r),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.broken_image_outlined, color: Colors.grey[400], size: 28.r),
                       ),
                     ),
                   ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.cloud_upload_outlined, size: 28.r, color: Colors.grey[400]),
-                  SizedBox(height: 6.h),
-                  Text(
-                    widget.task.attachments?.isNotEmpty == true
-                        ? 'Tap to replace attachment'
-                        : 'Tap to add attachment',
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 8.h),
+        ],
+
+        // New file picker / replace button
+        GestureDetector(
+          onTap: _pickAttachment,
+          child: Container(
+            height: 90.h,
+            decoration: BoxDecoration(
+              color: const Color(0xffF9FAFB),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: const Color(0xffE5E7EB)),
+            ),
+            child: _attachmentFile != null
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12.r),
+                        child: Image.file(
+                          _attachmentFile!,
+                          width: double.infinity,
+                          height: 90.h,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 6.r,
+                        right: 6.r,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _attachmentFile = null),
+                          child: CircleAvatar(
+                            radius: 12.r,
+                            backgroundColor: Colors.black54,
+                            child: Icon(Icons.close, color: Colors.white, size: 14.r),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_upload_outlined, size: 28.r, color: Colors.grey[400]),
+                      SizedBox(height: 6.h),
+                      Text(
+                        existingAttachments.isNotEmpty
+                            ? 'Tap to add more attachment'
+                            : 'Tap to add attachment',
+                        style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-      ),
+          ),
+        ),
+      ],
     );
   }
 
