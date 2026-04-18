@@ -509,9 +509,10 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
 
   String _formatTotalHours(Attendance? a) {
     if (a == null) return '--:--';
-    if (a.totalHours != null) return '${a.totalHours}h';
+    if (a.totalHours != null && a.totalHours! > 0) return '${a.totalHours}h';
     if (a.clockIn != null && a.clockOut != null) {
       final diff = a.clockOut!.toLocal().difference(a.clockIn!.toLocal());
+      if (diff.isNegative) return '--:--';
       final hours = diff.inHours;
       final minutes = diff.inMinutes.remainder(60);
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
@@ -781,7 +782,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       return;
     }
 
-    final nowIso = DateTime.now().toIso8601String();
+    final nowIso = DateTime.now().toUtc().toIso8601String();
     try {
       final resp = await AttendanceService.checkIn(clockIn: nowIso);
       if (resp.statusCode == 200 || resp.statusCode == 201) {
@@ -821,7 +822,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       return;
     }
 
-    final nowIso = DateTime.now().toIso8601String();
+    final nowIso = DateTime.now().toUtc().toIso8601String();
     try {
       final resp = await AttendanceService.checkOut(
         clockOut: nowIso,

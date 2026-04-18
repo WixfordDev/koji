@@ -17,6 +17,7 @@ class TaskDetailsScreen extends StatefulWidget {
 
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   late final EmployeeScheduleController controller;
+  bool _isAccepting = false;
 
   // Gradient colors
   static const Color primaryDark = Color(0xFF162238);
@@ -225,7 +226,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 if (task.isSubmited != true && task.status?.toLowerCase() == 'pending')
                   _gradientButton(
                     label: 'Accept',
-                    onPressed: () => _acceptTask(task),
+                    isLoading: _isAccepting,
+                    onPressed: _isAccepting ? () {} : () => _acceptTask(task),
                   ),
 
                 SizedBox(height: 12.h),
@@ -486,16 +488,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   void _acceptTask(task) async {
+    setState(() => _isAccepting = true);
     final success = await controller.acceptTask(widget.taskId);
-    if (success && mounted) {
-      try {
-        Get.snackbar(
-          'Accepted',
-          'Task accepted successfully',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } catch (_) {}
+    if (!mounted) return;
+    setState(() => _isAccepting = false);
+    if (success) {
       Navigator.pop(context);
     }
   }

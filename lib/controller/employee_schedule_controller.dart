@@ -163,8 +163,43 @@ class EmployeeScheduleController extends GetxController {
     try {
       final response = await ApiClient.postData('/tasks/$taskId/accept', {});
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Update selectedTask locally so UI reflects new status immediately
+        final current = _selectedTask.value;
+        if (current != null) {
+          _selectedTask.value = TaskModel(
+            customerSignature: current.customerSignature,
+            id: current.id,
+            createdBy: current.createdBy,
+            department: current.department,
+            serviceCategory: current.serviceCategory,
+            vehicle: current.vehicle,
+            customerName: current.customerName,
+            customerNumber: current.customerNumber,
+            customerAddress: current.customerAddress,
+            customerEmail: current.customerEmail,
+            assignDate: current.assignDate,
+            deadline: current.deadline,
+            services: current.services,
+            priority: current.priority,
+            difficulty: current.difficulty,
+            assignTo: current.assignTo,
+            otherAmount: current.otherAmount,
+            totalAmount: current.totalAmount,
+            status: 'progress',
+            attachments: current.attachments,
+            submitedDoc: current.submitedDoc,
+            isSubmited: current.isSubmited,
+            notes: current.notes,
+            isDeleted: current.isDeleted,
+            invoicePath: current.invoicePath,
+            createdAt: current.createdAt,
+            updatedAt: current.updatedAt,
+            v: current.v,
+            progressPercent: current.progressPercent,
+          );
+        }
         if (_selectedDate.value.isNotEmpty) {
-          await fetchTasksForDate(_selectedDate.value);
+          fetchTasksForDate(_selectedDate.value);
         }
         return true;
       } else {
@@ -220,6 +255,14 @@ class EmployeeScheduleController extends GetxController {
         if (task.isSubmited == true) return true;
         final s = task.status?.toLowerCase() ?? '';
         return s == 'complete' || s == 'completed' || s == 'done';
+      }).length;
+    }
+
+    if (status.toLowerCase() == 'inprogress') {
+      return _tasks.where((task) {
+        if (task.isSubmited == true) return false;
+        final s = task.status?.toLowerCase() ?? '';
+        return s == 'inprogress' || s == 'in progress' || s == 'progress';
       }).length;
     }
 

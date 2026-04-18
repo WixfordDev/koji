@@ -97,10 +97,10 @@ class TaskModel {
     customerEmail: json["customerEmail"],
     assignDate: json["assignDate"] == null
         ? null
-        : DateTime.parse(json["assignDate"]),
+        : DateTime.parse(json["assignDate"]).toLocal(),
     deadline: json["deadline"] == null
         ? null
-        : DateTime.parse(json["deadline"]),
+        : DateTime.parse(json["deadline"]).toLocal(),
     services: (json["services"] ?? json["service"]) == null
         ? []
         : List<Service>.from((json["services"] ?? json["service"])!.map((x) => Service.fromJson(x))),

@@ -582,7 +582,7 @@ class DepartmentController extends GetxController {
   String _formatDateToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
 
-    // Create a DateTime object with the date and time
+    // Convert to UTC so the server receives an unambiguous timestamp.
     DateTime dateTime = DateTime(
       date.year,
       date.month,
@@ -590,7 +590,7 @@ class DepartmentController extends GetxController {
       time.hour,
       time.minute,
     );
-    return dateTime.toIso8601String();
+    return dateTime.toUtc().toIso8601String();
   }
 
   // Calculate total amount based on selected services
@@ -646,7 +646,7 @@ class DepartmentController extends GetxController {
   String formatDateTimeToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
 
-    // Create a DateTime object with the date and time
+    // Convert to UTC so the server receives an unambiguous timestamp.
     DateTime dateTime = DateTime(
       date.year,
       date.month,
@@ -654,7 +654,7 @@ class DepartmentController extends GetxController {
       time.hour,
       time.minute,
     );
-    return dateTime.toIso8601String();
+    return dateTime.toUtc().toIso8601String();
   }
 
   /// Method to create a new task with all required info

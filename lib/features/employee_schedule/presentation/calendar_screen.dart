@@ -30,6 +30,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   static const Color accentBlue = Color(0xFF125BAC);
   static const Color completedColor = Color(0xFF4CD964);
   static const Color pendingColor = Color(0xFFFF1414);
+  static const Color inProgressColor = Color(0xFFFF9500);
 
   @override
   void initState() {
@@ -60,8 +61,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         "All ($allCount)",
         "Pending ($pendingCount)",
         "InProgress ($inProgressCount)",
-        "Complete ($completedCount)",
+        "Completed ($completedCount)",
       ];
+      if (selectedTab >= tabs.length) selectedTab = 0;
     });
   }
 
@@ -91,40 +93,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
         t.status?.toLowerCase() == 'done' ||
         t.status?.toLowerCase() == 'completed').length;
 
+    final inProgressCount = dayTasks.where((t) =>
+        t.isSubmited != true &&
+        (t.status?.toLowerCase() == 'inprogress' ||
+            t.status?.toLowerCase() == 'in progress' ||
+            t.status?.toLowerCase() == 'progress')).length;
+
     final pendingCount = dayTasks.where((t) =>
         t.isSubmited != true &&
         (t.status?.toLowerCase() == 'pending' ||
-            t.status?.toLowerCase() == 'upcoming' ||
-            t.status?.toLowerCase() == 'inprogress' ||
-            t.status?.toLowerCase() == 'in progress')).length;
+            t.status?.toLowerCase() == 'upcoming')).length;
 
-    if (completedCount == 0 && pendingCount == 0) return const SizedBox.shrink();
+    if (completedCount == 0 && inProgressCount == 0 && pendingCount == 0) return const SizedBox.shrink();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (completedCount > 0) ...[
-          Container(
-            width: 5,
-            height: 5,
-            decoration: const BoxDecoration(
-              color: completedColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 1),
-          Text(
-            '$completedCount',
-            style: const TextStyle(
-              fontSize: 9,
-              color: completedColor,
-              fontWeight: FontWeight.w600,
-              height: 1,
-            ),
-          ),
-        ],
-        if (completedCount > 0 && pendingCount > 0) const SizedBox(width: 3),
         if (pendingCount > 0) ...[
           Container(
             width: 5,
@@ -140,6 +125,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
             style: const TextStyle(
               fontSize: 9,
               color: pendingColor,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ],
+        if (pendingCount > 0 && inProgressCount > 0) const SizedBox(width: 3),
+        if (inProgressCount > 0) ...[
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: inProgressColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 1),
+          Text(
+            '$inProgressCount',
+            style: const TextStyle(
+              fontSize: 9,
+              color: inProgressColor,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ],
+        if (inProgressCount > 0 && completedCount > 0) const SizedBox(width: 3),
+        if (completedCount > 0) ...[
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: completedColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 1),
+          Text(
+            '$completedCount',
+            style: const TextStyle(
+              fontSize: 9,
+              color: completedColor,
               fontWeight: FontWeight.w600,
               height: 1,
             ),
@@ -275,47 +302,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: completedColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              "Completed Appointments",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF555555),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 16),
-                        Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: pendingColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              "Pending Appointments",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF555555),
-                              ),
-                            ),
-                          ],
-                        ),
+                        _legendDot(pendingColor, "Pending"),
+                        const SizedBox(width: 12),
+                        _legendDot(inProgressColor, "Inprogress"),
+                        const SizedBox(width: 12),
+                        _legendDot(completedColor, "Completed"),
                       ],
                     ),
 
@@ -404,6 +395,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   /// Reusable day cell for calendar builders
+  Widget _legendDot(Color color, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+      ],
+    );
+  }
+
   Widget _dayCell({
     required String label,
     required Color labelColor,
@@ -624,8 +629,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     List<TaskModel.TaskModel> tasks = controller.getAllTasksForSelectedDate();
 
     if (selectedTab > 0) {
-      final statusFilter =
-          tabs[selectedTab].split('(')[0].trim().toLowerCase();
+      const statusFilters = ['', 'pending', 'inprogress', 'complete'];
+      final statusFilter = statusFilters[selectedTab];
       tasks = tasks
           .where(
               (task) => _effectiveStatus(task).toLowerCase() == statusFilter)
@@ -674,6 +679,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String _effectiveStatus(TaskModel.TaskModel task) {
     if (task.isSubmited == true) return 'complete';
+    final s = task.status?.toLowerCase() ?? '';
+    if (s == 'completed' || s == 'done') return 'complete';
+    if (s == 'progress') return 'inprogress';
     return task.status ?? '';
   }
 
@@ -739,7 +747,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return completedColor;
       case 'inprogress':
       case 'in progress':
-        return primaryBlue;
+      case 'progress':
+        return inProgressColor;
       case 'pending':
       case 'upcoming':
         return Colors.grey;
