@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/models/task_model.dart';
 import 'package:koji/services/api_client.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
@@ -295,6 +296,14 @@ class _TaskScreenState extends State<TaskScreen> {
                             multipartBody: photoList,
                           );
                           if (submitResponse.statusCode == 200) {
+                            await PrefsHelper.setString(
+                              'task_${widget.taskId}_services',
+                              json.encode(_allServices),
+                            );
+                            await PrefsHelper.setString(
+                              'task_${widget.taskId}_total',
+                              _totalPrice.toString(),
+                            );
                             Navigator.pop(dialogContext);
                             _showSuccessDialog();
                           } else {
@@ -360,7 +369,7 @@ class _TaskScreenState extends State<TaskScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
         child: Container(
           width: double.infinity,
@@ -392,14 +401,14 @@ class _TaskScreenState extends State<TaskScreen> {
               ),
               SizedBox(height: 24.h),
 
-              // View List — gradient button
+              // View Details — pops back to TaskDetailsScreen with submitted services
               GestureDetector(
                 onTap: () {
-                  // Close dialog → pop TaskScreen → pop TaskDetailsScreen → CalendarScreen
-                  Navigator.of(context)
-                    ..pop() // close success dialog
-                    ..pop() // pop TaskScreen
-                    ..pop(); // pop TaskDetailsScreen → back to CalendarScreen
+                  Navigator.pop(dialogContext); // close success dialog
+                  Navigator.pop(context, {
+                    'services': _allServices,
+                    'totalAmount': _totalPrice,
+                  }); // pop TaskScreen → back to TaskDetailsScreen with data
                 },
                 child: Container(
                   width: double.infinity,
@@ -414,7 +423,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     borderRadius: BorderRadius.circular(100.r),
                   ),
                   alignment: Alignment.center,
-                  child: Text('View List', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text('View Details', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ),
             ],

@@ -267,15 +267,26 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
             attendanceCount = parsed.length;
           });
 
-          // pick today's attendance (UTC date match)
-          final nowUtc = DateTime.now().toUtc();
+          // pick today's attendance using LOCAL date
+          final nowLocal = DateTime.now();
           Attendance? found;
           for (final a in parsed) {
-            if (a.date != null) {
-              final d = a.date!.toUtc();
-              if (d.year == nowUtc.year &&
-                  d.month == nowUtc.month &&
-                  d.day == nowUtc.day) {
+            // Try matching by clockIn local date first (most reliable)
+            if (a.clockIn != null) {
+              final d = a.clockIn!.toLocal();
+              if (d.year == nowLocal.year &&
+                  d.month == nowLocal.month &&
+                  d.day == nowLocal.day) {
+                found = a;
+                break;
+              }
+            }
+            // Fall back to date field
+            if (found == null && a.date != null) {
+              final d = a.date!.toLocal();
+              if (d.year == nowLocal.year &&
+                  d.month == nowLocal.month &&
+                  d.day == nowLocal.day) {
                 found = a;
                 break;
               }
@@ -464,11 +475,11 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
                     children: [
                       _infoItem(
                         _formatTime(todayAttendance?.clockIn),
-                        "Clock In",
+                        "Check In",
                       ),
                       _infoItem(
                         _formatTime(todayAttendance?.clockOut),
-                        "Clock Out",
+                        "Check Out",
                       ),
                       _infoItem(
                         _formatTotalHours(todayAttendance),
@@ -510,7 +521,6 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
 
   String _formatTotalHours(Attendance? a) {
     if (a == null) return '--:--';
-    if (a.totalHours != null && a.totalHours! > 0) return '${a.totalHours}h';
     if (a.clockIn != null && a.clockOut != null) {
       final diff = a.clockOut!.toLocal().difference(a.clockIn!.toLocal());
       if (diff.isNegative) return '--:--';
@@ -518,13 +528,28 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       final minutes = diff.inMinutes.remainder(60);
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     }
+    // Currently checked in — show live elapsed time
+    if (a.clockIn != null && a.clockOut == null) {
+      final diff = _now.difference(a.clockIn!.toLocal());
+      if (diff.isNegative) return '--:--';
+      final hours = diff.inHours;
+      final minutes = diff.inMinutes.remainder(60);
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+    }
+    if (a.totalHours != null && a.totalHours! > 0) {
+      final h = a.totalHours!.toDouble();
+      final hours = h.truncate();
+      final minutes = ((h - hours) * 60).round();
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+    }
     return '--:--';
   }
 
   String _formatClock(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
+    final period = dt.hour < 12 ? 'AM' : 'PM';
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final m = dt.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    return '${hour.toString().padLeft(2, '0')}:$m $period';
   }
 
   String _formatDate(DateTime dt) {
@@ -788,17 +813,24 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
       final resp = await AttendanceService.checkIn(clockIn: nowIso);
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         setState(() => isCheckedIn = true);
-        // Start location tracking now that employee is checked in
         Get.find<EmployeeLocationController>().startLocationTracking();
-        final msg = resp.body != null && resp.body["message"] != null
-            ? resp.body["message"]
-            : 'Checked in successfully';
+        final msg = resp.body?["message"] ?? 'Checked in successfully';
         ToastMessageHelper.showToastMessage(msg, context: context);
-        // Refresh attendance data to show updated check-in time
+        await _fetchAttendanceList();
+      } else if (resp.statusCode == 400 &&
+          (resp.body?["message"] ?? '').toString().toLowerCase().contains('already checked in')) {
+        // Already checked in — sync local state and refresh
+        setState(() => isCheckedIn = true);
+        Get.find<EmployeeLocationController>().startLocationTracking();
+        ToastMessageHelper.showToastMessage(
+          'You are already checked in.',
+          title: 'Info',
+          context: context,
+        );
         await _fetchAttendanceList();
       } else {
         ToastMessageHelper.showToastMessage(
-          resp.statusText ?? 'Check-in failed',
+          resp.body?["message"] ?? resp.statusText ?? 'Check-in failed',
           title: 'Error',
           context: context,
         );

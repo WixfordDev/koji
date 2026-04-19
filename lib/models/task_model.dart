@@ -18,6 +18,7 @@ class TaskModel {
   final String? customerName;
   final String? customerNumber;
   final String? customerAddress;
+  final String? postCode;
   final String? customerEmail;
   final DateTime? assignDate;
   final DateTime? deadline;
@@ -49,6 +50,7 @@ class TaskModel {
     this.customerName,
     this.customerNumber,
     this.customerAddress,
+    this.postCode,
     this.customerEmail,
     this.assignDate,
     this.deadline,
@@ -94,6 +96,7 @@ class TaskModel {
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
     customerAddress: json["customerAddress"],
+    postCode: json["postCode"]?.toString(),
     customerEmail: json["customerEmail"],
     assignDate: json["assignDate"] == null
         ? null
@@ -140,6 +143,7 @@ class TaskModel {
     "customerName": customerName,
     "customerNumber": customerNumber,
     "customerAddress": customerAddress,
+    "postCode": postCode,
     "customerEmail": customerEmail,
     "assignDate": assignDate?.toIso8601String(),
     "deadline": deadline?.toIso8601String(),

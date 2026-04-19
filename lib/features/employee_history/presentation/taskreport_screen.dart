@@ -48,14 +48,29 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
       _showSnack('Task report PDF has not been generated yet.');
       return;
     }
-    final fullUrl = path.startsWith('http')
-        ? path
-        : '${ApiConstants.imageBaseUrl}$path';
-    final uri = Uri.tryParse(fullUrl);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    String fullUrl;
+    if (path.startsWith('http')) {
+      fullUrl = path;
     } else {
-      _showSnack('Cannot open the report link.', color: Colors.red);
+      final base = ApiConstants.imageBaseUrl.endsWith('/')
+          ? ApiConstants.imageBaseUrl
+          : '${ApiConstants.imageBaseUrl}/';
+      final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+      fullUrl = '$base$cleanPath';
+    }
+    final uri = Uri.tryParse(fullUrl);
+    if (uri == null) {
+      _showSnack('Invalid report link.', color: Colors.red);
+      return;
+    }
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (e) {
+        _showSnack('Cannot open the report: $e', color: Colors.red);
+      }
     }
   }
 

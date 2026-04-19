@@ -365,6 +365,7 @@ class DepartmentController extends GetxController {
     required String customerName,
     required String customerNumber,
     required String customerAddress,
+    required String postCode,
     required String assignTo, // Comma-separated string of employee IDs
     required String assignDate,
     required String deadline,
@@ -387,6 +388,7 @@ class DepartmentController extends GetxController {
         "customerName": customerName,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
+        "postCode": postCode,
         "assignTo": jsonEncode(assignTo.split(',').map((id) => id.trim()).toList()),
         "assignDate": assignDate,
         "deadline": deadline,

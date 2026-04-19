@@ -130,7 +130,7 @@ class TaskReportAttributes {
       customerEmail: json['customerEmail'],
       paymentMethod: json['paymentMethod'],
       paymentStatus: json['paymentStatus'] ?? '',
-      id: json['id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
     );
   }
 

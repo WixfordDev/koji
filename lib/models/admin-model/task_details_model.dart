@@ -12,6 +12,7 @@ class TaskDetailsModel {
   final String? customerName;
   final String? customerNumber;
   final String? customerAddress;
+  final String? postCode;
   final DateTime? assignDate;
   final DateTime? deadline;
   final List<Service>? services;
@@ -41,6 +42,7 @@ class TaskDetailsModel {
     this.customerName,
     this.customerNumber,
     this.customerAddress,
+    this.postCode,
     this.assignDate,
     this.deadline,
     this.services,
@@ -71,6 +73,7 @@ class TaskDetailsModel {
     customerName: json["customerName"]?.toString(),
     customerNumber: json["customerNumber"]?.toString(),
     customerAddress: json["customerAddress"]?.toString(),
+    postCode: json["postCode"]?.toString(),
     assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"].toString()).toLocal(),
     deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"].toString()).toLocal(),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
@@ -101,6 +104,7 @@ class TaskDetailsModel {
     "customerName": customerName,
     "customerNumber": customerNumber,
     "customerAddress": customerAddress,
+    "postCode": postCode,
     "assignDate": assignDate?.toIso8601String(),
     "deadline": deadline?.toIso8601String(),
     "services": services == null ? [] : List<dynamic>.from(services!.map((x) => x.toJson())),
