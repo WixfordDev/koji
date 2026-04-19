@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:koji/controller/employee_schedule_controller.dart';
 import 'package:koji/features/employee_schedule/presentation/submit_task_screen.dart';
+import 'package:koji/helpers/prefs_helper.dart';
 import 'package:koji/services/api_constants.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
   final String taskId;
@@ -18,6 +21,8 @@ class TaskDetailsScreen extends StatefulWidget {
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   late final EmployeeScheduleController controller;
   bool _isAccepting = false;
+  List<Map<String, String>>? _submittedServices;
+  double? _submittedTotal;
 
   // Gradient colors
   static const Color primaryDark = Color(0xFF162238);
@@ -27,9 +32,24 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   void initState() {
     super.initState();
     controller = Get.put(EmployeeScheduleController());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       controller.fetchTaskById(widget.taskId);
+      await _loadSavedServices();
     });
+  }
+
+  Future<void> _loadSavedServices() async {
+    final servicesJson = await PrefsHelper.getString('task_${widget.taskId}_services');
+    final totalStr = await PrefsHelper.getString('task_${widget.taskId}_total');
+    if (servicesJson.isNotEmpty) {
+      final List decoded = json.decode(servicesJson);
+      if (mounted) {
+        setState(() {
+          _submittedServices = decoded.map((s) => Map<String, String>.from(s as Map)).toList();
+          _submittedTotal = double.tryParse(totalStr);
+        });
+      }
+    }
   }
 
   /// Reusable gradient button
@@ -141,22 +161,36 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 12.h),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: task.service?.length ?? 0,
-                        separatorBuilder: (context, index) => SizedBox(height: 8.h),
-                        itemBuilder: (context, index) {
-                          final serviceItem = task.service![index];
-                          final price = serviceItem.price ?? 0;
-                          final quantity = serviceItem.quantity ?? 0;
-                          final total = price * quantity;
-                          return _buildServiceItem(
-                            '${serviceItem.name ?? 'Service'} (x$quantity)',
-                            '\$${total.toStringAsFixed(1)}',
+                      if (_submittedServices != null)
+                        ...List.generate(_submittedServices!.length, (index) {
+                          final s = _submittedServices![index];
+                          final price = double.tryParse(s['price'] ?? '0') ?? 0;
+                          final qty = int.tryParse(s['quantity'] ?? '1') ?? 1;
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 8.h),
+                            child: _buildServiceItem(
+                              '${s['name'] ?? 'Service'} (x$qty)',
+                              '\$${(price * qty).toStringAsFixed(1)}',
+                            ),
                           );
-                        },
-                      ),
+                        })
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: task.service?.length ?? 0,
+                          separatorBuilder: (context, index) => SizedBox(height: 8.h),
+                          itemBuilder: (context, index) {
+                            final serviceItem = task.service![index];
+                            final price = serviceItem.price ?? 0;
+                            final quantity = serviceItem.quantity ?? 0;
+                            final total = price * quantity;
+                            return _buildServiceItem(
+                              '${serviceItem.name ?? 'Service'} (x$quantity)',
+                              '\$${total.toStringAsFixed(1)}',
+                            );
+                          },
+                        ),
                       _buildServiceItem('Others Amount', '\$${task.otherAmount?.toStringAsFixed(1) ?? '0.0'}'),
                       SizedBox(height: 8.h),
                       _buildServiceItem('GST 9%', ''),
@@ -173,7 +207,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               colors: [primaryDark, primaryBlue],
                             ).createShader(bounds),
                             child: Text(
-                              '\$${task.totalAmount?.toStringAsFixed(1) ?? '0.0'}',
+                              '\$${(_submittedTotal ?? task.totalAmount)?.toStringAsFixed(1) ?? '0.0'}',
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
@@ -190,9 +224,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 SizedBox(height: 12.h),
                 _buildTextField('Customer Name', task.customerName ?? 'N/A'),
                 SizedBox(height: 12.h),
-                _buildTextField('Customer Number', task.customerNumber ?? 'N/A'),
+                _buildPhoneField('Customer Number', task.customerNumber),
                 SizedBox(height: 12.h),
                 _buildTextField('Customer Address', task.customerAddress ?? 'N/A'),
+                SizedBox(height: 12.h),
+                _buildPostCodeField(task.postCode),
                 SizedBox(height: 12.h),
                 _buildTextField('Assign To', task.assignTo?.isNotEmpty == true ? task.assignTo!.join(', ') : 'N/A'),
                 SizedBox(height: 12.h),
@@ -232,10 +268,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
                 SizedBox(height: 12.h),
 
-                // Go to Task Screen Button
+                // Submit Task Button
                 if (task.isSubmited != true && task.status?.toLowerCase() != 'pending')
                   _gradientButton(
-                    label: 'Go to Task Screen',
+                    label: 'Submit Task',
                     onPressed: () => _goToTaskScreen(task),
                   ),
 
@@ -464,6 +500,97 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
+  Widget _buildPhoneField(String label, String? phone) {
+    final hasValue = phone != null && phone.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+        SizedBox(height: 6.h),
+        GestureDetector(
+          onTap: hasValue ? () => _makeCall(phone!) : null,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: hasValue ? const Color(0xFFE8FFE8) : Colors.grey[100],
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: hasValue ? Colors.green.withOpacity(0.4) : Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasValue ? phone! : 'N/A',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: hasValue ? Colors.green[700] : Colors.black87,
+                      fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (hasValue)
+                  Icon(Icons.call_outlined, size: 18.sp, color: Colors.green[700]),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _makeCall(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    await launchUrl(uri);
+  }
+
+  Widget _buildPostCodeField(String? postCode) {
+    final hasValue = postCode != null && postCode.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Post Code', style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+        SizedBox(height: 6.h),
+        GestureDetector(
+          onTap: hasValue ? () => _openMap(postCode!) : null,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: hasValue ? const Color(0xFFE8F4FF) : Colors.grey[100],
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: hasValue ? primaryBlue.withOpacity(0.4) : Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasValue ? postCode! : 'N/A',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: hasValue ? primaryBlue : Colors.black87,
+                      fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (hasValue)
+                  Icon(Icons.map_outlined, size: 18.sp, color: primaryBlue),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openMap(String postCode) async {
+    final query = Uri.encodeComponent(postCode);
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Widget _buildServiceItem(String service, String price) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -550,8 +677,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
   }
 
-  void _goToTaskScreen(task) {
-    Navigator.push(
+  Future<void> _goToTaskScreen(task) async {
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (context) => TaskScreen(
@@ -580,5 +707,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         ),
       ),
     );
+
+    if (result != null && mounted) {
+      setState(() {
+        _submittedServices = (result['services'] as List?)
+            ?.map((s) => Map<String, String>.from(s as Map))
+            .toList();
+        _submittedTotal = result['totalAmount'] as double?;
+      });
+      controller.fetchTaskById(widget.taskId);
+    }
   }
 }

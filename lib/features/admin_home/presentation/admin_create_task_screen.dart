@@ -40,6 +40,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerNumberController = TextEditingController();
   final TextEditingController _customerAddressController = TextEditingController();
+  final TextEditingController _postCodeController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   // Image picker
@@ -186,6 +187,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
                 customerNameController: _customerNameController,
                 customerNumberController: _customerNumberController,
                 customerAddressController: _customerAddressController,
+                postCodeController: _postCodeController,
                 notesController: _notesController,
                 nameError: _errors['customerName'],
                 numberError: _errors['customerNumber'] ?? _errors['customerNumberLength'],
@@ -1725,6 +1727,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   @override
   void dispose() {
     _scrollController.dispose();
+    _postCodeController.dispose();
     _customerNameController.removeListener(_onNameChanged);
     _customerNumberController.removeListener(_onNumberChanged);
     _customerAddressController.removeListener(_onAddressChanged);
@@ -1809,6 +1812,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
       customerAddress: _customerAddressController.text.trim(),
+      postCode: _postCodeController.text.trim(),
       assignTo: assignTo,
       assignDate: assignDate,
       deadline: deadlineDate,
@@ -1826,6 +1830,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       _customerNameController.clear();
       _customerNumberController.clear();
       _customerAddressController.clear();
+      _postCodeController.clear();
       _notesController.clear();
       _initializeLocalVariablesFromController();
       Navigator.pop(context);

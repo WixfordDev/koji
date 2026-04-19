@@ -5,6 +5,7 @@ class CustomerInfoWidget extends StatelessWidget {
   final TextEditingController customerNameController;
   final TextEditingController customerNumberController;
   final TextEditingController customerAddressController;
+  final TextEditingController postCodeController;
   final TextEditingController notesController;
   final String? nameError;
   final String? numberError;
@@ -15,6 +16,7 @@ class CustomerInfoWidget extends StatelessWidget {
     required this.customerNameController,
     required this.customerNumberController,
     required this.customerAddressController,
+    required this.postCodeController,
     required this.notesController,
     this.nameError,
     this.numberError,
@@ -45,6 +47,12 @@ class CustomerInfoWidget extends StatelessWidget {
           controller: customerAddressController,
           errorText: addressError,
           maxLines: 3,
+        ),
+        _buildTextField(
+          label: "Post Code",
+          hint: "Enter Post Code",
+          controller: postCodeController,
+          keyboardType: TextInputType.text,
         ),
         _buildTextField(
           label: "Notes",

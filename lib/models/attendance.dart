@@ -36,7 +36,9 @@ class Attendance {
       date: parseDate(json['date']),
       clockIn: parseDate(json['clockIn']),
       clockOut: parseDate(json['clockOut']),
-      totalHours: json['totalHours'],
+      totalHours: json['totalHours'] is num
+          ? json['totalHours']
+          : double.tryParse(json['totalHours']?.toString() ?? ''),
       status: json['status']?.toString(),
       notes: json['notes']?.toString(),
       location: json['location'] is Map

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:koji/controller/admincontroller/task_details_controller.dart';
 import 'package:koji/models/task_model.dart';
 import 'package:koji/services/api_constants.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AdminMyTaskDetailsScreen extends StatefulWidget {
   final String taskId;
@@ -159,9 +160,22 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
                     ),
                     if (task.customerNumber != null) ...[
                       SizedBox(height: 2.h),
-                      Text(
-                        task.customerNumber!,
-                        style: TextStyle(fontSize: 13.sp, color: const Color(0xff6B7280)),
+                      GestureDetector(
+                        onTap: () => _makeCall(task.customerNumber!),
+                        child: Row(
+                          children: [
+                            Icon(Icons.call_outlined, size: 13.sp, color: Colors.green[600]),
+                            SizedBox(width: 4.w),
+                            Text(
+                              task.customerNumber!,
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.green[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -208,6 +222,8 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
       child: Column(
         children: [
           _infoRow(Icons.location_on_outlined, 'Address', task.customerAddress ?? 'N/A'),
+          _divider(),
+          _postCodeRow(task.postCode),
           _divider(),
           _infoRow(Icons.email_outlined, 'Email', task.customerEmail ?? 'N/A'),
           _divider(),
@@ -267,6 +283,60 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _postCodeRow(String? postCode) {
+    final hasValue = postCode != null && postCode.isNotEmpty;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.h),
+      child: GestureDetector(
+        onTap: hasValue ? () => _openMap(postCode!) : null,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.pin_drop_outlined, size: 18.sp, color: const Color(0xff6B7280)),
+            SizedBox(width: 10.w),
+            Expanded(
+              flex: 2,
+              child: Text('Post Code', style: TextStyle(fontSize: 13.sp, color: const Color(0xff6B7280))),
+            ),
+            Expanded(
+              flex: 3,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    hasValue ? postCode! : 'N/A',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500,
+                      color: hasValue ? const Color(0xFF4082FB) : Colors.black87,
+                    ),
+                  ),
+                  if (hasValue) ...[
+                    SizedBox(width: 4.w),
+                    Icon(Icons.map_outlined, size: 14.sp, color: const Color(0xFF4082FB)),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMap(String postCode) async {
+    final query = Uri.encodeComponent(postCode);
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _makeCall(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    await launchUrl(uri);
   }
 
   Widget _divider() => Divider(height: 1, color: Colors.grey.shade100);
