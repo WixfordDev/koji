@@ -128,15 +128,6 @@ class InvoiceDetailsWidget extends StatelessWidget {
           _buildDetailRow("Total Due:", "\$${totalDue.toString()}"),
           SizedBox(height: 16.h),
 
-          // Priority & Difficulty (if available)
-          if (priority != null || difficulty != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (priority != null) _buildPriorityChip(priority!),
-                if (difficulty != null) _buildDifficultyChip(difficulty!),
-              ],
-            ),
         ],
       ),
     );

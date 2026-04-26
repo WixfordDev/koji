@@ -14,12 +14,12 @@ class TaskReportCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(color: Colors.green.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, 2),
-            blurRadius: 4,
+            blurRadius: 8,
           ),
         ],
       ),
@@ -31,8 +31,9 @@ class TaskReportCard extends StatelessWidget {
               padding:
               EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F9EE),
+                color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(color: Colors.green.shade200, width: 1),
               ),
               child: const Text(
                 "You Finished Your 2:00 PM Shift.",
@@ -87,8 +88,9 @@ class TaskReportCard extends StatelessWidget {
                 padding:
                 EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F9EE),
+                  color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: Colors.green.shade200, width: 1),
                 ),
                 child: const Text(
                   "● Completed",

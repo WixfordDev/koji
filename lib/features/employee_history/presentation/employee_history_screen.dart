@@ -199,10 +199,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         return Container(
                           margin: EdgeInsets.only(bottom: 12.h),
                           child: HistoryCardWidget(
+                            serialNumber: index + 1,
                             title: task.customerName ?? "",
+                            phone: task.customerNumber,
                             category: task.serviceCategory?.name ?? "",
                             time: _formatDateRange(task.assignDate, task.deadline),
-                            breakTime: task.notes ?? "",
+                            breakTime: _formatTime(task.assignDate),
                             status: task.status ?? 'pending',
                             progressPercent: task.progressPercent ?? 0,
                             onTap: () {
@@ -281,6 +283,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime? dt) {
+    if (dt == null) return '-';
+    final local = dt.toLocal();
+    final hour = local.hour;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+    return '$displayHour:$minute $period';
   }
 
   String _formatDateRange(DateTime? from, DateTime? to) {

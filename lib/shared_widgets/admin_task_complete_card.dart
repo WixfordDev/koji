@@ -65,6 +65,27 @@ class AdminTaskCompleteCard extends StatelessWidget {
     return Colors.grey;
   }
 
+  Color _getStatusBorderColor(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade200;
+    if (s.contains('progress')) return Colors.orange.shade200;
+    return Colors.orange.shade200;
+  }
+
+  Color _getStatusLightColor(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade50;
+    if (s.contains('progress')) return Colors.orange.shade50;
+    return Colors.orange.shade50;
+  }
+
+  Color _getStatusDarkColor(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade700;
+    if (s.contains('progress')) return Colors.orange.shade700;
+    return Colors.orange.shade700;
+  }
+
   // Helper method to format time
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
@@ -133,10 +154,10 @@ class AdminTaskCompleteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFFEAECF0)),
+        border: Border.all(color: _getStatusBorderColor(taskDetails?.status), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),
@@ -339,8 +360,9 @@ class AdminTaskCompleteCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(taskDetails?.status).withOpacity(0.1),
+                  color: _getStatusLightColor(taskDetails?.status),
                   borderRadius: BorderRadius.circular(100.r),
+                  border: Border.all(color: _getStatusBorderColor(taskDetails?.status), width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -357,7 +379,7 @@ class AdminTaskCompleteCard extends StatelessWidget {
                     Text(
                       _getStatusText(taskDetails?.status),
                       style: TextStyle(
-                        color: _getStatusColor(taskDetails?.status),
+                        color: _getStatusDarkColor(taskDetails?.status),
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                       ),

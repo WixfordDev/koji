@@ -31,10 +31,11 @@ class TransactionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: Colors.grey.shade200, width: 1),
           boxShadow: [
             BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 4,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
               offset: Offset(0, 2),
             ),
           ],

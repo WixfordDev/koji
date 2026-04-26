@@ -199,7 +199,10 @@ class _AdminEmployeeRequestScreenState
                     itemCount: employees.length,
                     itemBuilder: (context, index) {
                       final user = employees[index];
-                      return Card(
+                      return Stack(
+                        children: [
+                          Card(
+                        margin: EdgeInsets.symmetric(vertical: 3.h, horizontal: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -266,6 +269,19 @@ class _AdminEmployeeRequestScreenState
                             },
                           ),
                         ),
+                          ),
+                          Positioned(
+                            top: 8.h,
+                            left: 12.w,
+                            child: Container(
+                              width: 22.w,
+                              height: 22.w,
+                              decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                              alignment: Alignment.center,
+                              child: Text('${index + 1}', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );

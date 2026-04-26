@@ -36,8 +36,37 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     super.dispose();
   }
 
+  void _confirmDelete(String taskId) {
+    if (taskId.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('Delete Task', style: TextStyle(fontWeight: FontWeight.w600)),
+        content: const Text('Are you sure you want to delete this task? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await adminHomeController.deleteTask(taskId: taskId);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Status enum values as requested
-  final List<String> statusFilters = ["All", "pending", "progress", "submitted", "approved", "rejected", "completed"];
+  final List<String> statusFilters = ["All", "pending", "progress", "completed"];
   int selectedTab = 0;
 
   @override
@@ -231,6 +260,7 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
                 date: task.assignDate != null
                     ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
                     : 'No date',
+                serialNumber: index + 1,
               ),
             );
           },
@@ -292,7 +322,7 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
         return Colors.orange;
       case 'progress':
       case 'in_progress':
-        return Colors.blue;
+        return Colors.orange;
       case 'submitted':
       case 'submited':
         return const Color(0xff6B7280);
@@ -322,11 +352,29 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     return month >= 1 && month <= 12 ? months[month - 1] : '';
   }
 
+  Color _getStatusBorderColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'completed':
+        return Colors.green.shade200;
+      case 'progress':
+      case 'in_progress':
+      case 'submitted':
+      case 'submited':
+        return Colors.orange.shade200;
+      case 'rejected':
+        return Colors.red.shade200;
+      default:
+        return Colors.orange.shade200;
+    }
+  }
+
   // ------------------------------ CARD COMPONENT ------------------------------
   Widget _taskCard({
     required Result task,
     required String title,
     required String status,
+    int? serialNumber,
     required Color statusColor,
     required String priority,
     required double progress,
@@ -335,8 +383,16 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xffF9FAFB),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _getStatusBorderColor(status), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,6 +400,16 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (serialNumber != null) ...[
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: Text('$serialNumber', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 8),
+              ],
               Column(
                 children: [
                   const Icon(Icons.flash_on, color: Colors.redAccent),
@@ -391,6 +457,18 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
                   child: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF234176)),
                 ),
               ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _confirmDelete(task.id ?? ''),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                ),
+              ),
             ],
           ),
 
@@ -400,7 +478,6 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
             children: [
               _chip(status, statusColor.withOpacity(0.15), statusColor),
               const SizedBox(width: 8),
-              _chip(priority, Colors.red.withOpacity(0.15), Colors.red),
               const Spacer(),
               Text(
                 "${(progress * 100).toInt()}%",
@@ -467,6 +544,7 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withOpacity(0.4), width: 1),
       ),
       child: Text(
         label,

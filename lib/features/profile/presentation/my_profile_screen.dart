@@ -528,6 +528,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         maxHeight: 800,
       );
       if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        if (bytes.length > 20 * 1024 * 1024) {
+          ToastMessageHelper.showToastMessage('File size must be less than 20MB', title: 'Error');
+          return;
+        }
         setState(() {
           _pickedImage = File(pickedFile.path);
         });

@@ -7,7 +7,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:koji/routes/route_helper.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../constants/app_color.dart';
+import '../../../core/app_constants.dart';
 import '../../../global/custom_assets/assets.gen.dart';
+import '../../../helpers/prefs_helper.dart';
 import '../../../services/api_constants.dart';
 import '../../../shared_widgets/custom_text.dart';
 
@@ -525,6 +527,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () async {
+                          await PrefsHelper.remove(AppConstants.bearerToken);
+                          await PrefsHelper.remove(AppConstants.role);
+                          await PrefsHelper.setBool(AppConstants.isLogged, false);
+                          await PrefsHelper.remove(AppConstants.name);
+                          await PrefsHelper.remove(AppConstants.email);
+                          await PrefsHelper.remove(AppConstants.userId);
+                          await PrefsHelper.remove(AppConstants.image);
                           RouteHelper.goToSignIn(context);
                         },
                         child: Container(

@@ -21,12 +21,20 @@ class AttachmentPickerWidget extends StatefulWidget {
 class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
   final ImagePicker _picker = ImagePicker();
 
+  static const int _maxFileSizeBytes = 20 * 1024 * 1024; // 20MB
+
   Future<void> _pickImage(int index) async {
-    // No quality params — avoids scaled_ temp files that get deleted before upload
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      // Read bytes immediately, then write to permanent storage
       final bytes = await image.readAsBytes();
+      if (bytes.length > _maxFileSizeBytes) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File size must be less than 20MB'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
       final dir = await getApplicationDocumentsDirectory();
       final ext = image.path.contains('.') ? '.${image.path.split('.').last}' : '.jpg';
       final fileName = 'attachment_${DateTime.now().millisecondsSinceEpoch}$ext';
@@ -50,7 +58,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
         ),
         SizedBox(height: 4.h),
         Text(
-          "Format should be in .mp4 .pdf .jpeg .png less than 5MB",
+          "Format should be in .mp4 .pdf .jpeg .png less than 20MB",
           style: TextStyle(fontSize: 12.sp, color: Colors.grey),
         ),
         SizedBox(height: 12.h),

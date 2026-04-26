@@ -16,6 +16,7 @@ class ApiClient extends GetxService {
   static var client = http.Client();
   static const String noInternetMessage = "Can't connect to the internet!";
   static const int timeoutInSeconds = 20;
+  static const int uploadTimeoutInSeconds = 120;
   static String bearerToken = "";
 
   //==========================================> Get Data <======================================
@@ -152,7 +153,7 @@ class ApiClient extends GetxService {
       }
       request.fields.addAll(body);
       http.Response _response = await http.Response.fromStream(
-        await request.send().timeout(const Duration(seconds: timeoutInSeconds)),
+        await request.send().timeout(const Duration(seconds: uploadTimeoutInSeconds)),
       );
       print('====> API Response [POST Multipart]: [${_response.statusCode}] $uri\n${_response.body}');
       return handleResponse(_response, uri);
@@ -231,7 +232,7 @@ class ApiClient extends GetxService {
         });
       }
       request.headers.addAll(mainHeaders);
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: uploadTimeoutInSeconds));
       final content = await response.stream.bytesToString();
       debugPrint(
         '====> API Response: [${response.statusCode}}] $uri\n$content',
@@ -289,7 +290,7 @@ class ApiClient extends GetxService {
         });
       }
       request.headers.addAll(mainHeaders);
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: uploadTimeoutInSeconds));
       final content = await response.stream.bytesToString();
       debugPrint(
         '====> API Response: [${response.statusCode}}] $uri\n$content',

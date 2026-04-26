@@ -35,11 +35,11 @@ class ScheduleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: const Color(0xFFCECECE).withOpacity(0.25)),
-          boxShadow: const [
+          border: Border.all(color: isCompleted ? Colors.green.shade200 : Colors.orange.shade200, width: 1),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x1A000000), // #0000001A
-              blurRadius: 4,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
               offset: Offset(0, 2),
             ),
           ],
@@ -52,7 +52,7 @@ class ScheduleCard extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCECECE).withOpacity(0.25),
+                  color: isCompleted ? Colors.green.shade50 : Colors.orange.shade50,
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
@@ -135,10 +135,9 @@ class ScheduleCard extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: isCompleted
-                      ? const Color(0xFF4CD964).withOpacity(0.25)
-                      : Colors.red.withOpacity(0.1),
+                  color: isCompleted ? Colors.green.shade50 : Colors.orange.shade50,
                   borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: isCompleted ? Colors.green.shade200 : Colors.orange.shade200, width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -148,9 +147,7 @@ class ScheduleCard extends StatelessWidget {
                       height: 8.w,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isCompleted
-                            ? const Color(0xFF4CD964)
-                            : Colors.redAccent,
+                        color: isCompleted ? Colors.green : Colors.orange,
                       ),
                     ),
                     SizedBox(width: 6.w),
@@ -159,9 +156,7 @@ class ScheduleCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
-                        color: isCompleted
-                            ? const Color(0xFF4CD964)
-                            : Colors.redAccent,
+                        color: isCompleted ? Colors.green.shade700 : Colors.orange.shade700,
                       ),
                     ),
                   ],
