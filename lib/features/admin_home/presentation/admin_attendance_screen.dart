@@ -435,12 +435,9 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AdminViewAttendanceScreen(
-                              employeeName:
-                                  attendance.employee?.displayName ??
-                                      "Unknown",
+                              employeeName: attendance.employee?.displayName ?? "Unknown",
                               role: attendance.employee?.role ?? "N/A",
-                              employeeEmail:
-                                  attendance.employee?.email,
+                              employeeEmail: attendance.employee?.email,
                               image: attendance.employee?.image,
                               checkIn: checkInTime,
                               breakTime: "N/A",
@@ -456,6 +453,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                         checkOutTime,
                         attendance.employee?.image,
                         attendance.status,
+                        serialNumber: index + 1,
                       ),
                     );
                   },
@@ -558,14 +556,30 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
     String checkIn,
     String checkOut,
     String? imageUrl,
-    String? status,
-  ) {
+    String? status, {
+    int? serialNumber,
+  }) {
     final statusLower = (status ?? '').toLowerCase();
     Color statusColor = statusLower == 'approved'
         ? Colors.green
         : statusLower == 'rejected'
             ? Colors.red
             : Colors.orange;
+    Color statusBorderColor = statusLower == 'approved'
+        ? Colors.green.shade200
+        : statusLower == 'rejected'
+            ? Colors.red.shade200
+            : Colors.orange.shade200;
+    Color statusBgColor = statusLower == 'approved'
+        ? Colors.green.shade50
+        : statusLower == 'rejected'
+            ? Colors.red.shade50
+            : Colors.orange.shade50;
+    Color statusTextColor = statusLower == 'approved'
+        ? Colors.green.shade700
+        : statusLower == 'rejected'
+            ? Colors.red.shade700
+            : Colors.orange.shade700;
     String statusLabel = statusLower.isEmpty
         ? 'Pending'
         : status![0].toUpperCase() + status.substring(1);
@@ -576,16 +590,27 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: statusBorderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
+          if (serialNumber != null) ...[
+            Container(
+              width: 22.w,
+              height: 22.w,
+              margin: EdgeInsets.only(right: 8.w),
+              decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+            ),
+          ],
           CircleAvatar(
             radius: 25,
             backgroundImage: imageUrl != null && imageUrl.isNotEmpty
@@ -644,14 +669,15 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
             padding:
                 EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.12),
+              color: statusBgColor,
               borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(color: statusBorderColor, width: 1),
             ),
             child: Text(
               statusLabel,
               style: TextStyle(
                 fontSize: 11.sp,
-                color: statusColor,
+                color: statusTextColor,
                 fontWeight: FontWeight.w600,
               ),
             ),

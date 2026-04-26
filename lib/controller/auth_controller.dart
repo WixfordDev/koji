@@ -11,6 +11,7 @@ import 'package:koji/services/api_client.dart';
 import 'package:koji/services/api_constants.dart';
 import 'package:koji/services/firebase_notification_service.dart';
 import 'package:koji/services/socket_services.dart';
+import 'notifications_controller.dart';
 
 class AuthController extends GetxController {
   RxBool signUpLoading = false.obs;
@@ -47,9 +48,6 @@ class AuthController extends GetxController {
         );
       }
 
-      ToastMessageHelper.showToastMessage(
-        "Account create successful.\n \nNow you have an one time code your email",
-      );
       signUpLoading(false);
 
       await PrefsHelper.setString(
@@ -195,13 +193,14 @@ class AuthController extends GetxController {
         bearerToken: accessToken,
       );
 
+      Get.find<NotificationController>().setupSocketListener();
+
       if (role == "employee") {
         RouteHelper.goToEmployeeBottomNav(context);
       } else {
         RouteHelper.goToAdminBottomNav(context);
       }
 
-      ToastMessageHelper.showToastMessage('You are logged in');
       logInLoading(false);
     } else {
       logInLoading(false);

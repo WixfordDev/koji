@@ -410,21 +410,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     onTap: () {
                       showDialog(
                         context: context,
-                        builder: (_) => Dialog(
-                          backgroundColor: Colors.black,
-                          insetPadding: EdgeInsets.all(12.w),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12.r),
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Center(
-                                child: Icon(Icons.broken_image,
-                                    color: Colors.white54, size: 48.sp),
-                              ),
-                            ),
-                          ),
-                        ),
+                        builder: (_) => _ZoomableImageDialog(url: imageUrl),
                       );
                     },
                     child: Container(
@@ -717,5 +703,82 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       });
       controller.fetchTaskById(widget.taskId);
     }
+  }
+}
+
+class _ZoomableImageDialog extends StatefulWidget {
+  final String url;
+  const _ZoomableImageDialog({required this.url});
+
+  @override
+  State<_ZoomableImageDialog> createState() => _ZoomableImageDialogState();
+}
+
+class _ZoomableImageDialogState extends State<_ZoomableImageDialog> {
+  final TransformationController _controller = TransformationController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDoubleTap(TapDownDetails details) {
+    if (_controller.value != Matrix4.identity()) {
+      _controller.value = Matrix4.identity();
+    } else {
+      final position = details.localPosition;
+      _controller.value = Matrix4.identity()
+        ..translate(-position.dx * 1.5, -position.dy * 1.5)
+        ..scale(2.5);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.black,
+      insetPadding: EdgeInsets.zero,
+      child: Stack(
+        children: [
+          GestureDetector(
+            onDoubleTapDown: _onDoubleTap,
+            onDoubleTap: () {},
+            child: InteractiveViewer(
+              transformationController: _controller,
+              panEnabled: true,
+              minScale: 0.5,
+              maxScale: 5.0,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: Image.network(
+                  widget.url,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.broken_image, color: Colors.white54, size: 48),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 40,
+            right: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

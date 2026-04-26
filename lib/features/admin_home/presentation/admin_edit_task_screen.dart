@@ -176,8 +176,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     if (_assignToIds.isEmpty) errs['assignTo'] = 'Assign to at least one employee';
     if (_assignDate == null) errs['assignDate'] = 'Select an assign date';
     if (_deadlineDate == null) errs['deadline'] = 'Select a deadline';
-    if (_priority == null) errs['priority'] = 'Select a priority';
-    if (_difficulty == null) errs['difficulty'] = 'Select a difficulty';
     setState(() { _errors.clear(); _errors.addAll(errs); });
     return errs.isEmpty;
   }
@@ -373,23 +371,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
               ),
               SizedBox(height: 16.h),
 
-              _sectionLabel('Priority *'),
-              _chipSelector(
-                options: ['low', 'medium', 'high'],
-                selected: _priority,
-                error: _errors['priority'],
-                onSelected: (v) { setState(() => _priority = v); _clearError('priority'); },
-              ),
-              SizedBox(height: 16.h),
-
-              _sectionLabel('Difficulty *'),
-              _chipSelector(
-                options: ['easy', 'medium', 'hard', 'very hard'],
-                selected: _difficulty,
-                error: _errors['difficulty'],
-                onSelected: (v) { setState(() => _difficulty = v); _clearError('difficulty'); },
-              ),
-              SizedBox(height: 16.h),
 
               _sectionLabel('Other Amount'),
               _textField(
@@ -846,8 +827,19 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
   // ─── Attachment ─────────────────────────────────────────────────────────────
 
   Future<void> _pickAttachment() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) setState(() => _attachmentFile = File(picked.path));
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      if (bytes.length > 20 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File size must be less than 20MB'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
+      setState(() => _attachmentFile = File(picked.path));
+    }
   }
 
   // ─── Bottom Sheets ───────────────────────────────────────────────────────────

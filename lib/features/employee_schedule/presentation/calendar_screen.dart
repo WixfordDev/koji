@@ -466,6 +466,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required Color color,
     String? assignDate,
     List<TaskModel.Service>? services,
+    int? serialNumber,
   }) {
     String displayDate = "No date";
     if (assignDate != null && assignDate.isNotEmpty) {
@@ -503,11 +504,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: _getStatusBorderColor(status), width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
-              offset: const Offset(0, 3),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -516,6 +518,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             Row(
               children: [
+                if (serialNumber != null) ...[
+                  Container(
+                    width: 22.w,
+                    height: 22.w,
+                    margin: EdgeInsets.only(right: 8.w),
+                    decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                    alignment: Alignment.center,
+                    child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+                  ),
+                ],
                 Container(
                   width: 28.w,
                   height: 28.h,
@@ -553,7 +565,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 _buildTag(status, color),
                 SizedBox(width: 8.w),
-                _buildPriorityTag(priority),
               ],
             ),
 
@@ -670,6 +681,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           color: statusColor,
           assignDate: task.assignDate?.toIso8601String(),
           services: task.services,
+          serialNumber: index + 1,
         );
       },
     );
@@ -677,9 +689,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String _effectiveStatus(TaskModel.TaskModel task) {
     final s = task.status?.toLowerCase() ?? '';
-    if (s == 'complete' || s == 'completed' || s == 'done') return 'complete';
+    if (s == 'complete' || s == 'completed' || s == 'done' || s == 'submited' || s == 'submitted') return 'complete';
     if (s == 'inprogress' || s == 'in progress' || s == 'progress') return 'inprogress';
-    return task.status ?? 'pending';
+    return 'pending';
   }
 
   String _capitalize(String text) {
@@ -696,13 +708,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       height: 23.h,
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAECF0),
+        color: _getStatusLightColor(text),
         borderRadius: BorderRadius.circular(100.r),
+        border: Border.all(color: _getStatusBorderColor(text), width: 1),
       ),
       child: Text(
         _capitalize(text),
         style: TextStyle(
-          color: const Color(0xFF344054),
+          color: _getStatusDarkColor(text),
           fontSize: 11.sp,
           fontWeight: FontWeight.w500,
         ),
@@ -738,19 +751,69 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'complete':
       case 'completed':
       case 'done':
-      case 'complete':
-        return completedColor;
+      case 'submited':
+      case 'submitted':
+        return Colors.green;
       case 'inprogress':
       case 'in progress':
       case 'progress':
-        return inProgressColor;
-      case 'pending':
-      case 'upcoming':
-        return Colors.grey;
+        return Colors.orange;
       default:
-        return Colors.grey;
+        return Colors.orange;
+    }
+  }
+
+  Color _getStatusBorderColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'complete':
+      case 'completed':
+      case 'done':
+      case 'submited':
+      case 'submitted':
+        return Colors.green.shade200;
+      case 'inprogress':
+      case 'in progress':
+      case 'progress':
+        return Colors.orange.shade200;
+      default:
+        return Colors.orange.shade200;
+    }
+  }
+
+  Color _getStatusLightColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'complete':
+      case 'completed':
+      case 'done':
+      case 'submited':
+      case 'submitted':
+        return Colors.green.shade50;
+      case 'inprogress':
+      case 'in progress':
+      case 'progress':
+        return Colors.orange.shade50;
+      default:
+        return Colors.orange.shade50;
+    }
+  }
+
+  Color _getStatusDarkColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'complete':
+      case 'completed':
+      case 'done':
+      case 'submited':
+      case 'submitted':
+        return Colors.green.shade700;
+      case 'inprogress':
+      case 'in progress':
+      case 'progress':
+        return Colors.orange.shade700;
+      default:
+        return Colors.orange.shade700;
     }
   }
 }

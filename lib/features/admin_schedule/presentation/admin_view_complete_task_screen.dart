@@ -94,9 +94,9 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                 final taskData = scheduleController.allTaskListData.value;
                 final tasks = taskData?.results ?? [];
 
-                int pendingCount = tasks.where((task) => _getStatusString(task.status) == 'pending').length;
-                int progressCount = tasks.where((task) => _getStatusString(task.status) == 'progress').length;
-                int completeCount = tasks.where((task) => _getStatusString(task.status) == 'submited').length;
+                int pendingCount = tasks.where((task) => _isPending(_getStatusString(task.status))).length;
+                int progressCount = tasks.where((task) => _isInProgress(_getStatusString(task.status))).length;
+                int completeCount = tasks.where((task) => _isCompleted(_getStatusString(task.status))).length;
                 int allCount = tasks.length;
 
                 return SingleChildScrollView(
@@ -134,13 +134,13 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                     filteredTasks = allTasks;
                     break;
                   case 'Pending':
-                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'pending').toList();
+                    filteredTasks = allTasks.where((task) => _isPending(_getStatusString(task.status))).toList();
                     break;
                   case 'InProgress':
-                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'progress').toList();
+                    filteredTasks = allTasks.where((task) => _isInProgress(_getStatusString(task.status))).toList();
                     break;
                   case 'Complete':
-                    filteredTasks = allTasks.where((task) => _getStatusString(task.status) == 'submited').toList();
+                    filteredTasks = allTasks.where((task) => _isCompleted(_getStatusString(task.status))).toList();
                     break;
                   default:
                     filteredTasks = allTasks;
@@ -169,6 +169,7 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                     final serviceNames = services.map((s) => s.name ?? '').join(', ');
 
                     return TaskCard(
+                      serialNumber: index + 1,
                       taskTitle: serviceNames.isEmpty ? 'No services' : serviceNames,
                       status: task.status?.toString() ?? 'Unknown',
                       time: _formatTime(task.assignDate),
@@ -181,15 +182,11 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                       priority: task.priority?.toString() ?? 'N/A',
                       difficulty: task.difficulty?.toString() ?? 'N/A',
                       onTap: () {
-                        // Navigate to AdminCompleteTaskScreen with task ID
                         String taskId = task.id ?? '';
                         if (taskId.isNotEmpty) {
-                          // Navigate using path parameters
                           context.pushNamed(
                             'adminCompleteTaskScreenWithParams',
-                            pathParameters: {
-                              'taskId': taskId,
-                            },
+                            pathParameters: {'taskId': taskId},
                           );
                         }
                       },
@@ -242,4 +239,13 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
     if (status == null) return 'pending';
     return status.toString().split('.').last.toLowerCase();
   }
+
+  bool _isCompleted(String status) =>
+      ['completed', 'submited', 'submitted', 'done', 'finished'].contains(status);
+
+  bool _isInProgress(String status) =>
+      ['progress', 'in_progress', 'inprogress', 'working'].contains(status);
+
+  bool _isPending(String status) =>
+      ['pending', 'assigned'].contains(status);
 }

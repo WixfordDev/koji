@@ -5,6 +5,7 @@ import '../../../../global/custom_assets/assets.gen.dart';
 import '../../../../shared_widgets/custom_text.dart';
 
 class TaskCard extends StatelessWidget {
+  final int? serialNumber;
   final String taskTitle;
   final String status;
   final String time;
@@ -18,6 +19,7 @@ class TaskCard extends StatelessWidget {
 
   const TaskCard({
     super.key,
+    this.serialNumber,
     required this.taskTitle,
     required this.status,
     required this.time,
@@ -66,12 +68,12 @@ class TaskCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: const Color(0xFFEAECF0),
+            color: _getStatusBorderColor(status),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -83,16 +85,26 @@ class TaskCard extends StatelessWidget {
             // Title Row
             Row(
               children: [
+                if (serialNumber != null) ...[
+                  Container(
+                    width: 22.w,
+                    height: 22.w,
+                    decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                    alignment: Alignment.center,
+                    child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(width: 8.w),
+                ],
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF95555).withOpacity(0.1),
+                    color: _getStatusColor(status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
                     Icons.bolt,
                     size: 20.sp,
-                    color: const Color(0xFFF95555),
+                    color: _getStatusColor(status),
                   ),
                 ),
                 SizedBox(width: 12.w),
@@ -119,15 +131,16 @@ class TaskCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(status).withOpacity(0.1),
+                    color: _getStatusLightColor(status),
                     borderRadius: BorderRadius.circular(100.r),
+                    border: Border.all(color: _getStatusBorderColor(status), width: 1),
                   ),
                   child: Text(
                     _getStatusText(status),
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
-                      color: _getStatusColor(status),
+                      color: _getStatusDarkColor(status),
                     ),
                   ),
                 ),
@@ -137,7 +150,7 @@ class TaskCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF95555),
+                    color: _getStatusColor(status),
                     borderRadius: BorderRadius.circular(100.r),
                   ),
                   child: Row(
@@ -187,92 +200,11 @@ class TaskCard extends StatelessWidget {
                 widthFactor: progressPercentage / 100,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF95555),
+                    color: _getStatusColor(status),
                     borderRadius: BorderRadius.circular(100.r),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 12.h),
-
-            // Priority and Difficulty Row
-            Row(
-              children: [
-                // Priority Badge
-                Flexible(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: _getPriorityColor(priority).withOpacity(0.1),
-                      border: Border.all(
-                        color: _getPriorityColor(priority),
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(100.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 14.sp,
-                          color: _getPriorityColor(priority),
-                        ),
-                        SizedBox(width: 4.w),
-                        Flexible(
-                          child: Text(
-                            'Priority: ${priority.toLowerCase()}',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: _getPriorityColor(priority),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
-
-                // Difficulty Badge
-                Flexible(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2E90FA).withOpacity(0.1),
-                      border: Border.all(
-                        color: const Color(0xFF2E90FA),
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(100.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.bar_chart_rounded,
-                          size: 14.sp,
-                          color: const Color(0xFF2E90FA),
-                        ),
-                        SizedBox(width: 4.w),
-                        Flexible(
-                          child: Text(
-                            'Difficulty: ${difficulty.toLowerCase()}',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF2E90FA),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ),
             SizedBox(height: 12.h),
 
@@ -343,6 +275,27 @@ class TaskCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getStatusBorderColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade200;
+    if (s.contains('progress')) return Colors.orange.shade200;
+    return Colors.orange.shade200;
+  }
+
+  Color _getStatusLightColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade50;
+    if (s.contains('progress')) return Colors.orange.shade50;
+    return Colors.orange.shade50;
+  }
+
+  Color _getStatusDarkColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade700;
+    if (s.contains('progress')) return Colors.orange.shade700;
+    return Colors.orange.shade700;
   }
 
   Color _getPriorityColor(String priority) {

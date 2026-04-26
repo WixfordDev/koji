@@ -78,7 +78,8 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
         _events = {};
         for (var item in data!.data!.attributes!.monthCalendarData!) {
           if (item.date != null) {
-            DateTime date = DateTime.parse(item.date!);
+            final parsed = DateTime.parse(item.date!).toLocal();
+            final date = DateTime(parsed.year, parsed.month, parsed.day);
             _events[date] = {
               'completed': item.complitTaskCount ?? 0,
               'inProgress': item.totalProgressCount ?? 0,

@@ -4,7 +4,9 @@ import '../../../constants/app_color.dart';
 import '../../../shared_widgets/custom_text.dart';
 
 class HistoryCardWidget extends StatelessWidget {
+  final int? serialNumber;
   final String title;
+  final String? phone;
   final String category;
   final String time;
   final String breakTime;
@@ -14,7 +16,9 @@ class HistoryCardWidget extends StatelessWidget {
 
   const HistoryCardWidget({
     super.key,
+    this.serialNumber,
     required this.title,
+    this.phone,
     required this.category,
     required this.time,
     required this.breakTime,
@@ -32,26 +36,18 @@ class HistoryCardWidget extends StatelessWidget {
 
     Color statusColor = isCompleted
         ? Colors.green
-        : isInProgress
-        ? Colors.blue
         : Colors.orange;
 
     Color statusLightColor = isCompleted
         ? Colors.green.shade50
-        : isInProgress
-        ? Colors.blue.shade50
         : Colors.orange.shade50;
 
     Color statusLightBorderColor = isCompleted
         ? Colors.green.shade200
-        : isInProgress
-        ? Colors.blue.shade200
         : Colors.orange.shade200;
 
     Color statusDarkColor = isCompleted
         ? Colors.green.shade700
-        : isInProgress
-        ? Colors.blue.shade700
         : Colors.orange.shade700;
 
     String statusText = isCompleted
@@ -87,13 +83,49 @@ class HistoryCardWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                if (serialNumber != null) ...[
+                  Container(
+                    width: 22.w,
+                    height: 22.w,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade700,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$serialNumber',
+                      style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                ],
                 Expanded(
-                  child: CustomText(
-                    textAlign: TextAlign.start,
-                    text: title,
-                    color: AppColor.secondaryColor,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        textAlign: TextAlign.start,
+                        text: title,
+                        color: AppColor.secondaryColor,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      if (phone != null && phone!.isNotEmpty) ...[
+                        SizedBox(height: 2.h),
+                        Row(
+                          children: [
+                            Icon(Icons.phone_outlined, size: 12.sp, color: Colors.grey.shade500),
+                            SizedBox(width: 4.w),
+                            CustomText(
+                              text: phone!,
+                              color: Colors.grey.shade500,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Container(
@@ -117,8 +149,8 @@ class HistoryCardWidget extends StatelessWidget {
             ),
             SizedBox(height: 12.h),
             _buildInfoRow(
-              icon: Icons.category_outlined,
-              title: "Category",
+              icon: Icons.miscellaneous_services_outlined,
+              title: "Service",
               value: category,
             ),
             SizedBox(height: 8.h),
@@ -129,8 +161,8 @@ class HistoryCardWidget extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             _buildInfoRow(
-              icon: Icons.notes_outlined,
-              title: "Notes",
+              icon: Icons.access_time_outlined,
+              title: "Time",
               value: breakTime,
             ),
             SizedBox(height: 12.h),

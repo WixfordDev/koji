@@ -364,6 +364,30 @@ class AdminHomeController extends GetxController {
   }
 
 
+  /// ============================ Delete Task  =====================================
+
+  RxBool deleteTaskLoading = false.obs;
+
+  Future<bool> deleteTask({required String taskId}) async {
+    deleteTaskLoading(true);
+    try {
+      var response = await ApiClient.deleteData(
+        ApiConstants.deleteTaskEndPoint(taskId),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+        deleteTaskLoading(false);
+        getAllListTasks();
+        return true;
+      } else {
+        deleteTaskLoading(false);
+        return false;
+      }
+    } catch (e) {
+      deleteTaskLoading(false);
+      return false;
+    }
+  }
+
   /// ============================ Delete Employee  =====================================
 
   RxBool deleteEmployeeLoading = false.obs;

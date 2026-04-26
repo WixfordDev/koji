@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:koji/core/app_constants.dart';
+import 'package:koji/features/admin_home/presentation/admin_my_task_details_screen.dart';
+import 'package:koji/features/employee_schedule/presentation/task_details_screen.dart';
+import 'package:koji/controller/notifications_controller.dart';
 import 'package:koji/helpers/prefs_helper.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -59,51 +64,95 @@ class FirebaseNotificationService {
     // Handle FCM messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       _handleForegroundMessage(message);
-      debugPrint("📩 App opened from foreground message: ${message.data}");
+      debugPrint("📩 Foreground FCM: ${message.data}");
+      _refreshNotifications();
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint("📩 App opened from notification: ${message.data}");
+      _refreshNotifications();
+      _navigateFromNotification(message.data);
     });
+
+    // Handle cold-start: app launched by tapping a notification
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint("📩 Cold-start notification: ${initialMessage.data}");
+      await Future.delayed(const Duration(milliseconds: 1000));
+      _navigateFromNotification(initialMessage.data);
+    }
   }
 
   /// **Handle foreground FCM messages and show local notification**
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    debugPrint(
-      "📩 Received foreground notification: ${message.notification?.title}",
-    );
+    debugPrint("📩 Foreground notification: ${message.notification?.title}");
 
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    // iOS part
-    AppleNotification? apple = message.notification?.apple;
+    final notification = message.notification;
+    if (notification == null) return;
 
-    if (notification != null && android != null) {
-      _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: android != null
-              ? AndroidNotificationDetails(
-            'reservation_channel',
-            'Pet Attix',
-            importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-            icon: '@mipmap/ic_launcher',
-          )
-              : null,
-
-          iOS: apple != null
-              ? DarwinNotificationDetails(
-            presentBadge: true,
-            presentAlert: true,
-            presentSound: true,
-          )
-              : null,
+    await _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reservation_channel',
+          'Koji',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+          icon: '@mipmap/ic_launcher',
         ),
-      );
+        iOS: DarwinNotificationDetails(
+          presentBadge: true,
+          presentAlert: true,
+          presentSound: true,
+        ),
+      ),
+    );
+  }
+
+  static void _refreshNotifications() {
+    try {
+      Get.find<NotificationController>().getNotification();
+    } catch (_) {}
+  }
+
+  static void _navigateFromNotification(Map<String, dynamic> data) async {
+    final taskId = data['taskId'] as String?;
+    if (taskId == null || taskId.isEmpty) return;
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    final context = Get.context;
+    if (context == null) return;
+
+    try {
+      final prefs = await _getRole();
+      if (prefs == 'admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminMyTaskDetailsScreen(taskId: taskId),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TaskDetailsScreen(taskId: taskId),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Navigate from notification error: $e');
+    }
+  }
+
+  static Future<String> _getRole() async {
+    try {
+      return await PrefsHelper.getString(AppConstants.role);
+    } catch (_) {
+      return '';
     }
   }
 

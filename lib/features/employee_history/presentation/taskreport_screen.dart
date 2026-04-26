@@ -140,49 +140,6 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
 
                 return _buildTaskReportCard(taskReport);
               }),
-              Obx(() {
-                if (controller.isLoading.value ||
-                    controller.taskReport.value == null) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  children: [
-                    SizedBox(height: 24.h),
-                    GestureDetector(
-                      onTap: () => _downloadReport(
-                          controller.taskReport.value?.invoicePath),
-                      child: Container(
-                        width: double.infinity,
-                        height: 52.h,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFEC526A), Color(0xFFF77F6E)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30.r),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.download, color: Colors.white),
-                            SizedBox(width: 8.w),
-                            Text(
-                              "Download Task Report",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30.h),
-                  ],
-                );
-              }),
             ],
           ),
         ),
@@ -245,23 +202,22 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
             fontWeight: FontWeight.w600,
           ),
           SizedBox(height: 10.h),
-          _buildRow("Category:", taskReport.serviceCategory.name),
+          _buildRow("Service:", taskReport.serviceCategory.name),
           _buildRow("Service List:", _formatServices(taskReport.services)),
           _buildRow("Customer Name:", taskReport.customerName),
           _buildRow("Customer Number:", taskReport.customerNumber),
           _buildRow("Customer Address:", taskReport.customerAddress),
           _buildRow("Assign To:", taskReport.assignTo.fullName),
           _buildRow("Assign Date:", _formatDate(taskReport.assignDate)),
+          _buildRow("Time:", _formatTime(taskReport.assignDate)),
           _buildRow("Deadline:", _formatDate(taskReport.deadline)),
-          _buildRow("Priority:", taskReport.priority),
-          _buildRow("Difficulty:", taskReport.difficulty),
           _buildRow(
             "Invoice No.:",
             taskReport.invoicePath != null ? taskReport.invoicePath! : "N/A",
           ),
           _buildRow(
             "Total Amount:",
-            "BDT ${taskReport.totalAmount.toString()}",
+            "\$${taskReport.totalAmount.toString()}",
           ),
           _buildRow("Status:", taskReport.status),
           _buildRow("Payment Status:", taskReport.paymentStatus),
@@ -381,7 +337,20 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
       final date = DateTime.parse(dateString);
       return "${date.day}/${date.month}/${date.year}";
     } catch (e) {
-      return dateString; // Return as is if parsing fails
+      return dateString;
+    }
+  }
+
+  String _formatTime(String dateString) {
+    try {
+      final date = DateTime.parse(dateString).toLocal();
+      final hour = date.hour;
+      final minute = date.minute.toString().padLeft(2, '0');
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+      return '$displayHour:$minute $period';
+    } catch (e) {
+      return '-';
     }
   }
 }

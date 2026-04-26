@@ -82,12 +82,22 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Map<String, String> get _taskJson {
+    final allServicesEncoded = json.encode(_allServices);
+    final extraServicesEncoded = json.encode(_extraServices.map((s) => {
+      'name': s['name']?.toString() ?? '',
+      'price': (s['price'] as num).toDouble().toString(),
+      'quantity': s['quantity']?.toString() ?? '1',
+    }).toList());
+
     return {
       "customerName": widget.taskData['customerName']?.toString() ?? 'N/A',
       "customerNumber": widget.taskData['customerNumber']?.toString() ?? 'N/A',
       "customerAddress": widget.taskData['customerAddress']?.toString() ?? 'N/A',
       "customerEmail": widget.taskData['customerEmail']?.toString() ?? 'N/A',
-      "service": json.encode(_allServices),
+      "service": allServicesEncoded,
+      "services": allServicesEncoded,
+      "extraService": extraServicesEncoded,
+      "extraServices": extraServicesEncoded,
       "totalAmount": _totalPrice.toStringAsFixed(2),
       "paymentMethod": _selectedPaymentMethod,
       "paymentStatus": _selectedPaymentStatus,
@@ -194,8 +204,15 @@ class _TaskScreenState extends State<TaskScreen> {
       final List<File> permanentFiles = [];
       for (int i = 0; i < images.take(remainingSlots).length; i++) {
         final image = images[i];
-        // Read bytes immediately while XFile is still valid, then write to permanent storage
         final bytes = await image.readAsBytes();
+        if (bytes.length > 20 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${image.name} exceeds 20MB limit'), backgroundColor: Colors.red),
+            );
+          }
+          continue;
+        }
         final ext = image.path.contains('.') ? '.${image.path.split('.').last}' : '.jpg';
         final fileName = 'submit_${DateTime.now().millisecondsSinceEpoch}_$i$ext';
         final permanent = File('${dir.path}/$fileName');

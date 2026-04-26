@@ -79,6 +79,7 @@ class ApiConstants {
   static const String changePasswordEndPoint = "/auth/change-password";
   static const String locationUpdateEndPoint = "/users/location/update";
   static String updateTaskEndPoint(String taskId) => "/tasks/$taskId";
+  static String deleteTaskEndPoint(String taskId) => "/tasks/$taskId";
   static String deleteUserEndPoint(String userId) => "/users/$userId";
   static String updateUserEndPoint(String userId) => "/users/$userId";
 

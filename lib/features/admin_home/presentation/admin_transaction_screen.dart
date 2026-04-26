@@ -223,8 +223,7 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
                 padding: EdgeInsets.all(16.w),
                 itemCount: items.length,
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
-                itemBuilder: (context, index) =>
-                    _BillingDocCard(doc: items[index]),
+                itemBuilder: (context, index) => _BillingDocCard(doc: items[index], serialNumber: index + 1),
               );
             }),
           ),
@@ -250,7 +249,8 @@ class _AdminTransactionScreenState extends State<AdminTransactionScreen> {
 
 class _BillingDocCard extends StatelessWidget {
   final BillingDocResult doc;
-  const _BillingDocCard({required this.doc});
+  final int? serialNumber;
+  const _BillingDocCard({required this.doc, this.serialNumber});
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +283,16 @@ class _BillingDocCard extends StatelessWidget {
         ),
         child: Row(
           children: [
+            if (serialNumber != null) ...[
+              Container(
+                width: 22.w,
+                height: 22.w,
+                decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+              ),
+              SizedBox(width: 10.w),
+            ],
             // Icon
             Container(
               width: 44.w,
