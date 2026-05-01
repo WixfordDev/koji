@@ -184,25 +184,13 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> _pickImages() async {
-    if (_selectedImages.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You can only select up to 3 images'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
     // No maxWidth/imageQuality — avoids image_picker creating scaled_ temp files
     // that get deleted before we can use them
     final List<XFile>? images = await _picker.pickMultiImage();
     if (images != null) {
-      int remainingSlots = 3 - _selectedImages.length;
-      if (images.length > remainingSlots) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Only $remainingSlots more images allowed'), backgroundColor: Colors.orange),
-        );
-      }
       final dir = await getApplicationDocumentsDirectory();
       final List<File> permanentFiles = [];
-      for (int i = 0; i < images.take(remainingSlots).length; i++) {
+      for (int i = 0; i < images.length; i++) {
         final image = images[i];
         final bytes = await image.readAsBytes();
         if (bytes.length > 20 * 1024 * 1024) {
@@ -596,7 +584,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   children: [
                     Text('Attachment', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.black)),
                     SizedBox(height: 4.h),
-                    Text('Format should be in .pdf .jpeg .png less than 5MB', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                    Text('Format should be in .pdf .jpeg .png less than 20MB', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
                     SizedBox(height: 10.h),
                     if (_selectedImages.isNotEmpty)
                       GridView.builder(
@@ -635,8 +623,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         },
                       ),
                     SizedBox(height: 16.h),
-                    if (_selectedImages.length < 3)
-                      GestureDetector(
+                    GestureDetector(
                         onTap: _pickImages,
                         child: Container(
                           width: double.infinity,
@@ -652,13 +639,13 @@ class _TaskScreenState extends State<TaskScreen> {
                               Icon(Icons.add_photo_alternate, size: 32.sp, color: Colors.grey[400]),
                               SizedBox(height: 8.h),
                               Text(
-                                _selectedImages.isEmpty ? 'Browse Files from device' : 'Tap to add more (${3 - _selectedImages.length} remaining)',
+                                _selectedImages.isEmpty ? 'Browse Files from device' : 'Tap to add more',
                                 style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                               ),
                               if (_selectedImages.isNotEmpty)
                                 Padding(
                                   padding: EdgeInsets.only(top: 4.h),
-                                  child: Text('${_selectedImages.length}/3 images selected', style: TextStyle(fontSize: 12.sp, color: Colors.grey[500])),
+                                  child: Text('${_selectedImages.length} images selected', style: TextStyle(fontSize: 12.sp, color: Colors.grey[500])),
                                 ),
                             ],
                           ),
@@ -710,12 +697,20 @@ class _TaskScreenState extends State<TaskScreen> {
                         ),
                       );
                     }),
-                    SizedBox(height: 8.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('GST \$9%', style: TextStyle(fontSize: 14.sp, color: Colors.grey[700])),
-                      ],
+                    Visibility(
+                      visible: false,
+                      child: Column(
+                        children: [
+                          SizedBox(height: 8.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('GST \$9%', style: TextStyle(fontSize: 14.sp, color: Colors.grey[700])),
+                            ],
+                          ),
+                          SizedBox(height: 16.h),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 16.h),
                     Row(

@@ -102,9 +102,9 @@ class TaskCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
-                    Icons.bolt,
-                    size: 20.sp,
-                    color: _getStatusColor(status),
+                    Icons.person,
+                    size: 18.sp,
+                    color: const Color(0xFF667085),
                   ),
                 ),
                 SizedBox(width: 12.w),
@@ -211,29 +211,38 @@ class TaskCard extends StatelessWidget {
             // User Info Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16.r,
-                      backgroundColor: const Color(0xFFEAECF0),
-                      child: Icon(
-                        Icons.person,
-                        size: 18.sp,
-                        color: const Color(0xFF667085),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 16.r,
+                        backgroundColor: const Color(0xFFEAECF0),
+                        child: Icon(
+                          Icons.bolt,
+                          size: 20.sp,
+                          color: _getStatusColor(status),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Text(
+                          userName,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                SizedBox(width: 8.w),
                 Row(
                   children: [
                     Icon(

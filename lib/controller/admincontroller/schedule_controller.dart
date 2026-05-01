@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:koji/models/admin-model/all_month_model.dart';
 import 'package:koji/models/admin-model/all_employee_task_model.dart';
@@ -116,6 +117,46 @@ class ScheduleController extends GetxController {
   // Task details
   Rx<TaskDetailsModel?> taskDetailsData = Rx<TaskDetailsModel?>(null);
   RxBool taskDetailsLoading = false.obs;
+
+  RxBool taskApproving = false.obs;
+
+  /// Approve a submitted task
+  Future<bool> approveTask(String taskId) async {
+    taskApproving(true);
+    try {
+      final response = await ApiClient.postData(
+        '${ApiConstants.taskEndPoint}/$taskId/approve',
+        {},
+      );
+      if (response.statusCode == 200) {
+        await getTaskDetails(taskId);
+        Get.snackbar(
+          'Success',
+          'Task approved successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF12B76A),
+          colorText: const Color(0xFFFFFFFF),
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to approve task',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to approve task: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    } finally {
+      taskApproving(false);
+    }
+  }
 
   /// Fetch details for a specific task
   /// [taskId] - The ID of the task to get details for

@@ -3,6 +3,7 @@
 //     final historyModel = historyModelFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:koji/global/utils/date_utils.dart';
 
 HistoryModel historyModelFromJson(String str) =>
     HistoryModel.fromJson(json.decode(str));
@@ -82,10 +83,10 @@ class HistoryModel {
     customerAddress: json["customerAddress"],
     assignDate: json["assignDate"] == null
         ? null
-        : DateTime.parse(json["assignDate"]).toLocal(),
+        : toSgt(DateTime.parse(json["assignDate"])),
     deadline: json["deadline"] == null
         ? null
-        : DateTime.parse(json["deadline"]).toLocal(),
+        : toSgt(DateTime.parse(json["deadline"])),
     services: json["services"] == null
         ? []
         : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),

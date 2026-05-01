@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:koji/global/utils/date_utils.dart';
 
 TaskDetailsModel taskDetailsModelFromJson(String str) => TaskDetailsModel.fromJson(json.decode(str));
 
@@ -74,8 +75,8 @@ class TaskDetailsModel {
     customerNumber: json["customerNumber"]?.toString(),
     customerAddress: json["customerAddress"]?.toString(),
     postCode: json["postCode"]?.toString(),
-    assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"].toString()).toLocal(),
-    deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"].toString()).toLocal(),
+    assignDate: json["assignDate"] == null ? null : toSgt(DateTime.parse(json["assignDate"].toString())),
+    deadline: json["deadline"] == null ? null : toSgt(DateTime.parse(json["deadline"].toString())),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
     priority: json["priority"]?.toString(),
     difficulty: json["difficulty"]?.toString(),

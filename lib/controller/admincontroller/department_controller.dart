@@ -372,7 +372,7 @@ class DepartmentController extends GetxController {
     required List<Map<String, dynamic>> services, // Changed from List<String>
     required double otherAmount,
     required double totalAmount,
-    required File? attachmentFile,
+    required List<File> attachmentFiles,
     required String notes,
     // required String priority,
     // required String difficulty,
@@ -402,11 +402,10 @@ class DepartmentController extends GetxController {
         // "difficulty": difficulty,
       };
 
-      // Prepare multipart body for file attachment
-      List<MultipartBody> multipartBody = [];
-      if (attachmentFile != null) {
-        multipartBody.add(MultipartBody("attachments", attachmentFile));
-      }
+      // Prepare multipart body for file attachments
+      List<MultipartBody> multipartBody = attachmentFiles
+          .map((f) => MultipartBody("attachments", f))
+          .toList();
 
       // Make API call
       var response = await ApiClient.postMultipartData(
@@ -449,7 +448,7 @@ class DepartmentController extends GetxController {
   /// ====== State variables for AdminCreateTaskScreen ======
 
   // Images for attachment
-  RxList<File?> selectedImages = <File?>[].obs;
+  RxList<File> selectedImages = <File>[].obs;
 
   // Selected values
   RxString selectedDepartment = ''.obs;
@@ -476,13 +475,17 @@ class DepartmentController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Initialize with 3 null image slots
-    selectedImages.assignAll([null, null, null]);
+    selectedImages.clear();
   }
 
   // Methods to update state
-  void updateImage(int index, File file) {
-    selectedImages[index] = file;
+  void addImage(File file) {
+    selectedImages.add(file);
+    update();
+  }
+
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
     update();
   }
 
@@ -572,7 +575,7 @@ class DepartmentController extends GetxController {
     selectedPriority.value = '';
     selectedDifficulty.value = '';
     selectedServiceList.clear();
-    selectedImages.assignAll([null, null, null]);
+    selectedImages.clear();
     startDate.value = null;
     endDate.value = null;
     startTime.value = null;
@@ -696,12 +699,6 @@ class DepartmentController extends GetxController {
       double otherAmount =
           0.0; // This might be for additional costs not included in services
 
-      // Get the first selected attachment (or null if none selected)
-      File? attachmentFile = selectedImages.firstWhere(
-        (image) => image != null,
-        orElse: () => null,
-      );
-
       // Join all selected roles for assignTo (if multiple employees can be assigned)
       String assignTo = selectedRoles.join(
         ',',
@@ -730,11 +727,10 @@ class DepartmentController extends GetxController {
             .toLowerCase(), // Convert to lowercase to match expected format
       };
 
-      // Prepare multipart body for file attachment
-      List<MultipartBody> multipartBody = [];
-      if (attachmentFile != null) {
-        multipartBody.add(MultipartBody("attachments", attachmentFile));
-      }
+      // Prepare multipart body for all file attachments
+      List<MultipartBody> multipartBody = selectedImages
+          .map((f) => MultipartBody("attachments", f))
+          .toList();
 
       // Make API call
       var response = await ApiClient.postMultipartData(

@@ -62,58 +62,65 @@ class AmountDetailsWidget extends StatelessWidget {
               SizedBox(height: 12.h),
 
               // GST
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      "GST",
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.grey.shade700,
-                      ),
+              Visibility(
+                visible: false,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "GST",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 80.w,
+                          child: TextField(
+                            controller: gstController,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.end,
+                            decoration: InputDecoration(
+                              suffixText: "%",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6.r),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6.r),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6.r),
+                                borderSide: BorderSide(color: Color(0xFFF95555)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 8.h,
+                              ),
+                              isDense: true,
+                            ),
+                            onChanged: (value) => onAmountChanged(),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Text(
+                          "\$${gstAmount.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Container(
-                    width: 80.w,
-                    child: TextField(
-                      controller: gstController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.end,
-                      decoration: InputDecoration(
-                        suffixText: "%",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6.r),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6.r),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6.r),
-                          borderSide: BorderSide(color: Color(0xFFF95555)),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 8.h,
-                        ),
-                        isDense: true,
-                      ),
-                      onChanged: (value) => onAmountChanged(),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Text(
-                    "\$${gstAmount.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
+                    SizedBox(height: 16.h),
+                  ],
+                ),
               ),
-              SizedBox(height: 16.h),
 
               Divider(color: Colors.grey.shade300, thickness: 1),
               SizedBox(height: 12.h),

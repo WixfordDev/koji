@@ -192,8 +192,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                           },
                         ),
                       _buildServiceItem('Others Amount', '\$${task.otherAmount?.toStringAsFixed(1) ?? '0.0'}'),
-                      SizedBox(height: 8.h),
-                      _buildServiceItem('GST 9%', ''),
+                      Visibility(
+                        visible: false,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 8.h),
+                            _buildServiceItem('GST 9%', ''),
+                          ],
+                        ),
+                      ),
                       Divider(height: 24.h, color: Colors.grey[300]),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -591,7 +598,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayDate = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        displayDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(dateString).toLocal());
+        displayDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(dateString));
       } catch (e) {
         displayDate = dateString;
       }
@@ -624,7 +631,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     String displayTime = 'N/A';
     if (dateString != null && dateString.isNotEmpty) {
       try {
-        displayTime = DateFormat('hh:mm a').format(DateTime.parse(dateString).toLocal());
+        displayTime = DateFormat('hh:mm a').format(DateTime.parse(dateString));
       } catch (e) {
         displayTime = '09:00 AM';
       }

@@ -40,16 +40,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 48.w,
-                    height: 48.w,
-                    decoration: BoxDecoration(
-                      color: const Color(0xffEEF2FF),
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    child: Icon(Icons.description_outlined, color: const Color(0xff165DF5), size: 24.sp),
-                  ),
-                  SizedBox(width: 12.w),
+                  // Container(
+                  //   width: 48.w,
+                  //   height: 48.w,
+                  //   decoration: BoxDecoration(
+                  //     color: const Color(0xffEEF2FF),
+                  //     borderRadius: BorderRadius.circular(10.r),
+                  //   ),
+                  //   child: Icon(Icons.description_outlined, color: const Color(0xff165DF5), size: 24.sp),
+                  // ),
                   Expanded(
                     child: CustomText(
                       text: item.title ?? "Notification",
@@ -77,15 +76,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
               SizedBox(height: 16.h),
               Divider(color: Colors.grey.shade200, height: 1),
               SizedBox(height: 14.h),
-              if (item.priority != null) _detailRow(Icons.flag_outlined, "Priority", item.priority!, Colors.orange.shade700),
-              if (item.type != null) _detailRow(Icons.label_outline, "Type", item.type!, Colors.blue.shade700),
+              if (item.assignTo != null && item.assignTo!.isNotEmpty)
+                _detailRow(Icons.person_outline, "Assign To", item.assignTo!.join(', '), Colors.teal.shade700),
+              if (item.customerNumber != null) _detailRow(Icons.phone_outlined,
+                  "Customer No.", item.customerNumber!, Colors.orange.shade700),
+              if (item.assignDate != null)
+                _detailRow(
+                  Icons.calendar_today_outlined,
+                  "Schedule Date",
+                  DateFormat("dd MMM yyyy").format(item.assignDate!),
+                  Colors.blue.shade700,
+                ),
+              if (item.assignDate != null || item.deadline != null)
+                _detailRow(
+                  Icons.access_time_outlined,
+                  "Schedule Time",
+                  '${item.assignDate != null ? DateFormat("hh:mm a").format(item.assignDate!) : 'N/A'} – ${item.deadline != null ? DateFormat("hh:mm a").format(item.deadline!) : 'N/A'}',
+                  Colors.blue.shade700,
+                ),
               if (item.status != null) _detailRow(Icons.info_outline, "Status", item.status!, Colors.grey.shade700),
-              if (item.role != null) _detailRow(Icons.person_outline, "Role", item.role!, Colors.purple.shade700),
+              if (item.role != null) _detailRow(Icons.people_outline, "Team", item.role!, Colors.purple.shade700),
               if (item.createdAt != null)
                 _detailRow(
-                  Icons.access_time,
+                  Icons.notifications_outlined,
                   "Received",
-                  DateFormat("MMMM dd, yyyy 'at' hh:mm a").format(item.createdAt!),
+                  DateFormat("dd MMM yyyy, hh:mm a").format(item.createdAt!),
                   Colors.grey.shade700,
                 ),
             ],
@@ -226,19 +241,61 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: CustomText(
-                                    text: item.title ?? "Notification",
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    textAlign: TextAlign.start,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        text: item.title ?? "Notification",
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold,
+                                        textAlign: TextAlign.start,
+                                      ),
+                                      if (item.customerNumber != null) ...[
+                                        SizedBox(height: 2.h),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.phone_outlined, size: 11.sp, color: Colors.grey.shade500),
+                                            SizedBox(width: 3.w),
+                                            CustomText(
+                                              text: item.customerNumber!,
+                                              fontSize: 11.sp,
+                                              color: Colors.grey.shade500,
+                                              textAlign: TextAlign.start,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
-                                CustomText(
-                                  text: formatDate(item.createdAt),
-                                  color: Colors.grey,
-                                  fontSize: 12.sp,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    if (item.assignDate != null)
+                                      CustomText(
+                                        text: DateFormat('dd MMM').format(item.assignDate!),
+                                        color: const Color(0xff165DF5),
+                                        fontSize: 11.sp,
+                                        fontWeight: FontWeight.w600,
+                                      )
+                                    else
+                                      CustomText(
+                                        text: formatDate(item.createdAt),
+                                        color: Colors.grey,
+                                        fontSize: 12.sp,
+                                      ),
+                                    if (item.assignDate != null) ...[
+                                      SizedBox(height: 2.h),
+                                      CustomText(
+                                        text: DateFormat('hh:mm a').format(item.assignDate!),
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),

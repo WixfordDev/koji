@@ -20,6 +20,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/Vector.svg
   SvgGenImage get vector => const SvgGenImage('assets/icons/Vector.svg');
 
+  /// File path: assets/icons/arrow.svg
+  SvgGenImage get arrow => const SvgGenImage('assets/icons/arrow.svg');
+
   /// File path: assets/icons/arrowdown.svg
   SvgGenImage get arrowdown => const SvgGenImage('assets/icons/arrowdown.svg');
 
@@ -42,6 +45,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/changepass.svg
   SvgGenImage get changepass =>
       const SvgGenImage('assets/icons/changepass.svg');
+
+  /// File path: assets/icons/chat.svg
+  SvgGenImage get chat => const SvgGenImage('assets/icons/chat.svg');
 
   /// File path: assets/icons/chevron.svg
   SvgGenImage get chevron => const SvgGenImage('assets/icons/chevron.svg');
@@ -132,13 +138,22 @@ class $AssetsIconsGen {
   SvgGenImage get transaction =>
       const SvgGenImage('assets/icons/transaction.svg');
 
+  /// File path: assets/icons/transactionicon.svg
+  SvgGenImage get transactionicon =>
+      const SvgGenImage('assets/icons/transactionicon.svg');
+
   /// File path: assets/icons/viewattendance.svg
   SvgGenImage get viewattendance =>
       const SvgGenImage('assets/icons/viewattendance.svg');
 
+  /// File path: assets/icons/viewattendence.svg
+  SvgGenImage get viewattendence =>
+      const SvgGenImage('assets/icons/viewattendence.svg');
+
   /// List of all assets
   List<SvgGenImage> get values => [
     vector,
+    arrow,
     arrowdown,
     attach,
     attendanceicon,
@@ -146,6 +161,7 @@ class $AssetsIconsGen {
     calendar1,
     camera,
     changepass,
+    chat,
     chevron,
     completename,
     createtask,
@@ -173,7 +189,9 @@ class $AssetsIconsGen {
     trans,
     trans1,
     transaction,
+    transactionicon,
     viewattendance,
+    viewattendence,
   ];
 }
 
@@ -185,6 +203,12 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/forgot.png
   AssetGenImage get forgot => const AssetGenImage('assets/images/forgot.png');
+
+  /// File path: assets/images/homeBG.png
+  AssetGenImage get homeBG => const AssetGenImage('assets/images/homeBG.png');
+
+  /// File path: assets/images/logo.png
+  AssetGenImage get logo => const AssetGenImage('assets/images/logo.png');
 
   /// File path: assets/images/onboarding1.png
   AssetGenImage get onboarding1 =>
@@ -220,6 +244,8 @@ class $AssetsImagesGen {
   List<AssetGenImage> get values => [
     create,
     forgot,
+    homeBG,
+    logo,
     onboarding1,
     onboarding2,
     onboarding3,

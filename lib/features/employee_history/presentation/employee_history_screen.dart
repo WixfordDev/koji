@@ -287,9 +287,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   String _formatTime(DateTime? dt) {
     if (dt == null) return '-';
-    final local = dt.toLocal();
-    final hour = local.hour;
-    final minute = local.minute.toString().padLeft(2, '0');
+    final hour = dt.hour;
+    final minute = dt.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
     return '$displayHour:$minute $period';
