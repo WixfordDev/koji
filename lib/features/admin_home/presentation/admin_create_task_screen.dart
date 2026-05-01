@@ -45,7 +45,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
   // Image picker
   final ImagePicker _picker = ImagePicker();
-  List<File?> selectedImages = [null, null, null];
+  List<File> selectedImages = [];
 
 
   String? selectedDepartment;
@@ -140,11 +140,15 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
               AttachmentPickerWidget(
                 selectedImages: selectedImages,
-                onImagePicked: (index, file) {
+                onImageAdded: (file) {
                   setState(() {
-                    selectedImages[index] = file;
+                    selectedImages.add(file);
                   });
-                  departmentController.updateImage(index, file);
+                },
+                onImageRemoved: (index) {
+                  setState(() {
+                    selectedImages.removeAt(index);
+                  });
                 },
               ),
               SizedBox(height: 24.h),
@@ -1758,10 +1762,11 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
   String _formatDateToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
 
-    // Create a local DateTime then convert to UTC so the server always
-    // receives an unambiguous UTC timestamp (avoids date shift across timezones).
-    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    return dateTime.toUtc().toIso8601String();
+    // Treat selected time as SGT (UTC+8) regardless of device timezone,
+    // then subtract 8 hours to store as UTC on the server.
+    final sgt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final utc = sgt.subtract(const Duration(hours: 8));
+    return DateTime.utc(utc.year, utc.month, utc.day, utc.hour, utc.minute).toIso8601String();
   }
 
   Future<void> _createTask() async {
@@ -1795,10 +1800,6 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
     double totalAmount = _calculateTotalAmount();
     double otherAmount = 0.0; // This might be for additional costs not included in services
 
-    // Get the first selected attachment (or null if none selected)
-    File? attachmentFile = selectedImages
-        .firstWhere((image) => image != null, orElse: () => null);
-
     // Join all selected roles for assignTo (if multiple employees can be assigned)
     String assignTo = selectedRoles.join(','); // Join with comma if multiple roles, or use first if single assignment needed
 
@@ -1819,7 +1820,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       services: services,
       otherAmount: otherAmount,
       totalAmount: totalAmount,
-      attachmentFile: attachmentFile,
+      attachmentFiles: selectedImages,
       notes: _notesController.text.trim(),
       // priority: selectedPriority!.toLowerCase(),
       // difficulty: selectedDifficulty!.toLowerCase(),
@@ -2332,16 +2333,10 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
 
   String _formatTime(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    final hour12 = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
-
-    // Option 1: 24-hour format "09:30"
-    return "$hour:$minute";
-
-    // Option 2: 12-hour format with AM/PM (uncomment if preferred)
-    // final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-    // final hour12 = time.hourOfPeriod.toString().padLeft(2, '0');
-    // return "$hour12:$minute $period";
+    return '$hour12:$minute $period';
   }
 
   void _showDeleteConfirmationDialog(ServiceItem service, StateSetter setModalState) {

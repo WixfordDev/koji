@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../../constants/app_color.dart';
 import '../../../../models/admin-model/task_details_model.dart';
+import '../../../../services/api_constants.dart';
 import '../../../../shared_widgets/custom_text.dart';
 
 class AdminTaskCompleteCard extends StatelessWidget {
@@ -90,9 +91,8 @@ class AdminTaskCompleteCard extends StatelessWidget {
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
 
-    final local = dateTime.toLocal();
-    final hour = local.hour;
-    final minute = local.minute.toString().padLeft(2, '0');
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
 
@@ -187,13 +187,24 @@ class AdminTaskCompleteCard extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
-          // Department/Title
+          // Customer Name + Department
           Text(
-            departmentName,
+            taskDetails?.customerName ?? 'N/A',
             style: TextStyle(
               color: Colors.black,
               fontSize: 18.sp,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          SizedBox(height: 2.h),
+
+          Text(
+            departmentName,
+            style: TextStyle(
+              color: const Color(0xFF667085),
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w400,
             ),
           ),
 
@@ -203,7 +214,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
           _buildInfoRow('Category:', categoryName),
           if (services.isNotEmpty)
             _buildInfoRow('Service List:', serviceList, isMultiline: true),
-          _buildInfoRow('Customer Name:', taskDetails?.customerName ?? 'N/A'),
           _buildInfoRow('Customer Number:', taskDetails?.customerNumber ?? 'N/A'),
           _buildInfoRow('Customer Address:', taskDetails?.customerAddress ?? 'N/A'),
           _buildInfoRow('Assign To:', _getAssigneeName()),
@@ -216,64 +226,70 @@ class AdminTaskCompleteCard extends StatelessWidget {
             ),
 
           // Priority with colored text
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 6.h),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 120.w,
-                  child: Text(
-                    'Priority:',
-                    style: TextStyle(
-                      color: const Color(0xFF667085),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w400,
+          Visibility(
+            visible: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 6.h),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120.w,
+                    child: Text(
+                      'Priority:',
+                      style: TextStyle(
+                        color: const Color(0xFF667085),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    taskDetails?.priority ?? 'N/A',
-                    style: TextStyle(
-                      color: _getPriorityColor(taskDetails?.priority),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      taskDetails?.priority ?? 'N/A',
+                      style: TextStyle(
+                        color: _getPriorityColor(taskDetails?.priority),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
           // Difficulty with colored text
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 6.h),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 120.w,
-                  child: Text(
-                    'Difficulty:',
-                    style: TextStyle(
-                      color: const Color(0xFF667085),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w400,
+          Visibility(
+            visible: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 6.h),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120.w,
+                    child: Text(
+                      'Difficulty:',
+                      style: TextStyle(
+                        color: const Color(0xFF667085),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    taskDetails?.difficulty ?? 'N/A',
-                    style: TextStyle(
-                      color: _getDifficultyColor(taskDetails?.difficulty),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      taskDetails?.difficulty ?? 'N/A',
+                      style: TextStyle(
+                        color: _getDifficultyColor(taskDetails?.difficulty),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -310,12 +326,15 @@ class AdminTaskCompleteCard extends StatelessWidget {
                     spacing: 6.w,
                     runSpacing: 6.h,
                     children: taskDetails!.submitedDoc!.take(3).map((doc) {
-                      String imageUrl = '';
+                      String rawPath = '';
                       if (doc is String) {
-                        imageUrl = doc;
+                        rawPath = doc;
                       } else if (doc is Map) {
-                        imageUrl = doc['url'] ?? doc['path'] ?? '';
+                        rawPath = doc['url'] ?? doc['path'] ?? '';
                       }
+                      final imageUrl = rawPath.startsWith('http')
+                          ? rawPath
+                          : '${ApiConstants.imageBaseUrl}/${rawPath.startsWith('/') ? rawPath.substring(1) : rawPath}';
 
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(8.r),

@@ -208,8 +208,6 @@ class AdminHomeController extends GetxController {
     required double otherAmount,
     required double totalAmount,
     required String notes,
-    required String priority,
-    required String difficulty,
     File? attachmentFile,
   }) async {
     updateTaskLoading(true);
@@ -227,8 +225,6 @@ class AdminHomeController extends GetxController {
         "otherAmount": otherAmount.toString(),
         "totalAmount": totalAmount.toString(),
         "notes": notes,
-        "priority": priority,
-        "difficulty": difficulty,
       };
 
       // Send assignTo as indexed fields (assignTo[0], assignTo[1], ...)

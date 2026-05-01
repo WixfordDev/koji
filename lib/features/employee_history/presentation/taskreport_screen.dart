@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:koji/global/utils/date_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:koji/models/task_report_model.dart';
@@ -301,6 +302,7 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
           Expanded(
             flex: 3,
             child: Text(
+              textAlign: TextAlign.start,
               title,
               style: TextStyle(
                 color: Colors.grey.shade700,
@@ -343,7 +345,7 @@ class _TaskReportScreenState extends State<TaskReportScreen> {
 
   String _formatTime(String dateString) {
     try {
-      final date = DateTime.parse(dateString).toLocal();
+      final date = toSgt(DateTime.parse(dateString));
       final hour = date.hour;
       final minute = date.minute.toString().padLeft(2, '0');
       final period = hour >= 12 ? 'PM' : 'AM';

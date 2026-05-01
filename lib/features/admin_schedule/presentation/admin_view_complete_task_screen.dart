@@ -44,9 +44,8 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
 
-    final local = dateTime.toLocal();
-    final hour = local.hour;
-    final minute = local.minute.toString().padLeft(2, '0');
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
 
@@ -170,11 +169,11 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
 
                     return TaskCard(
                       serialNumber: index + 1,
-                      taskTitle: serviceNames.isEmpty ? 'No services' : serviceNames,
+                      taskTitle: task.customerName ?? 'N/A',
                       status: task.status?.toString() ?? 'Unknown',
                       time: _formatTime(task.assignDate),
                       progressPercentage: (task.progressPercent ?? 0).toDouble(),
-                      userName: task.customerName ?? 'N/A',
+                      userName: serviceNames.isEmpty ? 'No services' : serviceNames,
                       userImage: 'https://via.placeholder.com/40',
                       date: task.createdAt != null
                           ? '${task.createdAt!.day} ${getMonthAbbr(task.createdAt!.month)}'

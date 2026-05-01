@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
 import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../controller/admincontroller/department_controller.dart';
@@ -39,8 +38,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
   String? _vehicleName;
   List<String> _assignToIds = [];
   List<String> _assignToNames = [];
-  String? _priority;
-  String? _difficulty;
   List<_ServiceItem> _services = [];
 
   DateTime? _assignDate;
@@ -81,8 +78,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     _departmentId = t.department;
     _categoryId = t.serviceCategory;
     _vehicleId = t.vehicle;
-    _priority = t.priority;
-    _difficulty = t.difficulty;
     _assignToIds = List<String>.from(t.assignTo ?? []);
 
     if (t.assignDate != null) {
@@ -146,12 +141,13 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
 
   String _buildISO(DateTime? date, TimeOfDay? time) {
     if (date == null) return '';
-    // Convert to UTC so the server receives an unambiguous timestamp.
-    final d = DateTime(
+    // Treat selected time as SGT (UTC+8), subtract 8 hours to store as UTC.
+    final sgt = DateTime(
       date.year, date.month, date.day,
       time?.hour ?? 0, time?.minute ?? 0,
     );
-    return d.toUtc().toIso8601String();
+    final utc = sgt.subtract(const Duration(hours: 8));
+    return DateTime.utc(utc.year, utc.month, utc.day, utc.hour, utc.minute).toIso8601String();
   }
 
   double _calcTotal() {
@@ -190,8 +186,8 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
 
     final result = await _adminController.updateTask(
       taskId: widget.task.id ?? '',
-      departmentId: _departmentId!,
-      serviceCategoryId: _categoryId!,
+      departmentId: _departmentId ?? '',
+      serviceCategoryId: _categoryId ?? '',
       vehicleId: _vehicleId,
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
@@ -203,8 +199,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
       otherAmount: double.tryParse(_otherAmountController.text.trim()) ?? 0,
       totalAmount: _calcTotal(),
       notes: _notesController.text.trim(),
-      priority: _priority!.toLowerCase(),
-      difficulty: _difficulty!.toLowerCase(),
       attachmentFile: _attachmentFile,
     );
 
@@ -534,52 +528,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
               ],
             ),
           ),
-        ),
-        if (error != null)
-          Padding(
-            padding: EdgeInsets.only(top: 4.h, left: 4.w),
-            child: Text(error, style: TextStyle(color: Colors.red, fontSize: 11.sp)),
-          ),
-      ],
-    );
-  }
-
-  Widget _chipSelector({
-    required List<String> options,
-    required String? selected,
-    String? error,
-    required void Function(String) onSelected,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: options.map((opt) {
-            final isSelected = selected?.toLowerCase() == opt.toLowerCase();
-            return GestureDetector(
-              onTap: () => onSelected(opt),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColor.primaryColor : const Color(0xffF9FAFB),
-                  borderRadius: BorderRadius.circular(30.r),
-                  border: Border.all(
-                    color: isSelected ? AppColor.primaryColor : const Color(0xffE5E7EB),
-                  ),
-                ),
-                child: Text(
-                  _capitalize(opt),
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
         ),
         if (error != null)
           Padding(
@@ -1234,7 +1182,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     );
   }
 
-  String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 // ─── Local Models ─────────────────────────────────────────────────────────────

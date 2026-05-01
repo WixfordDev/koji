@@ -225,7 +225,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         child: _buildQuickCard("View\nAttendence", [
                           const Color(0xFFEC526A),
                           const Color(0xFFF77F6E),
-                        ], Assets.icons.viewattendance.svg(height: 40.h, width: 40.w),),
+                        ], Assets.icons.viewattendence.svg(height: 40.h, width: 40.w),),
                       ),
                       GestureDetector(
                         onTap: () {

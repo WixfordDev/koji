@@ -121,8 +121,15 @@ class InvoiceDetailsWidget extends StatelessWidget {
           SizedBox(height: 12.h),
 
           // GST
-          _buildDetailRow("GST:", "$gst%"),
-          SizedBox(height: 12.h),
+          Visibility(
+            visible: false,
+            child: Column(
+              children: [
+                _buildDetailRow("GST:", "$gst%"),
+                SizedBox(height: 12.h),
+              ],
+            ),
+          ),
 
           // Total Due
           _buildDetailRow("Total Due:", "\$${totalDue.toString()}"),

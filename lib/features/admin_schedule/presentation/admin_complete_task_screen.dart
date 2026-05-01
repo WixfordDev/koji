@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../controller/admincontroller/schedule_controller.dart';
+import '../../../models/admin-model/get_alllist_task_model.dart' as list_model;
 import '../../../models/admin-model/task_details_model.dart';
 import '../../../services/api_constants.dart';
 import '../../../shared_widgets/admin_task_complete_card.dart';
@@ -55,9 +57,7 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
               padding: EdgeInsets.zero,
               icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
               onPressed: () {
-                  if (mounted) {
-                    context.pop();
-                }
+                if (mounted) context.pop();
               },
             ),
             SizedBox(width: 8.w),
@@ -69,6 +69,33 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
             ),
           ],
         ),
+        actions: [
+          Obx(() {
+            final task = scheduleController.taskDetailsData.value;
+            if (task == null) return const SizedBox.shrink();
+            final taskId = widget.taskId ??
+                GoRouterState.of(context).pathParameters['taskId'] ?? '';
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: Colors.black, size: 22.sp),
+                  onPressed: () async {
+                    final result = _toListResult(task);
+                    await context.pushNamed('adminEditTaskScreen', extra: result);
+                    if (taskId.isNotEmpty) {
+                      scheduleController.getTaskDetails(taskId);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline, color: Colors.red, size: 22.sp),
+                  onPressed: () => _confirmDelete(taskId),
+                ),
+              ],
+            );
+          }),
+        ],
       ),
       body: SafeArea(
         child: Obx(() {
@@ -89,7 +116,52 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
                 // AdminTaskCompleteCard with dynamic data
                 AdminTaskCompleteCard(taskDetails: taskDetails),
 
-                SizedBox(height: 20.h),
+                SizedBox(height: 16.h),
+
+                // Approve Task Button — only for submitted tasks
+                if (_isSubmitted(taskDetails.status, taskDetails.isSubmited)) ...[
+                  Obx(() => SizedBox(
+                    width: double.infinity,
+                    height: 52.h,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100.r),
+                        ),
+                        backgroundColor: const Color(0xFF12B76A),
+                        elevation: 0,
+                      ),
+                      onPressed: scheduleController.taskApproving.value
+                          ? null
+                          : () async {
+                              final taskId = widget.taskId ?? GoRouterState.of(context).pathParameters['taskId'] ?? '';
+                              if (taskId.isNotEmpty) {
+                                await scheduleController.approveTask(taskId);
+                              }
+                            },
+                      child: scheduleController.taskApproving.value
+                          ? SizedBox(
+                              width: 22.w,
+                              height: 22.h,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              "Approve Task",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  )),
+                  SizedBox(height: 8.h),
+                ],
+
+                SizedBox(height: 12.h),
 
                 // Services Section
                 Text(
@@ -274,6 +346,88 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
         }),
       ),
     );
+  }
+
+  void _confirmDelete(String taskId) {
+    if (taskId.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('Delete Task', style: TextStyle(fontWeight: FontWeight.w600)),
+        content: const Text('Are you sure you want to delete this task? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final adminController = Get.find<AdminHomeController>();
+              await adminController.deleteTask(taskId: taskId);
+              if (mounted) context.pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  list_model.Result _toListResult(TaskDetailsModel d) {
+    List<String> assignToIds = [];
+    final at = d.assignTo;
+    if (at is List) {
+      assignToIds = at.map((item) {
+        if (item is AssignTo) return item.id ?? '';
+        if (item is Map<String, dynamic>) return item['id']?.toString() ?? '';
+        return item.toString();
+      }).where((id) => id.isNotEmpty).toList();
+    } else if (at is AssignTo) {
+      assignToIds = [at.id ?? ''].where((id) => id.isNotEmpty).toList();
+    } else if (at is String && at.isNotEmpty) {
+      assignToIds = [at];
+    }
+
+    return list_model.Result(
+      id: d.id,
+      customerName: d.customerName,
+      customerNumber: d.customerNumber,
+      customerAddress: d.customerAddress,
+      notes: d.notes,
+      otherAmount: d.otherAmount,
+      department: d.department?.id,
+      serviceCategory: d.serviceCategory?.id,
+      vehicle: d.vehicle,
+      assignTo: assignToIds,
+      priority: d.priority,
+      difficulty: d.difficulty,
+      assignDate: d.assignDate,
+      deadline: d.deadline,
+      services: d.services
+          ?.map((s) => list_model.Service(
+                name: s.name,
+                price: s.price?.toInt(),
+                quantity: s.quantity,
+                id: s.id,
+              ))
+          .toList(),
+      attachments: d.attachments,
+      status: d.status,
+      isSubmited: d.isSubmited,
+    );
+  }
+
+  bool _isSubmitted(String? status, bool? isSubmited) {
+    final s = status?.toLowerCase() ?? '';
+    if (s == 'completed' || s == 'approved') return false;
+    if (isSubmited == true) return true;
+    return s.contains('submit');
   }
 
   List<Widget> _buildServiceItems(List<Service> services) {

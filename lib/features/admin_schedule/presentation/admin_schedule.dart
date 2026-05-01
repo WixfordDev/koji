@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:koji/global/utils/date_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -78,7 +79,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
         _events = {};
         for (var item in data!.data!.attributes!.monthCalendarData!) {
           if (item.date != null) {
-            final parsed = DateTime.parse(item.date!).toLocal();
+            final parsed = toSgt(DateTime.parse(item.date!));
             final date = DateTime(parsed.year, parsed.month, parsed.day);
             _events[date] = {
               'completed': item.complitTaskCount ?? 0,
@@ -159,7 +160,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
 
   String _formatDateTime(String isoString) {
     try {
-      DateTime dt = DateTime.parse(isoString).toLocal();
+      DateTime dt = toSgt(DateTime.parse(isoString));
       return DateFormat('hh:mm a').format(dt).toUpperCase();
     } catch (e) {
       return isoString;

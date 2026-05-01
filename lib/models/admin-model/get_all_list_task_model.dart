@@ -3,6 +3,7 @@
 //     final getAllListTaskModel = getAllListTaskModelFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:koji/global/utils/date_utils.dart';
 
 GetAllListTaskModel getAllListTaskModelFromJson(String str) => GetAllListTaskModel.fromJson(json.decode(str));
 
@@ -108,8 +109,8 @@ class Result {
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
     customerAddress: json["customerAddress"],
-    assignDate: json["assignDate"] == null ? null : DateTime.parse(json["assignDate"]).toLocal(),
-    deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"]).toLocal(),
+    assignDate: json["assignDate"] == null ? null : toSgt(DateTime.parse(json["assignDate"])),
+    deadline: json["deadline"] == null ? null : toSgt(DateTime.parse(json["deadline"])),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
     priority: json["priority"],
     difficulty: json["difficulty"],
