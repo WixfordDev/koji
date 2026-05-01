@@ -114,6 +114,73 @@ class ProfileController extends GetxController {
     }
   }
 
+  // ── Timezone Update ──────────────────────────────────────────────────────
+  RxBool updateTimezoneLoading = false.obs;
+
+  updateTimezone(String timezone) async {
+    updateTimezoneLoading(true);
+    try {
+      var response = await ApiClient.patchMultipartData(
+        ApiConstants.updateProfileEndPoint,
+        {"timezone": timezone},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await getProfile();
+        ToastMessageHelper.showToastMessage("Timezone updated");
+      } else {
+        ToastMessageHelper.showToastMessage(
+          "${response.body["message"]}",
+          title: 'Failed',
+        );
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage("Error: $e", title: 'Error');
+    }
+    updateTimezoneLoading(false);
+  }
+
+  // ── App Settings (Admin) ─────────────────────────────────────────────────
+  RxBool appSettingsLoading = false.obs;
+  RxBool gstEnabled = false.obs;
+  RxDouble gstRate = 9.0.obs;
+
+  getAppSettings() async {
+    appSettingsLoading(true);
+    try {
+      var response = await ApiClient.getData(ApiConstants.appSettingsEndPoint);
+      if (response.statusCode == 200) {
+        final attrs = response.body['data']?['attributes'];
+        if (attrs != null) {
+          gstEnabled.value = attrs['gst']?['enabled'] ?? false;
+          gstRate.value = (attrs['gst']?['rate'] ?? 9).toDouble();
+        }
+      }
+    } catch (_) {}
+    appSettingsLoading(false);
+  }
+
+  updateAppSettings({required bool enabled, required double rate}) async {
+    try {
+      var response = await ApiClient.putData(
+        ApiConstants.appSettingsEndPoint,
+        {"gst": {"enabled": enabled, "rate": rate}},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        gstEnabled.value = enabled;
+        gstRate.value = rate;
+        ToastMessageHelper.showToastMessage(
+            "GST ${enabled ? 'enabled' : 'disabled'}");
+      } else {
+        ToastMessageHelper.showToastMessage(
+          "${response.body["message"]}",
+          title: 'Failed',
+        );
+      }
+    } catch (e) {
+      ToastMessageHelper.showToastMessage("Error: $e", title: 'Error');
+    }
+  }
+
   // Privacy Policy
   RxBool getPrivacyPolicyLoading = false.obs;
   Rx<String> privacyPolicyContent = ''.obs;

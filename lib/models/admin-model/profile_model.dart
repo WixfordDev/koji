@@ -72,6 +72,7 @@ class User {
   final bool? isAcceptPolicyTerms;
   final DateTime? createdAt;
   final String? id;
+  final String? timezone;
 
   User({
     this.location,
@@ -94,6 +95,7 @@ class User {
     this.isAcceptPolicyTerms,
     this.createdAt,
     this.id,
+    this.timezone,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -121,6 +123,7 @@ class User {
         ? null
         : DateTime.parse(json["createdAt"]),
     id: json["id"],
+    timezone: json["timezone"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {

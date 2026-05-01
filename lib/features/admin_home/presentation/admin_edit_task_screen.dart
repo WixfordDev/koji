@@ -141,13 +141,11 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
 
   String _buildISO(DateTime? date, TimeOfDay? time) {
     if (date == null) return '';
-    // Treat selected time as SGT (UTC+8), subtract 8 hours to store as UTC.
-    final sgt = DateTime(
+    final local = DateTime(
       date.year, date.month, date.day,
       time?.hour ?? 0, time?.minute ?? 0,
     );
-    final utc = sgt.subtract(const Duration(hours: 8));
-    return DateTime.utc(utc.year, utc.month, utc.day, utc.hour, utc.minute).toIso8601String();
+    return local.toUtc().toIso8601String();
   }
 
   double _calcTotal() {
