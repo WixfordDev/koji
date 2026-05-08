@@ -213,6 +213,7 @@ class HistoryCardWidget extends StatelessWidget {
   bool _isCompletedStatus(String status) {
     final lowerStatus = status.toLowerCase();
     return lowerStatus == 'completed' ||
+        lowerStatus == 'complete' ||
         lowerStatus == 'done' ||
         lowerStatus == 'finished';
   }
@@ -221,6 +222,7 @@ class HistoryCardWidget extends StatelessWidget {
     final lowerStatus = status.toLowerCase();
     return lowerStatus == 'in_progress' ||
         lowerStatus == 'in progress' ||
+        lowerStatus == 'inprogress' ||
         lowerStatus == 'progress' ||
         lowerStatus == 'submited' ||
         lowerStatus == 'submitted' ||

@@ -23,12 +23,25 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late ProfileController profileController;
 
+  static const List<Map<String, String>> _timezones = [
+    {'label': 'Singapore (UTC+8)',         'value': 'Asia/Singapore'},
+    {'label': 'Bangladesh (UTC+6)',        'value': 'Asia/Dhaka'},
+    {'label': 'India (UTC+5:30)',          'value': 'Asia/Kolkata'},
+    {'label': 'Malaysia (UTC+8)',          'value': 'Asia/Kuala_Lumpur'},
+    {'label': 'Indonesia – Jakarta (UTC+7)', 'value': 'Asia/Jakarta'},
+    {'label': 'UAE (UTC+4)',               'value': 'Asia/Dubai'},
+    {'label': 'UK (UTC+0/+1)',             'value': 'Europe/London'},
+    {'label': 'UTC (UTC+0)',               'value': 'UTC'},
+  ];
+
   @override
   void initState() {
     super.initState();
     profileController = Get.find<ProfileController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      profileController.getProfile();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await profileController.getProfile();
+      final role = profileController.profile.value.user?.role ?? '';
+      if (role == 'admin') profileController.getAppSettings();
     });
   }
 
@@ -78,6 +91,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ]),
 
                   SizedBox(height: 20.h),
+
+                  // ─── Settings Section (all users) ───
+                  _sectionLabel('Settings'),
+                  SizedBox(height: 8.h),
+                  _buildMenuCard([
+                    _menuItem(
+                      icon: Icon(Icons.language_rounded,
+                          size: 20.sp, color: AppColor.primaryColor),
+                      label: 'Timezone',
+                      onTap: () => _showTimezoneBottomSheet(context),
+                    ),
+                  ]),
+
+                  SizedBox(height: 20.h),
+
+                  // ─── App Settings Section (admin only) ───
+                  Obx(() {
+                    final role = profileController.profile.value.user?.role ?? '';
+                    if (role != 'admin') return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionLabel('App Settings'),
+                        SizedBox(height: 8.h),
+                        _buildMenuCard([
+                          _menuItem(
+                            icon: Icon(Icons.percent_rounded,
+                                size: 20.sp, color: AppColor.primaryColor),
+                            label: 'GST Settings',
+                            onTap: () => _showGstBottomSheet(context),
+                          ),
+                        ]),
+                        SizedBox(height: 20.h),
+                      ],
+                    );
+                  }),
 
                   // ─── Legal Section ───
                   _sectionLabel('Legal'),
@@ -434,6 +483,229 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Timezone Bottom Sheet ────────────────────────────────────────────────
+
+  void _showTimezoneBottomSheet(BuildContext context) {
+    final current = profileController.profile.value.user?.timezone;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColor.backgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (_) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 12.h),
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: AppColor.borderColor,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Text(
+                'Select Timezone',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.secondaryColor,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+            ..._timezones.map((tz) {
+              final isSelected = current == tz['value'];
+              return ListTile(
+                onTap: () {
+                  Navigator.pop(context);
+                  profileController.updateTimezone(tz['value']!);
+                },
+                leading: Icon(
+                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  color: isSelected ? AppColor.primaryColor : AppColor.textColor707070,
+                  size: 20.sp,
+                ),
+                title: Text(
+                  tz['label']!,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? AppColor.primaryColor : AppColor.secondaryColor,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              );
+            }),
+            SizedBox(height: 16.h),
+          ],
+        ),
+        ),
+      ),
+    );
+  }
+
+  // ─── GST Bottom Sheet ─────────────────────────────────────────────────────
+
+  void _showGstBottomSheet(BuildContext context) {
+    final rateController = TextEditingController(
+      text: profileController.gstRate.value.toStringAsFixed(0),
+    );
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColor.backgroundColor,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SafeArea(
+          child: Obx(() => Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: AppColor.borderColor,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'GST Settings',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.secondaryColor,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                Text(
+                  'Apply GST on Invoice & Quotation PDF',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColor.textColor707070,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Enable GST',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColor.secondaryColor,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                    Switch(
+                      value: profileController.gstEnabled.value,
+                      activeColor: AppColor.primaryColor,
+                      onChanged: (val) {
+                        profileController.updateAppSettings(
+                          enabled: val,
+                          rate: profileController.gstRate.value,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                if (profileController.gstEnabled.value) ...[
+                  SizedBox(height: 16.h),
+                  Text(
+                    'GST Rate (%)',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColor.secondaryColor,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: rateController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          style: TextStyle(fontSize: 14.sp, fontFamily: 'Poppins'),
+                          decoration: InputDecoration(
+                            suffixText: '%',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                              borderSide: BorderSide(color: AppColor.borderColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                              borderSide: BorderSide(color: AppColor.primaryColor),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 14.w, vertical: 12.h),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      GestureDetector(
+                        onTap: () {
+                          final val = double.tryParse(rateController.text);
+                          if (val != null) {
+                            profileController.updateAppSettings(
+                              enabled: profileController.gstEnabled.value,
+                              rate: val,
+                            );
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: Container(
+                          height: 48.h,
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          decoration: BoxDecoration(
+                            color: AppColor.primaryColor,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Save',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                SizedBox(height: 8.h),
+              ],
+            ),
+          )),
         ),
       ),
     );

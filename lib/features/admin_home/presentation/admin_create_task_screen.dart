@@ -1761,12 +1761,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
   String _formatDateToISO(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return '';
-
-    // Treat selected time as SGT (UTC+8) regardless of device timezone,
-    // then subtract 8 hours to store as UTC on the server.
-    final sgt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    final utc = sgt.subtract(const Duration(hours: 8));
-    return DateTime.utc(utc.year, utc.month, utc.day, utc.hour, utc.minute).toIso8601String();
+    final local = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    return local.toUtc().toIso8601String();
   }
 
   Future<void> _createTask() async {

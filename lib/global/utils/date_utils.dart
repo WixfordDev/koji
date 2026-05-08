@@ -1,3 +1,2 @@
-/// Converts a UTC DateTime to Singapore Standard Time (UTC+8).
-/// Use this for all task schedule time display throughout the app.
-DateTime toSgt(DateTime dt) => dt.toUtc().add(const Duration(hours: 8));
+/// Converts a UTC DateTime to the device's local timezone for display.
+DateTime toSgt(DateTime dt) => dt.toLocal();
