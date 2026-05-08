@@ -499,7 +499,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (_) => SafeArea(
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: 12.h),
@@ -550,6 +551,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }),
             SizedBox(height: 16.h),
           ],
+        ),
         ),
       ),
     );

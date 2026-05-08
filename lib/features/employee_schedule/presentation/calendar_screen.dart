@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:koji/controller/employee_schedule_controller.dart';
 import 'package:koji/features/employee_schedule/presentation/task_details_screen.dart';
 import 'package:koji/models/task_model.dart' as TaskModel;
+import 'package:koji/shared_widgets/history-widget.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -457,183 +458,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildTaskCard({
-    required String taskId,
-    required String title,
-    required String status,
-    required String priority,
-    required int progress,
-    required Color color,
-    String? assignDate,
-    List<TaskModel.Service>? services,
-    int? serialNumber,
-  }) {
-    String displayDate = "No date";
-    if (assignDate != null && assignDate.isNotEmpty) {
-      try {
-        DateTime date = DateTime.parse(assignDate);
-        displayDate = "${date.day} ${DateFormat.MMM().format(date)}";
-      } catch (e) {
-        displayDate = assignDate.substring(0, 10).replaceAll('-', ' ');
-      }
-    }
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TaskDetailsScreen(taskId: taskId),
-          ),
-        ).then((_) {
-          if (_selectedDay != null) {
-            final formatted =
-                "${_selectedDay!.year}-${_selectedDay!.month.toString().padLeft(2, '0')}-${_selectedDay!.day.toString().padLeft(2, '0')}";
-            _employeeScheduleController
-                .fetchTasksForDate(formatted)
-                .then((_) {
-              if (mounted) _updateTabs();
-            });
-          }
-        });
-      },
-      child: Container(
-        width: double.infinity,
-        margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(14.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: _getStatusBorderColor(status), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                if (serialNumber != null) ...[
-                  Container(
-                    width: 22.w,
-                    height: 22.w,
-                    margin: EdgeInsets.only(right: 8.w),
-                    decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
-                    alignment: Alignment.center,
-                    child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
-                  ),
-                ],
-                Container(
-                  width: 28.w,
-                  height: 28.h,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight,
-                      colors: [
-                        _CalendarScreenState.primaryDark,
-                        _CalendarScreenState.primaryBlue,
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child:
-                      Icon(Icons.flash_on, color: Colors.white, size: 16.sp),
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.sp,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 8.h),
-
-            Row(
-              children: [
-                _buildTag(status, color),
-                SizedBox(width: 8.w),
-              ],
-            ),
-
-            SizedBox(height: 10.h),
-
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: LinearProgressIndicator(
-                      value: progress / 100,
-                      minHeight: 5.h,
-                      backgroundColor: Colors.grey.shade200,
-                      color: color,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Text(
-                  '$progress%',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 10.h),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    services != null && services.isNotEmpty
-                        ? services.map((s) => s.name).join(', ')
-                        : 'No services specified',
-                    style:
-                        TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14.sp,
-                      color: Colors.grey[500],
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      displayDate,
-                      style: TextStyle(
-                          fontSize: 12.sp, color: Colors.grey[500]),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTaskList(EmployeeScheduleController controller) {
     List<TaskModel.TaskModel> tasks = controller.getAllTasksForSelectedDate();
 
@@ -641,8 +465,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       const statusFilters = ['', 'pending', 'inprogress', 'complete'];
       final statusFilter = statusFilters[selectedTab];
       tasks = tasks
-          .where(
-              (task) => _effectiveStatus(task).toLowerCase() == statusFilter)
+          .where((task) => _effectiveStatus(task).toLowerCase() == statusFilter)
           .toList();
     }
 
@@ -668,20 +491,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
       itemBuilder: (context, index) {
         final task = tasks[index];
         final effectiveStatus = _effectiveStatus(task);
-        final statusColor = _getStatusColor(effectiveStatus);
-        final progress =
-            task.isSubmited == true ? 100 : (task.progressPercent ?? 0);
+        final progress = task.isSubmited == true ? 100 : (task.progressPercent ?? 0);
 
-        return _buildTaskCard(
-          taskId: task.id ?? "",
-          title: _capitalize(task.customerName ?? ""),
-          status: effectiveStatus,
-          priority: task.priority ?? "",
-          progress: progress,
-          color: statusColor,
-          assignDate: task.assignDate?.toIso8601String(),
-          services: task.services,
+        return HistoryCardWidget(
           serialNumber: index + 1,
+          title: task.customerName ?? "",
+          phone: task.customerNumber,
+          category: task.serviceCategory?.name ?? "",
+          time: _formatDateRange(task.assignDate, task.deadline),
+          breakTime: _formatTime(task.assignDate),
+          status: effectiveStatus,
+          progressPercent: progress,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskDetailsScreen(taskId: task.id ?? ""),
+              ),
+            ).then((_) {
+              if (_selectedDay != null) {
+                final formatted =
+                    "${_selectedDay!.year}-${_selectedDay!.month.toString().padLeft(2, '0')}-${_selectedDay!.day.toString().padLeft(2, '0')}";
+                _employeeScheduleController.fetchTasksForDate(formatted).then((_) {
+                  if (mounted) _updateTabs();
+                });
+              }
+            });
+          },
         );
       },
     );
@@ -694,126 +530,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return 'pending';
   }
 
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text
-        .split(' ')
-        .map((word) =>
-            word.isEmpty ? word : word[0].toUpperCase() + word.substring(1))
-        .join(' ');
+  String _formatTime(DateTime? dt) {
+    if (dt == null) return '-';
+    final hour = dt.hour;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+    return '$displayHour:$minute $period';
   }
 
-  Widget _buildTag(String text, Color color) {
-    return Container(
-      height: 23.h,
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: _getStatusLightColor(text),
-        borderRadius: BorderRadius.circular(100.r),
-        border: Border.all(color: _getStatusBorderColor(text), width: 1),
-      ),
-      child: Text(
-        _capitalize(text),
-        style: TextStyle(
-          color: _getStatusDarkColor(text),
-          fontSize: 11.sp,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPriorityTag(String text) {
-    return Container(
-      height: 23.h,
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFF125BAC),
-        borderRadius: BorderRadius.circular(100.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.flag, size: 10.sp, color: Colors.white),
-          SizedBox(width: 3.w),
-          Text(
-            _capitalize(text),
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'complete':
-      case 'completed':
-      case 'done':
-      case 'submited':
-      case 'submitted':
-        return Colors.green;
-      case 'inprogress':
-      case 'in progress':
-      case 'progress':
-        return Colors.orange;
-      default:
-        return Colors.orange;
+  String _formatDateRange(DateTime? from, DateTime? to) {
+    String fmt(DateTime? dt) {
+      if (dt == null) return '-';
+      return '${dt.day}/${dt.month}/${dt.year}';
     }
-  }
-
-  Color _getStatusBorderColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'complete':
-      case 'completed':
-      case 'done':
-      case 'submited':
-      case 'submitted':
-        return Colors.green.shade200;
-      case 'inprogress':
-      case 'in progress':
-      case 'progress':
-        return Colors.orange.shade200;
-      default:
-        return Colors.orange.shade200;
-    }
-  }
-
-  Color _getStatusLightColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'complete':
-      case 'completed':
-      case 'done':
-      case 'submited':
-      case 'submitted':
-        return Colors.green.shade50;
-      case 'inprogress':
-      case 'in progress':
-      case 'progress':
-        return Colors.orange.shade50;
-      default:
-        return Colors.orange.shade50;
-    }
-  }
-
-  Color _getStatusDarkColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'complete':
-      case 'completed':
-      case 'done':
-      case 'submited':
-      case 'submitted':
-        return Colors.green.shade700;
-      case 'inprogress':
-      case 'in progress':
-      case 'progress':
-        return Colors.orange.shade700;
-      default:
-        return Colors.orange.shade700;
-    }
+    return '${fmt(from)} – ${fmt(to)}';
   }
 }

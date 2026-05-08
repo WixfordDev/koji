@@ -588,8 +588,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(service, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
-        Text(price, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
+        Flexible(child: Text(service, style: TextStyle(fontSize: 14.sp, color: Colors.black87))),
+        SizedBox(width: 8.w),
+        Flexible(child: Text(price, textAlign: TextAlign.end, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87))),
       ],
     );
   }

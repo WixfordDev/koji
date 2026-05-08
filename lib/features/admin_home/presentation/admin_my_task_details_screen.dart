@@ -304,12 +304,15 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    hasValue ? postCode! : 'N/A',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                      color: hasValue ? const Color(0xFF4082FB) : Colors.black87,
+                  Flexible(
+                    child: Text(
+                      hasValue ? postCode! : 'N/A',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: hasValue ? const Color(0xFF4082FB) : Colors.black87,
+                      ),
                     ),
                   ),
                   if (hasValue) ...[

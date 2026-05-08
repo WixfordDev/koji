@@ -863,6 +863,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
   }
 
   void _showAssignSheet() {
+    final List<String> tempIds = List.from(_assignToIds);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -873,7 +874,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
           return SizedBox(height: 300.h, child: const Center(child: CircularProgressIndicator()));
         }
         final employees = _deptController.employee.value.results ?? [];
-        List<String> tempIds = List.from(_assignToIds);
         return Container(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
           padding: EdgeInsets.all(20.w),
