@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:koji/features/admin_home/presentation/admin_my_task_details_screen.dart';
 import 'package:koji/features/admin_home/presentation/widget/custom_loader.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../constants/app_color.dart';
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../models/admin-model/get_alllist_task_model.dart';
 
@@ -34,6 +36,11 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _makeCall(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    await launchUrl(uri);
   }
 
   void _confirmDelete(String taskId) {
@@ -352,22 +359,6 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     return month >= 1 && month <= 12 ? months[month - 1] : '';
   }
 
-  Color _getStatusBorderColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-      case 'completed':
-        return Colors.green.shade200;
-      case 'progress':
-      case 'in_progress':
-      case 'submitted':
-      case 'submited':
-        return Colors.orange.shade200;
-      case 'rejected':
-        return Colors.red.shade200;
-      default:
-        return Colors.orange.shade200;
-    }
-  }
 
   // ------------------------------ CARD COMPONENT ------------------------------
   Widget _taskCard({
@@ -380,15 +371,37 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     required double progress,
     required String date,
   }) {
+    final String rawStatus = (task.status ?? 'pending').toLowerCase();
+    final bool isCompleted = rawStatus == 'completed' || rawStatus == 'approved';
+    final bool isRejected = rawStatus == 'rejected';
+
+    final Color lightBg = isCompleted
+        ? Colors.green.shade50
+        : isRejected
+            ? Colors.red.shade50
+            : Colors.orange.shade50;
+    final Color lightBorder = isCompleted
+        ? Colors.green.shade200
+        : isRejected
+            ? Colors.red.shade200
+            : Colors.orange.shade200;
+    final Color darkText = isCompleted
+        ? Colors.green.shade700
+        : isRejected
+            ? Colors.red.shade700
+            : Colors.orange.shade700;
+
+    final int progressInt = (progress * 100).toInt();
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _getStatusBorderColor(status), width: 1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: lightBorder, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -406,21 +419,13 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
                   height: 22,
                   decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
                   alignment: Alignment.center,
-                  child: Text('$serialNumber', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    '$serialNumber',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
-              Column(
-                children: [
-                  const Icon(Icons.flash_on, color: Colors.redAccent),
-                  if (task.customerNumber != null && task.customerNumber!.isNotEmpty)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 9),
-                      child: Icon(Icons.phone, size: 13, color: Color(0xff6B7280)),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,133 +433,146 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: AppColor.secondaryColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 6),
-                    if (task.customerNumber != null && task.customerNumber!.isNotEmpty)
-                      Text(
-                        task.customerNumber!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xff6B7280),
+                    if (task.customerNumber != null && task.customerNumber!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      GestureDetector(
+                        onTap: () => _makeCall(task.customerNumber!),
+                        child: Row(
+                          children: [
+                            Icon(Icons.phone_outlined, size: 12, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Text(
+                              task.customerNumber!,
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                            ),
+                          ],
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
+                    ],
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: () => context.pushNamed('adminEditTaskScreen', extra: task),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF234176).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF234176)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: lightBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: lightBorder, width: 1),
                 ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _confirmDelete(task.id ?? ''),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                child: Text(
+                  status,
+                  style: TextStyle(fontSize: 12, color: darkText, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          Row(
-            children: [
-              _chip(status, statusColor.withOpacity(0.15), statusColor),
-              const SizedBox(width: 8),
-              const Spacer(),
-              Text(
-                "${(progress * 100).toInt()}%",
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              )
-            ],
+          _buildInfoRow(
+            Icons.miscellaneous_services_outlined,
+            "Service",
+            task.serviceCategory?.name ??
+                (task.services?.where((s) => s.name != null).map((s) => s.name!).join(', ') ?? '-'),
           ),
-
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.calendar_today, "Date Range", _formatDateRange(task.assignDate, task.deadline)),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.location_on_outlined, "Address", task.customerAddress ?? '-'),
           const SizedBox(height: 12),
-
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: Container(
-              height: 4,
-              width: double.infinity,
-              color: Colors.black12,
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: progress,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xffEC526A), Color(0xffF77F6E)],
-                    ),
-                  ),
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: lightBg,
+              borderRadius: BorderRadius.circular(8),
             ),
-          ),
-
-          const SizedBox(height: 14),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("👨‍🔧  👩‍🔧  🧑‍🔧", style: TextStyle(fontSize: 18)),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    date,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.chat_bubble_outline, size: 16),
-                ],
-              ),
-            ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      isCompleted ? Icons.check_circle_outline : Icons.hourglass_bottom,
+                      color: statusColor,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Progress",
+                      style: TextStyle(color: darkText, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "$progressInt%",
+                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => context.pushNamed('adminEditTaskScreen', extra: task),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF234176).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.edit_outlined, size: 14, color: Color(0xFF234176)),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () => _confirmDelete(task.id ?? ''),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.delete_outline, size: 14, color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ------------------------------ CHIP COMPONENT ------------------------------
-  Widget _chip(String label, Color bg, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: textColor.withOpacity(0.4), width: 1),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          color: textColor,
-          fontWeight: FontWeight.w600,
+  Widget _buildInfoRow(IconData icon, String title, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColor.primaryColor, size: 16),
+        const SizedBox(width: 8),
+        Text(
+          "$title: ",
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w500),
         ),
-      ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(color: AppColor.secondaryColor, fontSize: 12, fontWeight: FontWeight.w500),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
+  }
+
+  String _formatDateRange(DateTime? from, DateTime? to) {
+    String fmt(DateTime? dt) {
+      if (dt == null) return '-';
+      return '${dt.day}/${dt.month}/${dt.year}';
+    }
+    return '${fmt(from)} – ${fmt(to)}';
   }
 
   // ------------------------------ BOTTOM BUTTON ------------------------------

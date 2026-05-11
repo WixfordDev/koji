@@ -76,7 +76,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     _otherAmountController.text = (t.otherAmount ?? 0).toString();
 
     _departmentId = t.department;
-    _categoryId = t.serviceCategory;
+    _categoryId = t.serviceCategory?.id;
     _vehicleId = t.vehicle;
     _assignToIds = List<String>.from(t.assignTo ?? []);
 

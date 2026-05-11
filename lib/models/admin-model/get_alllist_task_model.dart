@@ -46,7 +46,7 @@ class Result {
   final String? id;
   final String? createdBy;
   final String? department;
-  final String? serviceCategory;
+  final ServiceCategoryRef? serviceCategory;
   final String? vehicle;
   final String? customerName;
   final String? customerNumber;
@@ -107,7 +107,7 @@ class Result {
     id: json["id"] ?? json["_id"],
     createdBy: json["createdBy"],
     department: json["department"]?.toString(),
-    serviceCategory: json["serviceCategory"]?.toString(),
+    serviceCategory: _parseServiceCategory(json["serviceCategory"]),
     vehicle: json["vehicle"],
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
@@ -138,7 +138,7 @@ class Result {
     "id": id,
     "createdBy": createdBy,
     "department": department,
-    "serviceCategory": serviceCategory,
+    "serviceCategory": serviceCategory?.toJson(),
     "vehicle": vehicle,
     "customerName": customerName,
     "customerNumber": customerNumber,
@@ -163,6 +163,26 @@ class Result {
     "__v": v,
     "progressPercent": progressPercent,
   };
+}
+
+ServiceCategoryRef? _parseServiceCategory(dynamic data) {
+  if (data == null) return null;
+  if (data is Map<String, dynamic>) return ServiceCategoryRef.fromJson(data);
+  return ServiceCategoryRef(id: data.toString(), name: null);
+}
+
+class ServiceCategoryRef {
+  final String? id;
+  final String? name;
+
+  ServiceCategoryRef({this.id, this.name});
+
+  factory ServiceCategoryRef.fromJson(Map<String, dynamic> json) => ServiceCategoryRef(
+    id: json["_id"]?.toString() ?? json["id"]?.toString(),
+    name: json["name"]?.toString(),
+  );
+
+  Map<String, dynamic> toJson() => {"_id": id, "name": name};
 }
 
 class Service {

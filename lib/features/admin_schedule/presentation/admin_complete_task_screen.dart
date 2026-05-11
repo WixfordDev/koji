@@ -402,7 +402,7 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
       notes: d.notes,
       otherAmount: d.otherAmount,
       department: d.department?.id,
-      serviceCategory: d.serviceCategory?.id,
+      serviceCategory: d.serviceCategory == null ? null : list_model.ServiceCategoryRef(id: d.serviceCategory!.id, name: d.serviceCategory!.name),
       vehicle: d.vehicle,
       assignTo: assignToIds,
       priority: d.priority,
