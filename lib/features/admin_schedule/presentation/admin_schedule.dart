@@ -233,6 +233,37 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/adminCreateTaskScreen'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        label: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xffEC526A), Color(0xffF77F6E)],
+            ),
+            borderRadius: BorderRadius.circular(30.r),
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+            child: Row(
+              children: [
+                Icon(Icons.add, color: Colors.white, size: 20.sp),
+                SizedBox(width: 8.w),
+                Text(
+                  'Create Task',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 18.w),
