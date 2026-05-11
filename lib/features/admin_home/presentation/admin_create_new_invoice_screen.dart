@@ -13,6 +13,7 @@ import 'package:koji/shared_widgets/custom_button.dart';
 
 import '../../../controller/admincontroller/admin_home_controller.dart';
 import '../../../controller/admincontroller/department_controller.dart';
+import '../../../controller/profile_controller.dart';
 import '../../../helpers/toast_message_helper.dart';
 
 class AdminCreateInvoiceScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class AdminCreateInvoiceScreen extends StatefulWidget {
 class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
   late AdminHomeController adminHomeController;
   late DepartmentController departmentController;
+  late ProfileController profileController;
 
   // Type selection (Invoice or Quote)
   String selectedType = "invoice"; // "invoice" or "quote"
@@ -45,7 +47,7 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
 
   // Amount Controllers
   final TextEditingController _otherAmountController = TextEditingController(text: "0");
-  final TextEditingController _gstController = TextEditingController(text: "9");
+  final TextEditingController _gstController = TextEditingController(text: "0");
 
   // Bank Details Controllers
   final TextEditingController _bankNameController = TextEditingController(text: "OCBC");
@@ -69,10 +71,19 @@ class _AdminCreateInvoiceScreenState extends State<AdminCreateInvoiceScreen> {
     super.initState();
     adminHomeController = Get.find<AdminHomeController>();
     departmentController = Get.find<DepartmentController>();
+    profileController = Get.find<ProfileController>();
 
-    // Load service list for selection
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       departmentController.getAllServiceList();
+      // Fetch latest GST settings and apply to controller
+      await profileController.getAppSettings();
+      if (mounted) {
+        setState(() {
+          _gstController.text = profileController.gstEnabled.value
+              ? profileController.gstRate.value.toStringAsFixed(0)
+              : "0";
+        });
+      }
     });
   }
 
