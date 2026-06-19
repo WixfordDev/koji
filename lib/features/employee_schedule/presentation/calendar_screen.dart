@@ -15,7 +15,8 @@ class CalendarScreen extends StatefulWidget {
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
+class _CalendarScreenState extends State<CalendarScreen>
+    with WidgetsBindingObserver {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -36,6 +37,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selectedDay = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onDaySelected(_selectedDay!, _selectedDay!);
@@ -45,6 +47,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _focusedDay.month,
       );
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final day = _selectedDay ?? DateTime.now();
+      final formatted = DateFormat('yyyy-MM-dd').format(day);
+      _employeeScheduleController.fetchTasksForDate(formatted);
+      _employeeScheduleController.fetchMonthTasks(
+        _focusedDay.year,
+        _focusedDay.month,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _updateTabs() {

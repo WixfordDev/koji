@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../global/custom_assets/assets.gen.dart';
+import '../../../../constants/app_color.dart';
 import '../../../../shared_widgets/custom_text.dart';
 
 class TaskCard extends StatelessWidget {
@@ -32,48 +32,70 @@ class TaskCard extends StatelessWidget {
     this.onTap,
   });
 
-  // Helper method to get status color
   Color _getStatusColor(String status) {
-    final statusLower = status.toLowerCase();
-    if (statusLower.contains('submit') || statusLower.contains('complete')) {
-      return const Color(0xFF4CD964);
-    } else if (statusLower.contains('progress')) {
-      return const Color(0xFFFFB800);
-    } else if (statusLower.contains('pending')) {
-      return const Color(0xFFF95555);
-    }
-    return Colors.grey;
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green;
+    if (s.contains('progress')) return Colors.orange;
+    return Colors.orange;
   }
 
-  // Helper method to get status text
+  Color _getStatusBorderColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade200;
+    return Colors.orange.shade200;
+  }
+
+  Color _getStatusLightColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade50;
+    return Colors.orange.shade50;
+  }
+
+  Color _getStatusDarkColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade700;
+    return Colors.orange.shade700;
+  }
+
   String _getStatusText(String status) {
-    final statusLower = status.toLowerCase();
-    if (statusLower.contains('submit') || statusLower.contains('complete')) {
-      return 'Completed';
-    } else if (statusLower.contains('progress')) {
-      return 'In Progress';
-    } else if (statusLower.contains('pending')) {
-      return 'Pending';
-    }
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return 'Completed';
+    if (s.contains('progress')) return 'In Progress';
+    if (s.contains('pending')) return 'Pending';
     return status;
+  }
+
+  IconData _getStatusIcon(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('submit') || s.contains('complete')) return Icons.check_circle_outline;
+    if (s.contains('progress')) return Icons.hourglass_bottom;
+    return Icons.pending_outlined;
+  }
+
+  Color _getPriorityColor(String priority) {
+    final p = priority.toLowerCase();
+    if (p == 'high') return const Color(0xFFF04438);
+    if (p == 'medium') return const Color(0xFFF79009);
+    if (p == 'low') return const Color(0xFF12B76A);
+    return Colors.grey;
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(14.r),
       onTap: onTap,
       child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 8.h),
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: _getStatusBorderColor(status),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: _getStatusBorderColor(status), width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -82,203 +104,117 @@ class TaskCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title Row
+            // Top row: serial + name + status badge
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (serialNumber != null) ...[
                   Container(
                     width: 22.w,
                     height: 22.w,
-                    decoration: BoxDecoration(color: Colors.grey.shade700, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade700,
+                      shape: BoxShape.circle,
+                    ),
                     alignment: Alignment.center,
-                    child: Text('$serialNumber', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      '$serialNumber',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   SizedBox(width: 8.w),
                 ],
-                Container(
-                  padding: EdgeInsets.all(10.w),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    size: 18.sp,
-                    color: const Color(0xFF667085),
-                  ),
-                ),
-                SizedBox(width: 12.w),
                 Expanded(
-                  child: Text(
-                    taskTitle,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-
-            // Status and Time Row
-            Row(
-              children: [
-                // Status Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    color: _getStatusLightColor(status),
-                    borderRadius: BorderRadius.circular(100.r),
-                    border: Border.all(color: _getStatusBorderColor(status), width: 1),
-                  ),
-                  child: Text(
-                    _getStatusText(status),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: _getStatusDarkColor(status),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
-
-                // Time Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(status),
-                    borderRadius: BorderRadius.circular(100.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14.sp,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-
-                // Percentage
-                Text(
-                  '${progressPercentage.toInt()}%',
-                  style: TextStyle(
+                  child: CustomText(
+                    textAlign: TextAlign.start,
+                    text: taskTitle,
+                    color: AppColor.secondaryColor,
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: _getStatusLightColor(status),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(color: _getStatusBorderColor(status), width: 1),
+                  ),
+                  child: CustomText(
+                    text: _getStatusText(status),
+                    color: _getStatusDarkColor(status),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
+
             SizedBox(height: 12.h),
 
-            // Progress Bar
-            Container(
-              height: 6.h,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAECF0),
-                borderRadius: BorderRadius.circular(100.r),
-              ),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: progressPercentage / 100,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(status),
-                    borderRadius: BorderRadius.circular(100.r),
-                  ),
-                ),
-              ),
+            // Service row
+            _buildInfoRow(
+              icon: Icons.miscellaneous_services_outlined,
+              title: 'Service',
+              value: userName,
             ),
+            SizedBox(height: 8.h),
+
+            // Date row
+            _buildInfoRow(
+              icon: Icons.calendar_today,
+              title: 'Date',
+              value: date,
+            ),
+            SizedBox(height: 8.h),
+
+            // Time row
+            _buildInfoRow(
+              icon: Icons.access_time_outlined,
+              title: 'Time',
+              value: time,
+            ),
+
             SizedBox(height: 12.h),
 
-            // User Info Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            // Bottom progress container
+            Container(
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: _getStatusLightColor(status),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      CircleAvatar(
-                        radius: 16.r,
-                        backgroundColor: const Color(0xFFEAECF0),
-                        child: Icon(
-                          Icons.bolt,
-                          size: 20.sp,
-                          color: _getStatusColor(status),
-                        ),
+                      Icon(
+                        _getStatusIcon(status),
+                        color: _getStatusColor(status),
+                        size: 16.sp,
                       ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: Text(
-                          userName,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                      SizedBox(width: 6.w),
+                      CustomText(
+                        text: 'Progress',
+                        color: _getStatusDarkColor(status),
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
-                ),
-                SizedBox(width: 8.w),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14.sp,
-                      color: const Color(0xFF667085),
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      date,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF667085),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    // Chat Icon
-                    Container(
-                      width: 20.w,
-                      height: 20.h,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAECF0),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.chat_bubble_outline,
-                          size: 12.sp,
-                          color: const Color(0xFF667085),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  CustomText(
+                    text: '${progressPercentage.toInt()}%',
+                    color: _getStatusColor(status),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -286,36 +222,30 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusBorderColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade200;
-    if (s.contains('progress')) return Colors.orange.shade200;
-    return Colors.orange.shade200;
-  }
-
-  Color _getStatusLightColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade50;
-    if (s.contains('progress')) return Colors.orange.shade50;
-    return Colors.orange.shade50;
-  }
-
-  Color _getStatusDarkColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('submit') || s.contains('complete')) return Colors.green.shade700;
-    if (s.contains('progress')) return Colors.orange.shade700;
-    return Colors.orange.shade700;
-  }
-
-  Color _getPriorityColor(String priority) {
-    final priorityLower = priority.toLowerCase();
-    if (priorityLower == 'high') {
-      return const Color(0xFFF04438);
-    } else if (priorityLower == 'medium') {
-      return const Color(0xFFF79009);
-    } else if (priorityLower == 'low') {
-      return const Color(0xFF12B76A);
-    }
-    return Colors.grey;
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColor.primaryColor, size: 16.sp),
+        SizedBox(width: 8.w),
+        CustomText(
+          text: '$title: ',
+          color: Colors.grey.shade600,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+        ),
+        Expanded(
+          child: CustomText(
+            text: value,
+            color: AppColor.secondaryColor,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -173,7 +173,9 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
 
               VehicleSelectorWidget(
                 selectedVehicle: selectedVehicle,
-                onTap: _showVehicleBottomSheet),
+                onTap: () { _clearError('vehicle'); _showVehicleBottomSheet(); },
+                errorText: _errors['vehicle'],
+              ),
 
               ServiceListDropdownWidget(
                 selectedServiceList: selectedServiceList,
@@ -2297,6 +2299,7 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
       'deadlineTime':         'Please select the deadline time',
       'deadlineBeforeStart':  'Deadline date cannot be before assign date',
       'services':             'Please add at least one service',
+      'vehicle':              'Please select a vehicle',
       'priority':             'Please select a priority level',
       'difficulty':           'Please select a difficulty level',
     };

@@ -638,9 +638,15 @@ class DepartmentController extends GetxController {
     if (selectedServiceList.isEmpty) {
       return 'services';
     }
-    // if (selectedPriority.value.isEmpty) {
-    //   return 'priority';
-    // }
+    if (selectedVehicleId.value.isEmpty) {
+      return 'vehicle';
+    }
+    if (endDate.value == null) {
+      return 'deadlineDate';
+    }
+    if (endTime.value == null) {
+      return 'deadlineTime';
+    }
 
     return null;
   }

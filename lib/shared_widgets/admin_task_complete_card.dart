@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import '../../../../constants/app_color.dart';
-import '../../../../models/admin-model/task_details_model.dart';
-import '../../../../services/api_constants.dart';
-import '../../../../shared_widgets/custom_text.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../constants/app_color.dart';
+import '../models/admin-model/task_details_model.dart';
+import '../services/api_constants.dart';
+import '../shared_widgets/custom_text.dart';
 
 class AdminTaskCompleteCard extends StatelessWidget {
   final TaskDetailsModel? taskDetails;
@@ -14,7 +15,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
     this.taskDetails,
   });
 
-  // Helper method to get status color
   Color _getStatusColor(String? status) {
     final statusLower = status?.toLowerCase() ?? '';
     if (statusLower.contains('submit') || statusLower.contains('complete')) {
@@ -27,7 +27,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
     return Colors.grey;
   }
 
-  // Helper method to get status text
   String _getStatusText(String? status) {
     final statusLower = status?.toLowerCase() ?? '';
     if (statusLower.contains('submit') || statusLower.contains('complete')) {
@@ -40,7 +39,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
     return status ?? 'N/A';
   }
 
-  // Helper method to get priority color
   Color _getPriorityColor(String? priority) {
     final priorityLower = priority?.toLowerCase() ?? '';
     if (priorityLower == 'high' || priorityLower == 'important') {
@@ -53,7 +51,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
     return Colors.grey;
   }
 
-  // Helper method to get difficulty color
   Color _getDifficultyColor(String? difficulty) {
     final difficultyLower = difficulty?.toLowerCase() ?? '';
     if (difficultyLower == 'hard') {
@@ -87,22 +84,17 @@ class AdminTaskCompleteCard extends StatelessWidget {
     return Colors.orange.shade700;
   }
 
-  // Helper method to format time
   String _formatTime(DateTime? dateTime) {
     if (dateTime == null) return 'N/A';
-
     final hour = dateTime.hour;
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-
     return '$displayHour:$minute $period';
   }
 
-  // Get assignee name
   String _getAssigneeName() {
     if (taskDetails?.assignTo == null) return 'N/A';
-
     if (taskDetails!.assignTo is AssignTo) {
       return (taskDetails!.assignTo as AssignTo).fullName ?? 'N/A';
     } else if (taskDetails!.assignTo is String) {
@@ -110,19 +102,12 @@ class AdminTaskCompleteCard extends StatelessWidget {
     } else if (taskDetails!.assignTo is List) {
       final assignToList = taskDetails!.assignTo as List;
       if (assignToList.isEmpty) return 'N/A';
-
-      // Properly extract names from list items
       final names = assignToList.map((item) {
-        if (item is AssignTo) {
-          return item.fullName ?? 'N/A';
-        } else if (item is Map<String, dynamic>) {
-          return item['fullName'] ?? 'N/A';
-        } else if (item is String) {
-          return item;
-        }
+        if (item is AssignTo) return item.fullName ?? 'N/A';
+        if (item is Map<String, dynamic>) return item['fullName'] ?? 'N/A';
+        if (item is String) return item;
         return 'N/A';
       }).toList();
-
       return names.join(', ');
     }
     return 'N/A';
@@ -134,19 +119,14 @@ class AdminTaskCompleteCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Format date
     String formattedDate = taskDetails?.assignDate != null
         ? DateFormat('dd-MM-yyyy').format(taskDetails!.assignDate!)
         : 'N/A';
 
-    // Get service category name
     String categoryName = taskDetails?.serviceCategory?.name ?? 'N/A';
 
-    // Get service list
     List<Service> services = taskDetails?.services ?? [];
-    String serviceList = services.map((s) => s.name ?? 'N/A').join('\n');
 
-    // Get department/title
     String departmentName = taskDetails?.department?.name ?? 'Handy Man Staff';
 
     return Container(
@@ -157,7 +137,7 @@ class AdminTaskCompleteCard extends StatelessWidget {
         border: Border.all(color: _getStatusBorderColor(taskDetails?.status), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),
@@ -213,19 +193,90 @@ class AdminTaskCompleteCard extends StatelessWidget {
           // Info Rows
           _buildInfoRow('Category:', categoryName),
           if (services.isNotEmpty)
-            _buildInfoRow('Service List:', serviceList, isMultiline: true),
-          _buildInfoRow('Customer Number:', taskDetails?.customerNumber ?? 'N/A'),
-          _buildInfoRow('Customer Address:', taskDetails?.customerAddress ?? 'N/A'),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 6.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Service List:',
+                    style: TextStyle(
+                      color: const Color(0xFF667085),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  ...services.asMap().entries.map((e) => Padding(
+                        padding: EdgeInsets.only(bottom: 2.h),
+                        child: Text(
+                          '${e.key + 1}. ${e.value.name ?? 'N/A'}',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+
+          // Customer Number — clickable (call)
+          _buildClickableInfoRow(
+            'Customer Number:',
+            taskDetails?.customerNumber ?? 'N/A',
+            icon: Icons.phone,
+            onTap: () async {
+              final number = taskDetails?.customerNumber ?? '';
+              if (number.isNotEmpty && number != 'N/A') {
+                final uri = Uri(scheme: 'tel', path: number);
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              }
+            },
+          ),
+
+          // Customer Address — clickable (map)
+          _buildClickableInfoRow(
+            'Customer Address:',
+            taskDetails?.customerAddress ?? 'N/A',
+            icon: Icons.location_on,
+            onTap: () async {
+              final address = taskDetails?.customerAddress ?? '';
+              if (address.isNotEmpty && address != 'N/A') {
+                final encoded = Uri.encodeComponent(address);
+                final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encoded');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              }
+            },
+          ),
+
+          // Post Code — clickable (map)
+          if (taskDetails?.postCode != null && taskDetails!.postCode!.isNotEmpty)
+            _buildClickableInfoRow(
+              'Post Code:',
+              taskDetails!.postCode!,
+              icon: Icons.pin_drop_outlined,
+              onTap: () async {
+                final encoded = Uri.encodeComponent(taskDetails!.postCode!);
+                final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encoded');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+
           _buildInfoRow('Assign To:', _getAssigneeName()),
 
-          // Time row
           if (taskDetails?.assignDate != null)
             _buildInfoRow(
               'Time:',
               '${_formatTime(taskDetails?.assignDate)} - ${_formatTime(taskDetails?.deadline)}',
             ),
 
-          // Priority with colored text
+          // Priority (hidden)
           Visibility(
             visible: false,
             child: Padding(
@@ -259,7 +310,7 @@ class AdminTaskCompleteCard extends StatelessWidget {
             ),
           ),
 
-          // Difficulty with colored text
+          // Difficulty (hidden)
           Visibility(
             visible: false,
             child: Padding(
@@ -293,7 +344,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
             ),
           ),
 
-          // Invoice and Amount if available
           if (taskDetails?.invoicePath != null && taskDetails!.invoicePath!.isNotEmpty)
             _buildInfoRow('Invoice No.:', _extractInvoiceNo(taskDetails!.invoicePath!)),
 
@@ -302,7 +352,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
 
           SizedBox(height: 12.h),
 
-          // Proof of Work Label and Images with Status Row
           if (taskDetails?.submitedDoc != null && taskDetails!.submitedDoc!.isNotEmpty) ...[
             Text(
               'PROOF OF WORK',
@@ -319,7 +368,6 @@ class AdminTaskCompleteCard extends StatelessWidget {
           // Images and Status Row
           Row(
             children: [
-              // Proof of Work Images
               if (taskDetails?.submitedDoc != null && taskDetails!.submitedDoc!.isNotEmpty)
                 Expanded(
                   child: Wrap(
@@ -340,39 +388,30 @@ class AdminTaskCompleteCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8.r),
                         child: imageUrl.isNotEmpty
                             ? Image.network(
-                          imageUrl,
-                          width: 50.w,
-                          height: 50.h,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 50.w,
-                              height: 50.h,
-                              color: const Color(0xFFEAECF0),
-                              child: Icon(
-                                Icons.image,
-                                size: 24.sp,
-                                color: const Color(0xFF667085),
-                              ),
-                            );
-                          },
-                        )
+                                imageUrl,
+                                width: 50.w,
+                                height: 50.h,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 50.w,
+                                    height: 50.h,
+                                    color: const Color(0xFFEAECF0),
+                                    child: Icon(Icons.image, size: 24.sp, color: const Color(0xFF667085)),
+                                  );
+                                },
+                              )
                             : Container(
-                          width: 50.w,
-                          height: 50.h,
-                          color: const Color(0xFFEAECF0),
-                          child: Icon(
-                            Icons.image,
-                            size: 24.sp,
-                            color: const Color(0xFF667085),
-                          ),
-                        ),
+                                width: 50.w,
+                                height: 50.h,
+                                color: const Color(0xFFEAECF0),
+                                child: Icon(Icons.image, size: 24.sp, color: const Color(0xFF667085)),
+                              ),
                       );
                     }).toList(),
                   ),
                 )
               else
-              // If no images, just show empty space
                 const Expanded(child: SizedBox()),
 
               // Status Badge
@@ -414,10 +453,9 @@ class AdminTaskCompleteCard extends StatelessWidget {
   }
 
   String _extractInvoiceNo(String path) {
-    final fileName = path.split('/').last; // invoice-692b34375185606abeddaa4a-1764483195577.pdf
-    final withoutExt = fileName.replaceAll(RegExp(r'\.[^.]+$'), ''); // invoice-692b34375185606abeddaa4a-1764483195577
+    final fileName = path.split('/').last;
+    final withoutExt = fileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     final parts = withoutExt.split('-');
-    // Remove first part (invoice) and last part (timestamp), keep the ID
     if (parts.length >= 3) {
       return 'INV-${parts.sublist(1, parts.length - 1).join('-')}';
     }
@@ -430,15 +468,12 @@ class AdminTaskCompleteCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120.w,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: const Color(0xFF667085),
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w400,
-              ),
+          Text(
+            '$label ',
+            style: TextStyle(
+              color: const Color(0xFF667085),
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w400,
             ),
           ),
           Expanded(
@@ -450,6 +485,55 @@ class AdminTaskCompleteCard extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClickableInfoRow(String label, String value, {required IconData icon, required VoidCallback onTap}) {
+    final isEmpty = value.isEmpty || value == 'N/A';
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label ',
+            style: TextStyle(
+              color: const Color(0xFF667085),
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          Expanded(
+            child: isEmpty
+                ? Text(
+                    'N/A',
+                    style: TextStyle(color: Colors.black, fontSize: 13.sp, fontWeight: FontWeight.w500),
+                  )
+                : GestureDetector(
+                    onTap: onTap,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(icon, size: 14.sp, color: const Color(0xFF007AFF)),
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              color: const Color(0xFF007AFF),
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w500,
+                              decoration: TextDecoration.underline,
+                              decorationColor: const Color(0xFF007AFF),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),

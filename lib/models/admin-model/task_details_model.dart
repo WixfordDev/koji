@@ -81,8 +81,8 @@ class TaskDetailsModel {
     priority: json["priority"]?.toString(),
     difficulty: json["difficulty"]?.toString(),
     assignTo: json["assignTo"], // Changed to dynamic, handle differently based on API response
-    otherAmount: json["otherAmount"] is int ? json["otherAmount"] : (json["otherAmount"]?.toString() != null ? int.tryParse(json["otherAmount"].toString()) : null),
-    totalAmount: json["totalAmount"] is int ? json["totalAmount"] : (json["totalAmount"]?.toString() != null ? int.tryParse(json["totalAmount"].toString()) : null),
+    otherAmount: (json["otherAmount"] as num?)?.toInt(),
+    totalAmount: (json["totalAmount"] as num?)?.toInt(),
     status: json["status"]?.toString(),
     attachments: json["attachments"] == null ? [] : List<String>.from(json["attachments"]!.map((x) => x.toString())),
     submitedDoc: json["submitedDoc"] == null ? [] : List<dynamic>.from(json["submitedDoc"]!.map((x) => x)), // Updated to dynamic
@@ -222,12 +222,40 @@ class Service {
     this.id,
   });
 
-  factory Service.fromJson(Map<String, dynamic> json) => Service(
-    name: json["name"]?.toString(),
-    price: json["price"] is num ? json["price"] : (json["price"]?.toString() != null ? num.tryParse(json["price"].toString()) : null),
-    quantity: json["quantity"] is int ? json["quantity"] : (json["quantity"]?.toString() != null ? int.tryParse(json["quantity"].toString()) : null),
-    id: json["_id"]?.toString(),
-  );
+  factory Service.fromJson(Map<String, dynamic> json) {
+    // name may be direct or nested inside service/serviceId/serviceDetails object
+    String? parsedName = json["name"]?.toString();
+    if (parsedName == null || parsedName.isEmpty) {
+      final nested = json["service"] ?? json["serviceId"] ?? json["serviceDetails"];
+      if (nested is Map<String, dynamic>) {
+        parsedName = nested["name"]?.toString();
+      }
+    }
+    // Strip HTML tags and clean up whitespace
+    parsedName = _stripHtml(parsedName);
+
+    // price may also be nested
+    num? parsedPrice = json["price"] is num
+        ? json["price"]
+        : (json["price"]?.toString() != null ? num.tryParse(json["price"].toString()) : null);
+    if (parsedPrice == null) {
+      final nested = json["service"] ?? json["serviceId"] ?? json["serviceDetails"];
+      if (nested is Map<String, dynamic>) {
+        parsedPrice = nested["price"] is num
+            ? nested["price"]
+            : (nested["price"]?.toString() != null ? num.tryParse(nested["price"].toString()) : null);
+      }
+    }
+
+    return Service(
+      name: parsedName,
+      price: parsedPrice,
+      quantity: json["quantity"] is int
+          ? json["quantity"]
+          : (json["quantity"]?.toString() != null ? int.tryParse(json["quantity"].toString()) : null),
+      id: json["_id"]?.toString(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "name": name,
@@ -235,4 +263,22 @@ class Service {
     "quantity": quantity,
     "_id": id,
   };
+}
+
+/// Strips HTML tags and decodes common HTML entities, then trims whitespace.
+String? _stripHtml(String? input) {
+  if (input == null || input.isEmpty) return input;
+  // Remove all HTML tags
+  String result = input.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  // Decode common HTML entities
+  result = result
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  // Collapse multiple spaces/newlines into a single space
+  result = result.replaceAll(RegExp(r'\s+'), ' ').trim();
+  return result.isEmpty ? null : result;
 }

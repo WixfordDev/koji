@@ -148,42 +148,62 @@ class AdminHomeController extends GetxController {
 
   /// ============================ Get All List Task  =====================================
 
+  static const int _taskPageLimit = 10;
+  int _currentTaskPage = 1;
 
   RxBool getAllListTaskLoading = false.obs;
+  RxBool loadMoreTasksLoading = false.obs;
+  RxBool hasMoreTasks = true.obs;
   Rx<GetAllListTaskModel> getAllListTask = GetAllListTaskModel().obs;
 
   getAllListTasks() async {
+    _currentTaskPage = 1;
+    hasMoreTasks.value = true;
     getAllListTaskLoading(true);
     try {
-      final base = '${ApiConstants.getAllTaskEndPoint}&limit=100&page=1';
-      final first = await ApiClient.getData(base);
-
-      if (first.statusCode == 200) {
-        final firstModel = GetAllListTaskModel.fromJson(first.body['data']['attributes']);
-        final totalPages = firstModel.totalPages ?? 1;
-        final allResults = List<Result>.from(firstModel.results ?? []);
-
-        for (int page = 2; page <= totalPages; page++) {
-          final res = await ApiClient.getData(
-              '${ApiConstants.getAllTaskEndPoint}&limit=100&page=$page');
-          if (res.statusCode == 200) {
-            final model = GetAllListTaskModel.fromJson(res.body['data']['attributes']);
-            allResults.addAll(model.results ?? []);
-          }
-        }
-
-        getAllListTask.value = GetAllListTaskModel(
-          results: allResults,
-          page: firstModel.page,
-          limit: firstModel.limit,
-          totalPages: firstModel.totalPages,
-          totalResults: firstModel.totalResults,
-        );
+      final response = await ApiClient.getData(
+        '${ApiConstants.getAllTaskEndPoint}&limit=$_taskPageLimit&page=1',
+      );
+      if (response.statusCode == 200) {
+        final model = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        getAllListTask.value = model;
+        hasMoreTasks.value = _currentTaskPage < (model.totalPages ?? 1);
       }
     } catch (e) {
       print('getAllListTasks error: $e');
     } finally {
       getAllListTaskLoading(false);
+    }
+  }
+
+  loadMoreTasks() async {
+    if (loadMoreTasksLoading.value || !hasMoreTasks.value) return;
+    loadMoreTasksLoading(true);
+    try {
+      _currentTaskPage++;
+      final response = await ApiClient.getData(
+        '${ApiConstants.getAllTaskEndPoint}&limit=$_taskPageLimit&page=$_currentTaskPage',
+      );
+      if (response.statusCode == 200) {
+        final model = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        final merged = List<Result>.from(getAllListTask.value.results ?? [])
+          ..addAll(model.results ?? []);
+        getAllListTask.value = GetAllListTaskModel(
+          results: merged,
+          page: model.page,
+          limit: model.limit,
+          totalPages: model.totalPages,
+          totalResults: model.totalResults,
+        );
+        hasMoreTasks.value = _currentTaskPage < (model.totalPages ?? 1);
+      } else {
+        _currentTaskPage--;
+      }
+    } catch (e) {
+      _currentTaskPage--;
+      print('loadMoreTasks error: $e');
+    } finally {
+      loadMoreTasksLoading(false);
     }
   }
 

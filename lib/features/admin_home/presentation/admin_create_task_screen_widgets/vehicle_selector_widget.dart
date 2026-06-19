@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class VehicleSelectorWidget extends StatelessWidget {
   final String? selectedVehicle;
   final VoidCallback onTap;
+  final String? errorText;
 
   const VehicleSelectorWidget({
     super.key,
     required this.selectedVehicle,
     required this.onTap,
+    this.errorText,
   });
 
   @override
@@ -26,7 +28,9 @@ class VehicleSelectorWidget extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(
+                  color: errorText != null ? Colors.red.shade400 : Colors.grey.shade300,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,6 +47,13 @@ class VehicleSelectorWidget extends StatelessWidget {
               ),
             ),
           ),
+          if (errorText != null) ...[
+            SizedBox(height: 4.h),
+            Text(
+              errorText!,
+              style: TextStyle(color: Colors.red.shade600, fontSize: 12.sp),
+            ),
+          ],
         ],
       ),
     );
