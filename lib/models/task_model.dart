@@ -111,8 +111,8 @@ class TaskModel {
     priority: json["priority"],
     difficulty: json["difficulty"],
     assignTo: _parseAssignTo(json["assignTo"]),
-    otherAmount: json["otherAmount"],
-    totalAmount: json["totalAmount"],
+    otherAmount: (json["otherAmount"] as num?)?.toInt(),
+    totalAmount: (json["totalAmount"] as num?)?.toInt(),
     status: json["status"],
     attachments: json["attachments"] == null
         ? []
@@ -130,8 +130,8 @@ class TaskModel {
     updatedAt: json["updatedAt"] == null
         ? null
         : DateTime.parse(json["updatedAt"]),
-    v: json["__v"],
-    progressPercent: json["progressPercent"],
+    v: (json["__v"] as num?)?.toInt(),
+    progressPercent: (json["progressPercent"] as num?)?.toInt(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -202,12 +202,34 @@ class Service {
 
   Service({this.name, this.price, this.quantity, this.id});
 
-  factory Service.fromJson(Map<String, dynamic> json) => Service(
-    name: json["name"],
-    price: json["price"],
-    quantity: json["quantity"],
-    id: json["_id"],
-  );
+  factory Service.fromJson(Map<String, dynamic> json) {
+    // name can be a direct string or nested inside a service/serviceId object
+    String? parsedName = json["name"]?.toString();
+    if ((parsedName == null || parsedName.isEmpty)) {
+      final nested = json["service"] ?? json["serviceId"] ?? json["serviceDetails"];
+      if (nested is Map<String, dynamic>) {
+        parsedName = nested["name"]?.toString();
+      }
+    }
+    // Strip HTML tags and clean up whitespace
+    parsedName = _stripHtmlTags(parsedName);
+
+    // price can be nested too
+    num? parsedPrice = json["price"] is num ? json["price"] : null;
+    if (parsedPrice == null) {
+      final nested = json["service"] ?? json["serviceId"] ?? json["serviceDetails"];
+      if (nested is Map<String, dynamic>) {
+        parsedPrice = nested["price"] is num ? nested["price"] : null;
+      }
+    }
+
+    return Service(
+      name: parsedName,
+      price: parsedPrice,
+      quantity: json["quantity"] is int ? json["quantity"] : int.tryParse(json["quantity"]?.toString() ?? ''),
+      id: json["_id"]?.toString(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "name": name,
@@ -264,4 +286,19 @@ Department? _parseDepartment(dynamic departmentData) {
     // Fallback case
     return Department(id: departmentData.toString(), name: '');
   }
+}
+
+/// Strips HTML tags and decodes common HTML entities, then trims whitespace.
+String? _stripHtmlTags(String? input) {
+  if (input == null || input.isEmpty) return input;
+  String result = input.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  result = result
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  result = result.replaceAll(RegExp(r'\s+'), ' ').trim();
+  return result.isEmpty ? null : result;
 }

@@ -15,14 +15,17 @@ class AdminMyTaskScreen extends StatefulWidget {
   State<AdminMyTaskScreen> createState() => _AdminMyTaskScreenState();
 }
 
-class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
+class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
+    with WidgetsBindingObserver {
   late AdminHomeController adminHomeController;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     adminHomeController = Get.find<AdminHomeController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       adminHomeController.getAllListTasks();
@@ -30,11 +33,28 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      adminHomeController.getAllListTasks();
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      adminHomeController.loadMoreTasks();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -238,40 +258,55 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen> {
         onRefresh: () async {
           await adminHomeController.getAllListTasks();
         },
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          itemCount: filteredTasks.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final task = filteredTasks[index];
-            final progress = (task.progressPercent ?? 0) / 100.0;
-
-            return GestureDetector(
-              onTap: () {
-                if (task.id != null && task.id!.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AdminMyTaskDetailsScreen(taskId: task.id!),
-                    ),
-                  );
+        child: Obx(() {
+          final isLoadingMore = adminHomeController.loadMoreTasksLoading.value;
+          final hasMore = adminHomeController.hasMoreTasks.value;
+          return ListView.separated(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            itemCount: filteredTasks.length + 1,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              if (index == filteredTasks.length) {
+                if (isLoadingMore) {
+                  return const Center(child: CustomLoader(top: 8, bottom: 8));
                 }
-              },
-              child: _taskCard(
-                task: task,
-                title: task.customerName ?? 'Task',
-                status: _formatStatus(task.status ?? 'pending'),
-                statusColor: _getStatusColor(task.status ?? 'pending'),
-                priority: _formatPriority(task.priority ?? 'medium'),
-                progress: progress,
-                date: task.assignDate != null
-                    ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
-                    : 'No date',
-                serialNumber: index + 1,
-              ),
-            );
-          },
-        ),
+                if (!hasMore) {
+                  return const SizedBox(height: 8);
+                }
+                return const SizedBox(height: 8);
+              }
+
+              final task = filteredTasks[index];
+              final progress = (task.progressPercent ?? 0) / 100.0;
+
+              return GestureDetector(
+                onTap: () {
+                  if (task.id != null && task.id!.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AdminMyTaskDetailsScreen(taskId: task.id!),
+                      ),
+                    );
+                  }
+                },
+                child: _taskCard(
+                  task: task,
+                  title: task.customerName ?? 'Task',
+                  status: _formatStatus(task.status ?? 'pending'),
+                  statusColor: _getStatusColor(task.status ?? 'pending'),
+                  priority: _formatPriority(task.priority ?? 'medium'),
+                  progress: progress,
+                  date: task.assignDate != null
+                      ? '${task.assignDate!.day} ${_getMonthName(task.assignDate!.month)}'
+                      : 'No date',
+                  serialNumber: index + 1,
+                ),
+              );
+            },
+          );
+        }),
       );
     });
   }

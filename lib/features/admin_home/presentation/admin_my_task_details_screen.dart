@@ -267,16 +267,14 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
         children: [
           Icon(icon, size: 18.sp, color: const Color(0xff6B7280)),
           SizedBox(width: 10.w),
-          Expanded(
-            flex: 2,
-            child: Text(label, style: TextStyle(fontSize: 13.sp, color: const Color(0xff6B7280))),
+          Text(
+            '$label ',
+            style: TextStyle(fontSize: 13.sp, color: const Color(0xff6B7280)),
           ),
           Expanded(
-            flex: 3,
             child: Text(
               value,
               style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-              textAlign: TextAlign.end,
             ),
           ),
         ],
@@ -361,23 +359,32 @@ class _AdminMyTaskDetailsScreenState extends State<AdminMyTaskDetailsScreen> {
           if (services.isEmpty)
             Text('No services', style: TextStyle(fontSize: 13.sp, color: Colors.grey))
           else
-            ...services.map((s) => Padding(
-                  padding: EdgeInsets.only(bottom: 8.h),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${s.name ?? 'N/A'} × ${s.quantity ?? 1}',
-                          style: TextStyle(fontSize: 13.sp, color: Colors.black87),
-                        ),
+            ...services.asMap().entries.map((entry) {
+              final i = entry.key;
+              final s = entry.value;
+              return Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${i + 1}. ',
+                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: Colors.black87),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '${s.name ?? 'N/A'} × ${s.quantity ?? 1}',
+                        style: TextStyle(fontSize: 13.sp, color: Colors.black87),
                       ),
-                      Text(
-                        '\$${((s.price ?? 0) * (s.quantity ?? 1)).toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: Colors.black),
-                      ),
-                    ],
-                  ),
-                )),
+                    ),
+                    Text(
+                      '\$${((s.price ?? 0) * (s.quantity ?? 1)).toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: Colors.black),
+                    ),
+                  ],
+                ),
+              );
+            }),
           if (services.isNotEmpty) ...[
             Divider(color: Colors.grey.shade200),
             Row(

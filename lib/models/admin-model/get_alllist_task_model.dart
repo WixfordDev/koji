@@ -118,8 +118,8 @@ class Result {
     priority: json["priority"],
     difficulty: json["difficulty"],
     assignTo: json["assignTo"] == null ? [] : List<String>.from(json["assignTo"]!.map((x) => x.toString())),
-    otherAmount: json["otherAmount"],
-    totalAmount: json["totalAmount"],
+    otherAmount: (json["otherAmount"] as num?)?.toInt(),
+    totalAmount: (json["totalAmount"] as num?)?.toInt(),
     status: json["status"],
     attachments: json["attachments"] == null ? [] : List<String>.from(json["attachments"]!.map((x) => x)),
     submitedDoc: json["submitedDoc"] == null ? [] : List<dynamic>.from(json["submitedDoc"]!.map((x) => x)),
@@ -130,7 +130,7 @@ class Result {
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
     v: json["__v"],
-    progressPercent: json["progressPercent"] ?? 0,
+    progressPercent: (json["progressPercent"] as num?)?.toInt() ?? 0,
   );
 
   Map<String, dynamic> toJson() => {
@@ -198,12 +198,24 @@ class Service {
     this.id,
   });
 
-  factory Service.fromJson(Map<String, dynamic> json) => Service(
-    name: json["name"],
-    price: json["price"],
-    quantity: json["quantity"],
-    id: json["_id"],
-  );
+  factory Service.fromJson(Map<String, dynamic> json) {
+    String? parsedName = json["name"]?.toString();
+    if (parsedName == null || parsedName.isEmpty) {
+      final nested = json["service"] ?? json["serviceId"] ?? json["serviceDetails"];
+      if (nested is Map<String, dynamic>) {
+        parsedName = nested["name"]?.toString();
+      }
+    }
+    // Strip HTML tags and clean whitespace
+    parsedName = _stripHtml(parsedName);
+
+    return Service(
+      name: parsedName,
+      price: json["price"] is int ? json["price"] : int.tryParse(json["price"]?.toString() ?? ''),
+      quantity: json["quantity"] is int ? json["quantity"] : int.tryParse(json["quantity"]?.toString() ?? ''),
+      id: json["_id"]?.toString(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "name": name,
@@ -211,4 +223,19 @@ class Service {
     "quantity": quantity,
     "_id": id,
   };
+}
+
+/// Strips HTML tags and decodes common HTML entities, then trims whitespace.
+String? _stripHtml(String? input) {
+  if (input == null || input.isEmpty) return input;
+  String result = input.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  result = result
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  result = result.replaceAll(RegExp(r'\s+'), ' ').trim();
+  return result.isEmpty ? null : result;
 }

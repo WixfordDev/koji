@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:koji/constants/app_color.dart';
+import 'package:koji/services/api_constants.dart';
 import 'package:koji/shared_widgets/custom_button.dart';
 import 'package:koji/services/socket_services.dart';
 import 'package:koji/helpers/prefs_helper.dart';
@@ -167,7 +170,7 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
       // Generate icon for newly checked-in employee
       final key = employeeId;
       if (!_markerIcons.containsKey(key)) {
-        _buildEmployeeMarkerIcon(name, isTracked: false).then((icon) {
+        _buildEmployeeMarkerIcon(name, isTracked: false, imageUrl: meta?['image']).then((icon) {
           _markerIcons[key] = icon;
           if (mounted) setState(() {});
         });
@@ -263,7 +266,7 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     for (final emp in newEmployees) {
       final key = emp.id.isNotEmpty ? emp.id : emp.name;
       if (!_markerIcons.containsKey(key)) {
-        _buildEmployeeMarkerIcon(emp.name, isTracked: false).then((icon) {
+        _buildEmployeeMarkerIcon(emp.name, isTracked: false, imageUrl: emp.image).then((icon) {
           _markerIcons[key] = icon;
           if (mounted) setState(() {});
         });
@@ -286,10 +289,30 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     }
   }
 
-  /// Draws a custom pin marker: coloured circle with initials + name label.
+  /// Loads a network image and returns a [ui.Image], or null on failure.
+  Future<ui.Image?> _loadNetworkImage(String? rawUrl) async {
+    if (rawUrl == null || rawUrl.isEmpty) return null;
+    try {
+      final url = rawUrl.startsWith('http')
+          ? rawUrl
+          : '${ApiConstants.imageBaseUrl}$rawUrl';
+      final client = HttpClient();
+      final request = await client.getUrl(Uri.parse(url));
+      final response = await request.close();
+      final bytes = await consolidateHttpClientResponseBytes(response);
+      final codec = await ui.instantiateImageCodec(bytes, targetWidth: 84, targetHeight: 84);
+      final frame = await codec.getNextFrame();
+      return frame.image;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Draws a custom pin marker: profile picture (or initials) + name label.
   Future<BitmapDescriptor> _buildEmployeeMarkerIcon(
     String name, {
     bool isTracked = false,
+    String? imageUrl,
   }) async {
     const double size = 160;
     const double circleR = 42;
@@ -297,6 +320,9 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     const double labelPad = 6;
 
     final Color bg = isTracked ? const Color(0xFFF48201) : AppColor.primaryColor;
+
+    // Try to load profile picture
+    final ui.Image? profileImage = await _loadNetworkImage(imageUrl);
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -311,6 +337,49 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     // ── Circle background ─────────────────────────────────────────
     final circlePaint = Paint()..color = bg;
     canvas.drawCircle(const Offset(size / 2, circleR), circleR, circlePaint);
+
+    // ── Profile picture or initials ───────────────────────────────
+    if (profileImage != null) {
+      // Clip to circle and draw the profile image
+      canvas.save();
+      final clipPath = Path()
+        ..addOval(Rect.fromCircle(
+          center: const Offset(size / 2, circleR),
+          radius: circleR - 1.5,
+        ));
+      canvas.clipPath(clipPath);
+      paintImage(
+        canvas: canvas,
+        rect: Rect.fromCircle(
+          center: const Offset(size / 2, circleR),
+          radius: circleR - 1.5,
+        ),
+        image: profileImage,
+        fit: BoxFit.cover,
+      );
+      canvas.restore();
+    } else {
+      // Fall back to initials
+      final initials = _initialsFrom(name);
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: initials,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          size / 2 - textPainter.width / 2,
+          circleR - textPainter.height / 2,
+        ),
+      );
+    }
 
     // ── White border ──────────────────────────────────────────────
     final borderPaint = Paint()
@@ -328,29 +397,8 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
       ..close();
     canvas.drawPath(path, pinPaint);
 
-    // ── Initials text ─────────────────────────────────────────────
-    final initials = _initialsFrom(name);
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: initials,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        size / 2 - textPainter.width / 2,
-        circleR - textPainter.height / 2,
-      ),
-    );
-
     // ── Name label below pin ──────────────────────────────────────
-    final displayName = name.split(' ').take(2).join(' '); // first + last name
+    final displayName = name.split(' ').take(2).join(' ');
     final namePainter = TextPainter(
       text: TextSpan(
         text: displayName,
@@ -366,7 +414,6 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: size);
 
-    // draw label background pill
     final labelRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
         center: Offset(
@@ -392,7 +439,7 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
     final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
     return BitmapDescriptor.bytes(
       bytes!.buffer.asUint8List(),
-      width: size / 2, // scale down for proper map size
+      width: size / 2,
     );
   }
 
@@ -440,7 +487,7 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
 
     // Rebuild marker icon in orange (tracked state)
     final trackedIcon =
-        await _buildEmployeeMarkerIcon(employee.name, isTracked: true);
+        await _buildEmployeeMarkerIcon(employee.name, isTracked: true, imageUrl: employee.image);
     _markerIcons[key] = trackedIcon;
 
     _searchController.text = employee.name;
@@ -846,15 +893,22 @@ class _AdminMapScreenState extends State<AdminMapScreen> {
                               leading: CircleAvatar(
                                 radius: 16.r,
                                 backgroundColor: AppColor.primaryColor,
-                                child: Text(
-                                  emp.name.isNotEmpty
-                                      ? emp.name[0].toUpperCase()
-                                      : '?',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.w700),
-                                ),
+                                backgroundImage: emp.image != null && emp.image!.isNotEmpty
+                                    ? NetworkImage(
+                                        emp.image!.startsWith('http')
+                                            ? emp.image!
+                                            : '${ApiConstants.imageBaseUrl}${emp.image}',
+                                      )
+                                    : null,
+                                child: (emp.image == null || emp.image!.isEmpty)
+                                    ? Text(
+                                        emp.name.isNotEmpty ? emp.name[0].toUpperCase() : '?',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w700),
+                                      )
+                                    : null,
                               ),
                               title: Text(
                                 emp.name,
