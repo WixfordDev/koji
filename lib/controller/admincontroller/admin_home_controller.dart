@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
@@ -241,7 +240,6 @@ class AdminHomeController extends GetxController {
         "customerAddress": customerAddress,
         "assignDate": assignDate,
         "deadline": deadline,
-        "services": jsonEncode(services),
         "otherAmount": otherAmount.toString(),
         "totalAmount": totalAmount.toString(),
         "notes": notes,
@@ -251,6 +249,15 @@ class AdminHomeController extends GetxController {
       // because the update endpoint uses Object.assign directly without JSON.parse
       for (int i = 0; i < assignTo.length; i++) {
         body['assignTo[$i]'] = assignTo[i].trim();
+      }
+
+      // Same limitation applies to services: send as indexed nested fields
+      // (services[0][name], services[0][price], services[0][quantity], ...)
+      // instead of a JSON string, otherwise edits are silently dropped on update.
+      for (int i = 0; i < services.length; i++) {
+        body['services[$i][name]'] = services[i]['name'].toString();
+        body['services[$i][price]'] = services[i]['price'].toString();
+        body['services[$i][quantity]'] = services[i]['quantity'].toString();
       }
 
       List<MultipartBody> multipartBody = [];

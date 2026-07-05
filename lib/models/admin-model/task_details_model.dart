@@ -70,7 +70,9 @@ class TaskDetailsModel {
     createdBy: json["createdBy"] == null ? null : AssignTo.fromJson(json["createdBy"]),
     department: json["department"] == null ? null : Department.fromJson(json["department"]),
     serviceCategory: json["serviceCategory"] == null ? null : Department.fromJson(json["serviceCategory"]),
-    vehicle: json["vehicle"]?.toString(), // Added vehicle field and ensure it's a string
+    vehicle: json["vehicle"] is Map
+        ? (json["vehicle"]["id"] ?? json["vehicle"]["_id"])?.toString()
+        : json["vehicle"]?.toString(), // handle both populated object and plain id string
     customerName: json["customerName"]?.toString(),
     customerNumber: json["customerNumber"]?.toString(),
     customerAddress: json["customerAddress"]?.toString(),
