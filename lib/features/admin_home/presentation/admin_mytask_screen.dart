@@ -328,14 +328,18 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
 
     // Search filter
     if (_searchQuery.isNotEmpty) {
+      final queryDigits = _stripCountryCode(_onlyDigits(_searchQuery));
       filtered = filtered.where((task) {
         final name = (task.customerName ?? '').toLowerCase();
         final number = (task.customerNumber ?? '').toLowerCase();
         final priority = (task.priority ?? '').toLowerCase();
         final status = (task.status ?? '').toLowerCase();
         final address = (task.customerAddress ?? '').toLowerCase();
+        final numberDigits = _stripCountryCode(_onlyDigits(number));
+        final numberMatches = number.contains(_searchQuery) ||
+            (queryDigits.isNotEmpty && numberDigits.contains(queryDigits));
         return name.contains(_searchQuery) ||
-            number.contains(_searchQuery) ||
+            numberMatches ||
             priority.contains(_searchQuery) ||
             status.contains(_searchQuery) ||
             address.contains(_searchQuery);
@@ -343,6 +347,20 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
     }
 
     return filtered;
+  }
+
+  // Keep digits only, so "+65 9123 4567", "6591234567" and "9123-4567" all
+  // normalize the same way for comparison.
+  String _onlyDigits(String input) => input.replaceAll(RegExp(r'[^0-9]'), '');
+
+  // Singapore numbers are 8 digits; strip a leading "65" country code (from
+  // either the typed query or the stored number) so a search matches
+  // regardless of whether "+65" was included on either side.
+  String _stripCountryCode(String digits) {
+    if (digits.length > 8 && digits.startsWith('65')) {
+      return digits.substring(2);
+    }
+    return digits;
   }
 
   // Format status for display

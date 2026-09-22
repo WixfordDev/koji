@@ -60,7 +60,7 @@ class ServiceItemsWidget extends StatelessWidget {
                     Icon(Icons.add, size: 18.r, color: Colors.white),
                     SizedBox(width: 4.w),
                     Text(
-                      "Add Service",
+                      "Select Service",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14.sp,
@@ -232,6 +232,37 @@ class ServiceItemsWidget extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 16.h),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCreateCustomServiceDialog(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColor.primaryColor),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_circle_outline,
+                          size: 18.r, color: AppColor.primaryColor),
+                      SizedBox(width: 8.w),
+                      Text(
+                        "Create Custom Service",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppColor.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.h),
               TextField(
                 decoration: InputDecoration(
                   hintText: "Search service...",
@@ -331,6 +362,177 @@ class ServiceItemsWidget extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showCreateCustomServiceDialog(BuildContext context) {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController quantityController =
+        TextEditingController(text: "1");
+    TextEditingController priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          title: Text(
+            "Create Custom Service",
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Service Name",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: nameController,
+                  minLines: 1,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: "Enter service name",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  "Quantity",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: quantityController,
+                  decoration: InputDecoration(
+                    hintText: "Enter quantity",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  "Price",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: priceController,
+                  decoration: InputDecoration(
+                    hintText: "Enter price",
+                    prefixText: "\$",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                String name = nameController.text.trim();
+                int quantity =
+                    int.tryParse(quantityController.text.trim()) ?? 1;
+                String price = priceController.text.trim();
+
+                if (name.isEmpty) {
+                  ToastMessageHelper.showToastMessage(
+                      "Please enter a service name");
+                  return;
+                }
+
+                if (quantity < 1) {
+                  ToastMessageHelper.showToastMessage(
+                      "Quantity must be at least 1");
+                  return;
+                }
+
+                if (price.isEmpty || double.tryParse(price) == null) {
+                  ToastMessageHelper.showToastMessage(
+                      "Please enter a valid price");
+                  return;
+                }
+
+                onAddService({
+                  'name': name,
+                  'quantity': quantity.toString(),
+                  'price': price,
+                });
+
+                Navigator.pop(context);
+                ToastMessageHelper.showToastMessage(
+                    "Service added successfully!");
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEC526A),
+                      Color(0xFFF77F6E),
+                    ],
+                    stops: [0.0075, 0.9527],
+                  ),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  "Create Service",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -537,6 +739,8 @@ class ServiceItemsWidget extends StatelessWidget {
                 SizedBox(height: 8.h),
                 TextField(
                   controller: nameController,
+                  minLines: 1,
+                  maxLines: 4,
                   decoration: InputDecoration(
                     hintText: "Enter service name",
                     border: OutlineInputBorder(

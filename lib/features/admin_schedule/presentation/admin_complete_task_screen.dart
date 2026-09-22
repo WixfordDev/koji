@@ -443,7 +443,9 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
       ];
     }
 
-    return services.map((service) {
+    return services.asMap().entries.map((entry) {
+      final index = entry.key;
+      final service = entry.value;
       return Padding(
         padding: EdgeInsets.only(bottom: 12.h),
         child: Row(
@@ -452,7 +454,7 @@ class _AdminCompleteTaskScreenState extends State<AdminCompleteTaskScreen> {
             Expanded(
               flex: 3,
               child: Text(
-                service.name ?? 'N/A',
+                '${index + 1}. ${service.name ?? 'N/A'}',
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,

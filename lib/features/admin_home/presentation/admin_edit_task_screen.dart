@@ -26,6 +26,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
   final _customerNameController = TextEditingController();
   final _customerNumberController = TextEditingController();
   final _customerAddressController = TextEditingController();
+  final _postCodeController = TextEditingController();
   final _notesController = TextEditingController();
   final _otherAmountController = TextEditingController();
   final _scrollController = ScrollController();
@@ -72,6 +73,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     _customerNameController.text = t.customerName ?? '';
     _customerNumberController.text = t.customerNumber ?? '';
     _customerAddressController.text = t.customerAddress ?? '';
+    _postCodeController.text = t.postCode ?? '';
     _notesController.text = t.notes ?? '';
     _otherAmountController.text = (t.otherAmount ?? 0).toString();
 
@@ -124,6 +126,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     _customerNameController.dispose();
     _customerNumberController.dispose();
     _customerAddressController.dispose();
+    _postCodeController.dispose();
     _notesController.dispose();
     _otherAmountController.dispose();
     _scrollController.dispose();
@@ -169,7 +172,6 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
     if (_categoryId == null || _categoryId!.isEmpty) errs['category'] = 'Select a service category';
     if (_assignToIds.isEmpty) errs['assignTo'] = 'Assign to at least one employee';
     if (_assignDate == null) errs['assignDate'] = 'Select an assign date';
-    if (_deadlineDate == null) errs['deadline'] = 'Select a deadline';
     setState(() { _errors.clear(); _errors.addAll(errs); });
     return errs.isEmpty;
   }
@@ -190,6 +192,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
       customerName: _customerNameController.text.trim(),
       customerNumber: _customerNumberController.text.trim(),
       customerAddress: _customerAddressController.text.trim(),
+      postCode: _postCodeController.text.trim(),
       assignTo: _assignToIds,
       assignDate: _buildISO(_assignDate, _assignTime),
       deadline: _buildISO(_deadlineDate, _deadlineTime),
@@ -317,6 +320,13 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
               ),
               SizedBox(height: 16.h),
 
+              _sectionLabel('Post Code'),
+              _textField(
+                controller: _postCodeController,
+                hint: 'Enter post code',
+              ),
+              SizedBox(height: 16.h),
+
               _sectionLabel('Assign To *'),
               _selectorTile(
                 value: _assignToNames.isEmpty
@@ -346,10 +356,10 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
               ),
               SizedBox(height: 16.h),
 
-              _sectionLabel('Deadline *'),
+              _sectionLabel('Deadline'),
               _dateTile(
                 label: _deadlineDate != null ? _formatDate(_deadlineDate!) : null,
-                hint: 'Select deadline date',
+                hint: 'Select deadline date (optional)',
                 icon: Icons.calendar_today_outlined,
                 error: _errors['deadline'],
                 onTap: () { _clearError('deadline'); _pickDate(false); },
@@ -1136,16 +1146,24 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
 
   void _showEditServiceDialog(int index) {
     final s = _services[index];
+    final nameCtrl = TextEditingController(text: s.name);
     final qtyCtrl = TextEditingController(text: s.quantity.toString());
     final priceCtrl = TextEditingController(text: s.price.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-        title: Text('Edit: ${s.name}', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600)),
+        title: Text('Edit Service', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: nameCtrl,
+              minLines: 1,
+              maxLines: 4,
+              decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+            ),
+            SizedBox(height: 12.h),
             TextField(
               controller: qtyCtrl,
               keyboardType: TextInputType.number,
@@ -1165,7 +1183,7 @@ class _AdminEditTaskScreenState extends State<AdminEditTaskScreen> {
             onPressed: () {
               setState(() {
                 _services[index] = _ServiceItem(
-                  name: s.name,
+                  name: nameCtrl.text.trim().isEmpty ? s.name : nameCtrl.text.trim(),
                   price: double.tryParse(priceCtrl.text.trim()) ?? s.price,
                   quantity: int.tryParse(qtyCtrl.text.trim()) ?? s.quantity,
                 );

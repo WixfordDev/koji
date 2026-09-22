@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:koji/controller/admincontroller/schedule_controller.dart';
 import 'package:koji/models/admin-model/all_employee_task_model.dart';
+import 'package:koji/services/api_constants.dart';
 
 class AdminScheduleScreen extends StatelessWidget {
   const AdminScheduleScreen({super.key});
@@ -110,6 +111,7 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
             'members': [
               {
                 'name': item.fullName ?? 'N/A',
+                'image': item.image ?? '',
                 'taskCount': '${item.totalPendingTask ?? 0} Pending Tasks',
                 'location': item.location?.locationName ?? 'Default Location',
                 'assignTo': item.assignTo ?? '',
@@ -128,6 +130,13 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
         setState(() {});
       }
     });
+  }
+
+  String _getImageUrl(String imageUrl) {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    return '${ApiConstants.imageBaseUrl}$imageUrl';
   }
 
   List<Map<String, String>> _formatTimeSlots(List<Touch>? timeSlots) {
@@ -527,11 +536,16 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
                                           CircleAvatar(
                                             radius: 20.r,
                                             backgroundColor: team['teamColor'].withOpacity(0.15),
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 20.sp,
-                                              color: team['teamColor'],
-                                            ),
+                                            backgroundImage: (member['image'] != null && (member['image'] as String).isNotEmpty)
+                                                ? NetworkImage(_getImageUrl(member['image']))
+                                                : null,
+                                            child: (member['image'] == null || (member['image'] as String).isEmpty)
+                                                ? Icon(
+                                                    Icons.person,
+                                                    size: 20.sp,
+                                                    color: team['teamColor'],
+                                                  )
+                                                : null,
                                           ),
                                           SizedBox(width: 12.w),
                                           Column(
