@@ -152,13 +152,6 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
 
   List<Attendance> _applyFilters(List<Attendance> all) {
     return all.where((a) {
-      // Month filter
-      if (a.clockIn != null) {
-        if (a.clockIn!.month != _selectedMonth.month ||
-            a.clockIn!.year != _selectedMonth.year) {
-          return false;
-        }
-      }
       // Status filter
       final status = (a.status ?? '').toLowerCase();
       if (_selectedStatus == 'Pending' &&

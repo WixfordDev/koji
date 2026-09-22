@@ -38,7 +38,9 @@ class _AdminEmployeeViewState extends State<AdminEmployeeView> {
   }
 
   getFullName(){
-    fullName.text = "${widget.employee.firstName} ${widget.employee.lastName}";
+    final first = widget.employee.firstName ?? '';
+    final last = widget.employee.lastName ?? '';
+    fullName.text = "$first $last".trim();
     setState(() {
 
     });

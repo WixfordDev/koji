@@ -171,6 +171,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             child: _buildServiceItem(
                               '${s['name'] ?? 'Service'} (x$qty)',
                               '\$${(price * qty).toStringAsFixed(1)}',
+                              index: index,
                             ),
                           );
                         })
@@ -188,6 +189,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             return _buildServiceItem(
                               '${serviceItem.name ?? 'Service'} (x$quantity)',
                               '\$${total.toStringAsFixed(1)}',
+                              index: index,
                             );
                           },
                         ),
@@ -584,11 +586,24 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
   }
 
-  Widget _buildServiceItem(String service, String price) {
+  Widget _buildServiceItem(String service, String price, {int? index}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(child: Text(service, style: TextStyle(fontSize: 14.sp, color: Colors.black87))),
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (index != null)
+                Text(
+                  '${index + 1}. ',
+                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87),
+                ),
+              Flexible(child: Text(service, style: TextStyle(fontSize: 14.sp, color: Colors.black87))),
+            ],
+          ),
+        ),
         SizedBox(width: 8.w),
         Flexible(child: Text(price, textAlign: TextAlign.end, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87))),
       ],

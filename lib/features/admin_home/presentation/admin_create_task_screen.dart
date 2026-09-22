@@ -626,6 +626,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
             children: [
               TextField(
                 controller: nameController,
+                minLines: 1,
+                maxLines: 4,
                 decoration: InputDecoration(
                   labelText: "Name",
                   border: OutlineInputBorder(
@@ -740,6 +742,8 @@ class _AdminCreateTaskScreenState extends State<AdminCreateTaskScreen> with Widg
             children: [
               TextField(
                 controller: nameController,
+                minLines: 1,
+                maxLines: 4,
                 decoration: InputDecoration(
                   labelText: "Name",
                   border: OutlineInputBorder(

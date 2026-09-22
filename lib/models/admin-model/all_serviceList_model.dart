@@ -47,7 +47,7 @@ class ServiceItem {
 
   factory ServiceItem.fromJson(Map<String, dynamic> json) => ServiceItem(
     createdBy: json["createdBy"],
-    name: json["name"],
+    name: _stripHtml(json["name"]?.toString()),
     quantity: json["quantity"],
     price: json["price"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -62,4 +62,19 @@ class ServiceItem {
     "createdAt": createdAt?.toIso8601String(),
     "id": id,
   };
+}
+
+/// Strips HTML tags and decodes common HTML entities, then trims whitespace.
+String? _stripHtml(String? input) {
+  if (input == null || input.isEmpty) return input;
+  String result = input.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  result = result
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  result = result.replaceAll(RegExp(r'\s+'), ' ').trim();
+  return result.isEmpty ? null : result;
 }

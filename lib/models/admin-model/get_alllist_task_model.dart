@@ -51,6 +51,7 @@ class Result {
   final String? customerName;
   final String? customerNumber;
   final String? customerAddress;
+  final String? postCode;
   final DateTime? assignDate;
   final DateTime? deadline;
   final List<Service>? services;
@@ -81,6 +82,7 @@ class Result {
     this.customerName,
     this.customerNumber,
     this.customerAddress,
+    this.postCode,
     this.assignDate,
     this.deadline,
     this.services,
@@ -112,6 +114,7 @@ class Result {
     customerName: json["customerName"],
     customerNumber: json["customerNumber"],
     customerAddress: json["customerAddress"],
+    postCode: json["postCode"],
     assignDate: json["assignDate"] == null ? null : toSgt(DateTime.parse(json["assignDate"])),
     deadline: json["deadline"] == null ? null : toSgt(DateTime.parse(json["deadline"])),
     services: json["services"] == null ? [] : List<Service>.from(json["services"]!.map((x) => Service.fromJson(x))),
@@ -143,6 +146,7 @@ class Result {
     "customerName": customerName,
     "customerNumber": customerNumber,
     "customerAddress": customerAddress,
+    "postCode": postCode,
     "assignDate": assignDate?.toIso8601String(),
     "deadline": deadline?.toIso8601String(),
     "services": services == null ? [] : List<dynamic>.from(services!.map((x) => x.toJson())),
