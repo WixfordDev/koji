@@ -143,8 +143,10 @@ class Touch {
   final String? deadline;
   final String? customerNumber;
   final String? customerAddress;
+  final String? id;
+  final String? createdAt;
 
-  Touch({this.time, this.assignDate, this.deadline, this.customerNumber, this.customerAddress});
+  Touch({this.time, this.assignDate, this.deadline, this.customerNumber, this.customerAddress, this.id, this.createdAt});
 
   factory Touch.fromJson(Map<String, dynamic> json) => Touch(
         time: json["time"]?.toString(),
@@ -152,7 +154,22 @@ class Touch {
         deadline: json["deadline"]?.toString(),
         customerNumber: json["customerNumber"]?.toString(),
         customerAddress: json["customerAddress"]?.toString(),
+        id: (json["_id"] ?? json["id"] ?? json["taskId"])?.toString(),
+        createdAt: json["createdAt"]?.toString(),
       );
+
+  /// When this task was created: `createdAt` if the API sends it, otherwise
+  /// the timestamp embedded in the Mongo ObjectId.
+  DateTime? get createdTime {
+    final parsed = createdAt == null ? null : DateTime.tryParse(createdAt!);
+    if (parsed != null) return parsed;
+    final objectId = id;
+    if (objectId != null && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(objectId)) {
+      final seconds = int.parse(objectId.substring(0, 8), radix: 16);
+      return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
+    }
+    return null;
+  }
 
   Map<String, dynamic> toJson() => {
         "time": time,
@@ -160,6 +177,8 @@ class Touch {
         "deadline": deadline,
         "customerNumber": customerNumber,
         "customerAddress": customerAddress,
+        "_id": id,
+        "createdAt": createdAt,
       };
 }
 

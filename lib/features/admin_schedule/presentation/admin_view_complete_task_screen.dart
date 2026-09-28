@@ -124,7 +124,16 @@ class _AdminCompleteViewTaskScreenState extends State<AdminCompleteViewTaskScree
                 }
 
                 final taskData = scheduleController.allTaskListData.value;
-                final allTasks = taskData?.results ?? [];
+                // Newest created task first.
+                final allTasks = List<Result>.from(taskData?.results ?? [])
+                  ..sort((a, b) {
+                    final aTime = a.createdAt ?? a.assignDate;
+                    final bTime = b.createdAt ?? b.assignDate;
+                    if (aTime == null && bTime == null) return 0;
+                    if (aTime == null) return 1;
+                    if (bTime == null) return -1;
+                    return bTime.compareTo(aTime);
+                  });
 
                 // Filter tasks based on selected tab
                 List<Result> filteredTasks = [];
