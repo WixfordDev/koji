@@ -155,7 +155,42 @@ class AdminHomeController extends GetxController {
   RxBool hasMoreTasks = true.obs;
   Rx<GetAllListTaskModel> getAllListTask = GetAllListTaskModel().obs;
 
+  // Full task list used by the search, since the paginated list only holds
+  // the pages scrolled so far.
+  static const int _searchPageLimit = 100;
+  bool _allTasksForSearchLoaded = false;
+  RxBool searchTasksLoading = false.obs;
+  RxList<Result> allTasksForSearch = <Result>[].obs;
+
+  Future<void> fetchAllTasksForSearch({bool force = false}) async {
+    if (searchTasksLoading.value) return;
+    if (_allTasksForSearchLoaded && !force) return;
+    searchTasksLoading(true);
+    try {
+      final all = <Result>[];
+      int page = 1;
+      int totalPages = 1;
+      do {
+        final response = await ApiClient.getData(
+          '${ApiConstants.getAllTaskEndPoint}&limit=$_searchPageLimit&page=$page',
+        );
+        if (response.statusCode != 200) return;
+        final model = GetAllListTaskModel.fromJson(response.body['data']['attributes']);
+        all.addAll(model.results ?? []);
+        totalPages = model.totalPages ?? 1;
+        page++;
+      } while (page <= totalPages);
+      allTasksForSearch.assignAll(all);
+      _allTasksForSearchLoaded = true;
+    } catch (e) {
+      print('fetchAllTasksForSearch error: $e');
+    } finally {
+      searchTasksLoading(false);
+    }
+  }
+
   getAllListTasks() async {
+    _allTasksForSearchLoaded = false;
     _currentTaskPage = 1;
     hasMoreTasks.value = true;
     getAllListTaskLoading(true);

@@ -94,13 +94,46 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     });
   }
 
+  // Newest first: by creation time, falling back to assign date.
+  DateTime? _touchSortTime(Touch touch) {
+    return touch.createdTime ??
+        (touch.assignDate == null ? null : DateTime.tryParse(touch.assignDate!));
+  }
+
+  int _compareNewestFirst(DateTime? a, DateTime? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return b.compareTo(a);
+  }
+
+  DateTime? _latestTouchTime(EmployeeTaskData item) {
+    DateTime? latest;
+    for (final touch in item.touches ?? const <Touch>[]) {
+      final time = _touchSortTime(touch);
+      if (time != null && (latest == null || time.isAfter(latest))) {
+        latest = time;
+      }
+    }
+    return latest;
+  }
+
+  void _reloadSchedule() {
+    _loadMonthlyData(DateFormat('yyyy-MM').format(_focusedDay));
+    _loadEmployeeTaskData(DateFormat('yyyy-MM-dd').format(_selectedDay ?? DateTime.now()));
+  }
+
   void _loadEmployeeTaskData(String date) {
-    _scheduleController.getEmployeeTaskData(date: date).then((data) {
+    _scheduleController.getEmployeeTaskData(date: date, limit: 100).then((data) {
       if (data?.data?.attributes?.results != null) {
         _teams = [];
         int colorIndex = 0;
 
-        for (var item in data!.data!.attributes!.results!) {
+        // Team with the most recently created task comes first.
+        final items = List<EmployeeTaskData>.from(data!.data!.attributes!.results!)
+          ..sort((a, b) => _compareNewestFirst(_latestTouchTime(a), _latestTouchTime(b)));
+
+        for (var item in items) {
           // Assign color from the predefined list, cycling through if needed
           Color teamColor = _teamColors[colorIndex % _teamColors.length];
 
@@ -147,7 +180,17 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     }
 
     List<Map<String, String>> formattedSlots = [];
-    final limitedSlots = timeSlots.take(3).toList();
+    // Time slots in chronological order: earliest time first.
+    final sortedSlots = List<Touch>.from(timeSlots)
+      ..sort((a, b) {
+        final aTime = a.assignDate == null ? null : DateTime.tryParse(a.assignDate!);
+        final bTime = b.assignDate == null ? null : DateTime.tryParse(b.assignDate!);
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return aTime.compareTo(bTime);
+      });
+    final limitedSlots = sortedSlots.take(3).toList();
     for (var slot in limitedSlots) {
       String timeDisplay = '';
       if (slot.assignDate != null && slot.deadline != null) {
@@ -243,7 +286,10 @@ class _AdminScheduleScreenState extends State<_AdminScheduleScreenContent> {
     return Scaffold(
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/adminCreateTaskScreen'),
+        onPressed: () async {
+          await context.push('/adminCreateTaskScreen');
+          if (mounted) _reloadSchedule();
+        },
         backgroundColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),

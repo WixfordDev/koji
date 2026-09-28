@@ -32,6 +32,10 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
     });
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+      // Search needs every task, not just the pages loaded so far.
+      if (_searchQuery.isNotEmpty) {
+        adminHomeController.fetchAllTasksForSearch();
+      }
     });
     _scrollController.addListener(_onScroll);
   }
@@ -39,11 +43,19 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      adminHomeController.getAllListTasks();
+      _refreshTasks();
+    }
+  }
+
+  Future<void> _refreshTasks() async {
+    await adminHomeController.getAllListTasks();
+    if (_searchQuery.isNotEmpty) {
+      await adminHomeController.fetchAllTasksForSearch(force: true);
     }
   }
 
   void _onScroll() {
+    if (_searchQuery.isNotEmpty) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       adminHomeController.loadMoreTasks();
@@ -233,7 +245,10 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
   // ------------------------------ TASK LIST ------------------------------
   Widget _buildTaskList() {
     return Obx(() {
-      if (adminHomeController.getAllListTaskLoading.value) {
+      final isSearching = _searchQuery.isNotEmpty;
+
+      if (adminHomeController.getAllListTaskLoading.value ||
+          (isSearching && adminHomeController.searchTasksLoading.value)) {
         return const Center(child: CustomLoader());
       }
 
@@ -242,8 +257,11 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
         return const Center(child: Text("No tasks found"));
       }
 
-      List<Result> filteredTasks =
-          _filterTasks(adminHomeController.getAllListTask.value.results!);
+      // While searching, filter the full task list instead of the loaded pages.
+      final sourceTasks = isSearching && adminHomeController.allTasksForSearch.isNotEmpty
+          ? adminHomeController.allTasksForSearch.toList()
+          : adminHomeController.getAllListTask.value.results!;
+      List<Result> filteredTasks = _filterTasks(sourceTasks);
 
       if (filteredTasks.isEmpty) {
         return Center(
@@ -255,11 +273,10 @@ class _AdminMyTaskScreenState extends State<AdminMyTaskScreen>
       }
 
       return RefreshIndicator(
-        onRefresh: () async {
-          await adminHomeController.getAllListTasks();
-        },
+        onRefresh: _refreshTasks,
         child: Obx(() {
-          final isLoadingMore = adminHomeController.loadMoreTasksLoading.value;
+          final isLoadingMore =
+              !isSearching && adminHomeController.loadMoreTasksLoading.value;
           final hasMore = adminHomeController.hasMoreTasks.value;
           return ListView.separated(
             controller: _scrollController,
